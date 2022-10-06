@@ -1,0 +1,296 @@
+<style>
+  .content_box {
+    padding: 40px 20px;
+    background-color: #add027;
+    color: #222;
+  }
+  #plan_picker_button {
+    background-color: #fff;
+  }
+  #price_box {
+    padding: 0 10%;
+  }
+  #plus_box p {
+    font-size: 2em;
+    font-weight: 800;
+  }
+</style>
+<div class="index-section">
+  <div class="page-width text-{{ block.settings.align_text }}">
+    {% if block.settings.title != blank %}
+      <div class="section-header">
+        <h2>{{ block.settings.title }}</h2>
+      </div>
+    {% endif %}
+    
+    {% if block.settings.section-text != blank %}
+      <div class="rte featured-row__subtext" style="width: 75%;margin: 0 auto 40px;">
+        <p>{{ block.settings.section-text }}</p>
+      </div>
+    {% endif %}
+
+    {%- assign text_column_count = 0 -%}
+    {%- assign column_1_enabled = false -%}
+    {%- assign column_2_enabled = false -%}
+    {%- assign column_3_enabled = false -%}
+    {%- assign column_4_enabled = false -%}
+    {% if block.settings.enable_image_1 or block.settings.title_1 != blank or block.settings.text_1 != blank %}
+      {%- assign column_1_enabled = true -%}
+      {%- assign text_column_count = text_column_count | plus: 1 -%}
+    {% endif %}
+    {% if block.settings.enable_image_2 or block.settings.title_2 != blank or block.settings.text_2 != blank %}
+      {%- assign column_2_enabled = true -%}
+      {%- assign text_column_count = text_column_count | plus: 1 -%}
+    {% endif %}
+    {% if block.settings.enable_image_3 or block.settings.title_3 != blank or block.settings.text_3 != blank %}
+      {%- assign column_3_enabled = true -%}
+      {%- assign text_column_count = text_column_count | plus: 1 -%}
+    {% endif %}
+    {% if block.settings.enable_image_4 or block.settings.title_4 != blank or block.settings.text_4 != blank %}
+      {%- assign column_4_enabled = true -%}
+      {%- assign text_column_count = text_column_count | plus: 1 -%}
+    {% endif %}
+
+    {% case text_column_count %}
+      {% when 1 %}
+        {%- assign grid_item_width = '' -%}
+      {% when 2 %}
+        {%- assign grid_item_width = 'medium-up--one-half' -%}
+      {% when 3 %}
+        {%- assign grid_item_width = 'medium-up--one-third' -%}
+      {% when 4 %}
+        {%- assign grid_item_width = 'medium-up--one-half' -%}
+    {% endcase %}
+
+    <div id="meal_plans" class="grid grid--flush-bottom">
+      {% if column_1_enabled %}
+        <div class="grid__item {{ grid_item_width }}" data-aos="row-of-4">
+          {% if block.settings.enable_image_1 %}
+            {% if block.settings.button_link_1 != blank %}
+              <a href="{{ block.settings.button_link_1 }}">
+            {% endif %}
+            {% if block.settings.image_1 != blank %}
+              <div class="image-wrap" style="height: 0; padding-bottom: {{ 60 | divided_by: block.settings.image_1.aspect_ratio }}%;">
+                {%- assign img_url_1 = block.settings.image_1 | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+                <img class="lazyload"
+                    data-src="{{ img_url_1 }}"
+                    data-widths="[180, 360, 540, 720, 900, 1080]"
+                    data-aspectratio="{{ block.settings.image_1.aspect_ratio }}"
+                    data-sizes="auto"
+                    alt="{{ block.settings.image_1.alt }}"
+                     style="margin-top:-20%">
+              </div>
+            {% else %}
+              <div class="image-wrap">{{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}</div>
+            {% endif %}
+            {% if block.settings.button_link_1 != blank %}
+              </a>
+            {% endif %}
+          {% endif %}
+          <div class="content_box">
+          {% if block.settings.title_1 != blank %}
+            <p class="h3" style="margin: 0;">{{ block.settings.title_1 }}</p>
+          {% endif %}
+          {% if block.settings.text_1 != blank %}
+            <div class="rte-setting text-spacing">{{ block.settings.text_1 }}</div>
+          {% endif %}
+            
+            <div class="rte-setting text-spacing"><p>- As low as -</p></div>
+            
+            <div id="price_box" class="grid">
+              <div id="price" class="grid__item large-up--five-twelfths">
+                <p class="h3" style="margin: 0;">{{ block.settings.price_per_meal_1 }}</p>
+                <p>per meal</p>
+              </div>
+              <div id="plus_box" class="grid__item large-up--two-twelfths">
+                <p>+</p>
+              </div>
+              <div id="shipping_box" class="grid__item large-up--five-twelfths">
+                <p class="h3" style="margin: 0;">FREE</p>
+                <p>shipping</p>
+              </div>
+            </div>
+            
+          {% if block.settings.button_label_1 != blank %}
+            <a href="{{ block.settings.button_link_1 }}" id="plan_picker_button" class="btn btn--secondary btn--small">
+              {{ block.settings.button_label_1 }}
+            </a>
+          {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if column_2_enabled %}
+        <div class="grid__item {{ grid_item_width }}" data-aos="row-of-4">
+          {% if block.settings.enable_image_2 %}
+            {% if block.settings.button_link_2 != blank %}
+              <a href="{{ block.settings.button_link_2 }}">
+            {% endif %}
+            {% if block.settings.image_2 != blank %}
+              <div class="image-wrap" style="height: 0; padding-bottom: {{ 60 | divided_by: block.settings.image_2.aspect_ratio }}%;">
+                {%- assign img_url_2 = block.settings.image_2 | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+                <img class="lazyload"
+                    data-src="{{ img_url_2 }}"
+                    data-widths="[180, 360, 540, 720, 900, 1080]"
+                    data-aspectratio="{{ block.settings.image_2.aspect_ratio }}"
+                    data-sizes="auto"
+                    alt="{{ block.settings.image_2.alt }}"
+                     style="margin-top:-20%">
+              </div>
+            {% else %}
+              <div class="image-wrap">{{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}</div>
+            {% endif %}
+            {% if block.settings.button_link_2 != blank %}
+              </a>
+            {% endif %}
+          {% endif %}
+          <div class="content_box">
+          {% if block.settings.title_2 != blank %}
+            <p class="h3" style="margin: 0;">{{ block.settings.title_2 }}</p>
+          {% endif %}
+          {% if block.settings.text_2 != blank %}
+            <div class="rte-setting text-spacing">{{ block.settings.text_2 }}</div>
+          {% endif %}
+            
+            <div class="rte-setting text-spacing"><p>- As low as -</p></div>
+            
+            <div id="price_box" class="grid">
+              <div id="price" class="grid__item large-up--five-twelfths">
+                <p class="h3" style="margin: 0;">{{ block.settings.price_per_meal_2 }}</p>
+                <p>per meal</p>
+              </div>
+              <div id="plus_box" class="grid__item large-up--two-twelfths">
+                <p>+</p>
+              </div>
+              <div id="shipping_box" class="grid__item large-up--five-twelfths">
+                <p class="h3" style="margin: 0;">FREE</p>
+                <p>shipping</p>
+              </div>
+            </div>
+            
+          {% if block.settings.button_label_2 != blank %}
+            <a href="{{ block.settings.button_link_2 }}" id="plan_picker_button" class="btn btn--secondary btn--small">
+              {{ block.settings.button_label_2 }}
+            </a>
+          {% endif %}
+          </div>
+        </div>
+      {% endif %}
+
+      {% if column_3_enabled %}
+        <div class="grid__item {{ grid_item_width }}" data-aos="row-of-4">
+          {% if block.settings.enable_image_3 %}
+            {% if block.settings.button_link_3 != blank %}
+              <a href="{{ block.settings.button_link_3 }}">
+            {% endif %}
+            {% if block.settings.image_3 != blank %}
+              <div class="image-wrap" style="height: 0; padding-bottom: {{ 60 | divided_by: block.settings.image_3.aspect_ratio }}%;">
+                {%- assign img_url_3 = block.settings.image_3 | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+                <img class="lazyload"
+                    data-src="{{ img_url_3 }}"
+                    data-widths="[180, 360, 540, 720, 900, 1080]"
+                    data-aspectratio="{{ block.settings.image_3.aspect_ratio }}"
+                    data-sizes="auto"
+                    alt="{{ block.settings.image_3.alt }}"
+                     style="margin-top:-20%">
+              </div>
+            {% else %}
+              <div class="image-wrap">{{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}</div>
+            {% endif %}
+            {% if block.settings.button_link_3 != blank %}
+              </a>
+            {% endif %}
+          {% endif %}
+          <div class="content_box">
+          {% if block.settings.title_3 != blank %}
+            <p class="h3" style="margin: 0;">{{ block.settings.title_3 }}</p>
+          {% endif %}
+          {% if block.settings.text_3 != blank %}
+            <div class="rte-setting text-spacing">{{ block.settings.text_3 }}</div>
+          {% endif %}
+            
+            <div class="rte-setting text-spacing"><p>- As low as -</p></div>
+            
+            <div id="price_box" class="grid">
+              <div id="price" class="grid__item large-up--five-twelfths">
+                <p class="h3" style="margin: 0;">{{ block.settings.price_per_meal_3 }}</p>
+                <p>per meal</p>
+              </div>
+              <div id="plus_box" class="grid__item large-up--two-twelfths">
+                <p>+</p>
+              </div>
+              <div id="shipping_box" class="grid__item large-up--five-twelfths">
+                <p class="h3" style="margin: 0;">FREE</p>
+                <p>shipping</p>
+              </div>
+            </div>
+            
+          {% if block.settings.button_label_3 != blank %}
+            <a href="{{ block.settings.button_link_3 }}" id="plan_picker_button" class="btn btn--secondary btn--small">
+              {{ block.settings.button_label_3 }}
+            </a>
+          {% endif %}
+          </div>
+        </div>
+      {% endif %}
+      
+      {% if column_4_enabled %}
+        <div class="grid__item {{ grid_item_width }}" data-aos="row-of-4">
+          {% if block.settings.enable_image_4 %}
+            {% if block.settings.button_link_4 != blank %}
+              <a href="{{ block.settings.button_link_4 }}">
+            {% endif %}
+            {% if block.settings.image_4 != blank %}
+              <div class="image-wrap" style="height: 0; padding-bottom: {{ 60 | divided_by: block.settings.image_4.aspect_ratio }}%;">
+                {%- assign img_url_4 = block.settings.image_4 | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+                <img class="lazyload"
+                    data-src="{{ img_url_4 }}"
+                    data-widths="[180, 360, 540, 720, 900, 1080]"
+                    data-aspectratio="{{ block.settings.image_4.aspect_ratio }}"
+                    data-sizes="auto"
+                    alt="{{ block.settings.image_4.alt }}"
+                     style="margin-top:-20%">
+              </div>
+            {% else %}
+              <div class="image-wrap">{{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}</div>
+            {% endif %}
+            {% if block.settings.button_link_4 != blank %}
+              </a>
+            {% endif %}
+          {% endif %}
+          <div class="content_box">
+          {% if block.settings.title_4 != blank %}
+            <p class="h3" style="margin: 0;">{{ block.settings.title_4 }}</p>
+          {% endif %}
+          {% if block.settings.text_4 != blank %}
+            <div class="rte-setting text-spacing">{{ block.settings.text_4 }}</div>
+          {% endif %}
+            
+            <div class="rte-setting text-spacing"><p>- As low as -</p></div>
+            
+            <div id="price_box" class="grid">
+              <div id="price" class="grid__item large-up--five-twelfths">
+                <p class="h3" style="margin: 0;">{{ block.settings.price_per_meal_4 }}</p>
+                <p>per meal</p>
+              </div>
+              <div id="plus_box" class="grid__item large-up--two-twelfths">
+                <p>+</p>
+              </div>
+              <div id="shipping_box" class="grid__item large-up--five-twelfths">
+                <p class="h3" style="margin: 0;">FREE</p>
+                <p>shipping</p>
+              </div>
+            </div>
+            
+          {% if block.settings.button_label_4 != blank %}
+            <a href="{{ block.settings.button_link_4 }}" id="plan_picker_button" class="btn btn--secondary btn--small">
+              {{ block.settings.button_label_4 }}
+            </a>
+          {% endif %}
+          </div>
+        </div>
+      {% endif %}
+      
+    </div>
+  </div>
+</div>

@@ -1,0 +1,83 @@
+<style>
+  .index-section-{{ block.id }} a { 
+    color:#aed125;
+  }
+  #faq_category_heading {
+    margin-top: 50px;
+}
+  .section-header {
+    margin-bottom: unset;
+}
+</style>
+<div class="index-section-{{ block.id }} {{ section_class }}" {% if block.settings.background_image %}style="background-image: url({{ block.settings.background_image | img_url: '1920x' }});background-size: cover;padding: 10% 0;"{% endif %}>
+  <div class="page-width text-{{ block.settings.align_text }}">
+    <div class="grid{% if block.settings.section_border %} grid--no-gutters{% endif %}" style="{% if block.settings.section_border %}border: 5px solid #fff;padding: 80px 20px;{% endif %}{% if block.settings.section_overlay %}background: rgb(34 34 34 / 0.9);{% endif %}">
+      <div class="grid__item{% if block.settings.narrow_column %} medium-up--three-quarters medium-up--push-one-eighth{% endif %}">
+        {% if block.settings.title != blank %}
+          <p id="faq_category_heading" class="h2">
+            {{ block.settings.title | escape }}
+          </p>
+        {% endif %}
+        {% if block.settings.text != blank %}
+          <div class="rte">
+            {% if block.settings.enlarge_text %}<div class="enlarge-text">{% endif %}
+              {{ block.settings.text }}
+            {% if block.settings.enlarge_text %}</div>{% endif %}
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="grid__item one-whole">
+        {% if block.settings.feature_text_title-1 != blank %}
+        <div class="grid__item medium-up--one-third" style="margin-top: 50px;">
+          
+          <p class="h2">
+            {{ block.settings.feature_text_title-1 | escape }}
+          </p>
+          {% endif %}
+          {% if block.settings.feature_text_content-1 != blank %}
+          <div class="rte">
+            {% if block.settings.enlarge_text %}<div class="enlarge-text">{% endif %}
+            {{ block.settings.feature_text_content-1 }}
+            {% if block.settings.enlarge_text %}</div>{% endif %}
+          </div>
+          
+        </div>
+        {% endif %}
+		{% if block.settings.feature_text_title-2 != blank %}
+        <div class="grid__item medium-up--one-third" style="margin-top: 50px;">
+          
+          <p class="h2">
+            {{ block.settings.feature_text_title-2 | escape }}
+          </p>
+          {% endif %}
+          {% if block.settings.feature_text_content-2 != blank %}
+          <div class="rte">
+            {% if block.settings.enlarge_text %}<div class="enlarge-text">{% endif %}
+            {{ block.settings.feature_text_content-2 }}
+            {% if block.settings.enlarge_text %}</div>{% endif %}
+          </div>
+          
+        </div>
+        {% endif %}
+		{% if block.settings.feature_text_title-3 != blank %}
+        <div class="grid__item medium-up--one-third" style="margin-top: 50px;">
+          
+          <p class="h2">
+            {{ block.settings.feature_text_title-3 | escape }}
+          </p>
+          {% endif %}
+          {% if block.settings.feature_text_content-3 != blank %}
+          <div class="rte">
+            {% if block.settings.enlarge_text %}<div class="enlarge-text">{% endif %}
+            {{ block.settings.feature_text_content-3 }}
+            {% if block.settings.enlarge_text %}</div>{% endif %}
+          </div>
+          
+        </div>
+        {% endif %}
+      </div>
+      
+    </div>
+  </div>
+</div>

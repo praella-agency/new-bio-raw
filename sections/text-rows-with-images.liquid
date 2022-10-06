@@ -1,0 +1,267 @@
+<div id="section--{{ section.id }}" class="{% if section.settings.divider %}section--divider{% endif %}" style="{% if section.settings.divider %}padding-bottom: 100px;{% endif %}color: {{ section.settings.text_color }};background: {{ section.settings.background_color }};">
+  <style>
+    #shopify-section-{{ section.id }} a {
+      color: {{ section.settings.text_color }};
+    }
+    #shopify-section-{{ section.id }} h3 {
+      font-size: {{ section.settings.heading_size }}em;
+    }
+    #shopify-section-{{ section.id }} .text_container {
+      margin: 50px 0;
+    }
+    #shopify-section-{{ section.id }} .image-wrap {
+      margin-right: 30px;
+      width: {{ section.settings.image_width }}px;
+    }
+    @media only screen and (min-width: 769px) {
+      #shopify-section-{{ section.id }} .text_container {
+        display: -webkit-inline-box;
+      }
+      #shopify-section-{{ section.id }} .image-wrap {
+        float: left;
+      }
+    }
+  </style>
+  <div class="page-width">
+  <div class="grid {% unless section.blocks.size == 5 %}grid--uniform{% endunless %} grid--flush-bottom">
+    
+    <div class="grid__item large-up--three-quarters large-up--push-one-eighth">
+    
+    {% if section.settings.title != blank %}
+    <div class="section-header text-center">
+      <h2>{{ section.settings.title }}</h2>
+    </div>
+    {% endif %}
+
+    {% for block in section.blocks %}
+      {% if section.blocks.size == 5 and forloop.index < 3 %}
+        {%- assign column_width = 'medium-up--one-half' -%}
+      {% else %}
+        {%- assign column_width = grid_item_width -%}
+      {% endif %}
+      <div class="text_container text-{{ section.settings.align_text }}" {{ block.shopify_attributes }} data-aos="row-of-3">
+        {% if block.settings.enable_image %}
+          {% if block.settings.button_link != blank %}
+            <a class="" href="{{ block.settings.button_link }}">
+          {% endif %}
+          {% if block.settings.image != blank %}
+            <div 
+                 class="image-wrap text-spacing">
+              {%- assign img_url = block.settings.image | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+              <img class="lazyload"
+                   data-src="{{ img_url }}"
+                   data-widths="[180, 360, 540, 720, 900, 1080]"
+                   data-aspectratio="{{ block.settings.image.aspect_ratio }}"
+                   data-sizes="auto"
+                   alt="{{ block.settings.image.alt }}">
+            </div>
+          {% else %}
+            <div class="image-wrap text-spacing">{{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}</div>
+          {% endif %}
+          {% if block.settings.button_link != blank %}
+            </a>
+          {% endif %}
+        {% endif %}
+        
+        {% if block.settings.title != blank and block.settings.text != blank %}
+        <div class="">
+          {% if block.settings.title != blank %}
+            <h3>{{ block.settings.title }}</h3>
+          {% endif %}
+          {% if block.settings.text != blank %}
+            <div class="rte-setting text-spacing">{{ block.settings.text }}</div>
+          {% endif %}
+
+          {% if block.settings.button_label != blank %}
+          {% if section.settings.text_link %}
+          <style>
+            #section--{{ section.id }} .rte a:not(.rte__image) {
+              border-bottom: 2px solid rgba(0,0,0,0.1);
+            }
+          </style>
+          <div class="rte">
+            <a href="{{ block.settings.button_link }}" class="text-link">
+              {{ block.settings.button_label }}
+            </a>
+          </div>
+          {% else %}
+          <a href="{{ block.settings.button_link }}" class="btn btn--secondary btn--small">
+            {{ block.settings.button_label }}
+          </a>
+          {% endif %}
+          {% endif %}
+        </div>
+        {% endif %}
+        
+        
+
+      </div>
+    {% endfor %}
+    </div>
+  </div>
+
+    {% if section.settings.section_button_text != blank %}
+    <a href="{{ section.settings.section_button_link }}" class="btn btn--secondary" style="margin: 0 auto;display: table;">
+      {{ section.settings.section_button_text }}
+    </a>
+    {% endif %}
+    
+    
+    {% if section.settings.below_button_text != blank %}
+    <div style="margin: 30px auto 0;display: table;">
+      {{ section.settings.below_button_text }}
+    </div>
+    {% endif %}
+    
+    
+    
+</div>
+
+</div>
+
+
+{% schema %}
+  {
+    "name": "Text rows with images",
+    "class": "index-section",
+    "settings": [
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Heading"
+      },
+      {
+        "type": "select",
+        "id": "align_text",
+        "label": "Text alignment",
+        "default": "center",
+        "options": [
+          {
+            "value": "left",
+            "label": "Left"
+          },
+          {
+            "value": "center",
+            "label": "Centered"
+          }
+        ]
+      },
+      {
+        "type": "checkbox",
+        "id": "text_link",
+        "label": "Make button text link",
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "divider",
+        "label": "Show section divider",
+        "default": false
+      },
+	  {
+		"type": "color",
+		"id": "background_color",
+		"label": "Background color"
+	  },
+      {
+        "type": "range",
+        "id": "heading_size",
+        "label": "Block heading size",
+        "default": 1.5,
+        "min": 1,
+        "max": 2,
+        "step": 0.1,
+        "unit": "em"
+      },
+	  {
+		"type": "color",
+		"id": "text_color",
+		"label": "Text color"
+	  },
+      {
+        "type": "range",
+        "id": "image_width",
+        "label": "Image width",
+        "default": 100,
+        "min": 40,
+        "max": 200,
+        "step": 10,
+        "unit": "px"
+      },
+      {
+        "type": "text",
+        "id": "section_button_text",
+        "label": "Section button text"
+      },
+      {
+        "type": "url",
+        "id": "section_button_link",
+        "label": "Section button link"
+      },
+      {
+        "type": "richtext",
+        "id": "below_button_text",
+        "label": "Text below button"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "text_block",
+        "name": "Column",
+        "settings": [
+          {
+            "type": "checkbox",
+            "id": "enable_image",
+            "label": "Show image",
+            "default": true
+          },
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Image"
+          },
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Heading",
+            "default": "Example title"
+          },
+          {
+            "type": "richtext",
+            "id": "text",
+            "label": "Text",
+            "default": "<p>Use this section to explain a set of product features, to link to a series of pages, or to answer common questions about your products. Add images for emphasis.</p>"
+          },
+          {
+            "type": "text",
+            "id": "button_label",
+            "label": "Button label",
+            "default": "Optional button"
+          },
+          {
+            "type": "url",
+            "id": "button_link",
+            "label": "Link"
+          }
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "name": "Text rows with images",
+        "category": "Text",
+        "blocks": [
+          {
+            "type": "text_block"
+          },
+          {
+            "type": "text_block"
+          },
+          {
+            "type": "text_block"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

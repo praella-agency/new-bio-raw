@@ -1,0 +1,424 @@
+{%- assign per_row = section.settings.per_row -%}
+{%- assign product_limit = per_row | times: section.settings.rows -%}
+{%- assign collection = collections[section.settings.home_featured_products] -%}
+
+{% if section.settings.visible_products == 3 %}
+	{% assign product_width = '30' %}
+{% elsif section.settings.visible_products == 4 %}
+	{% assign product_width = '24' %}
+{% elsif section.settings.visible_products == 5 %}
+	{% assign product_width = '20' %}
+{% elsif section.settings.visible_products == 6 %}
+	{% assign product_width = '16' %}
+{% elsif section.settings.visible_products == 7 %}
+	{% assign product_width = '14' %}
+{% endif %}
+<style>
+  .product_stats {
+    display: table;
+    {% if section.settings.show_button %}margin-bottom: 30px;{% endif %}
+  }
+  #product_stat:first-child {
+    padding: 0 15px 0 0;
+  }
+  #product_stat:last-child {
+    border-right: none;
+  }
+  #product_stat {
+    border-right: 1px solid #999;
+    padding: 0 15px;
+    float: left;
+  }
+  #CollectionSection-{{ section.id }} .grid-product__content {
+    margin-bottom: unset;
+    background: #fff;
+    outline: 4px solid #000;
+    box-shadow: 4px 6px 25px #000;
+    transition-duration: 0.3s;
+  }
+  #CollectionSection-{{ section.id }} .grid-product__content:hover {
+    transform: scale(1.05);
+  }
+  #CollectionSection-{{ section.id }} .grid-product__meta {
+    color: #000;
+    padding: 20px;
+  }
+  #CollectionSection-{{ section.id }} .grid-product__title {
+    margin-bottom: 20px;
+  }
+  #desktop_slider:first-child {
+    margin-left: 30px;
+  }
+  #desktop_slider:last-child {
+    margin-right: 30px;
+  }
+  #scroll_section {
+    scroll-behavior: smooth;
+  }
+  
+  @media only screen and (min-width: 590px) {
+    #CollectionSection-{{ section.id }} .grid-overflow-wrapper {
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 60px 0;
+    }
+    #CollectionSection-16086819164decde3a .grid-overflow-wrapper::-webkit-scrollbar {
+    display: none;
+}
+    #CollectionSection-{{ section.id }} .grid-overflow-wrapper #desktop_slider {
+      width: {{ product_width }}%;
+      -ms-flex: 0 0 {{ product_width }}%;
+      flex: 0 0 {{ product_width }}%;
+      display: inline-block;
+      float: none;
+      white-space: normal;
+    }
+    #CollectionSection-{{ section.id }} [data-aos="overflow__animation"].aos-animate {
+      transform: translateX(0);
+    }
+    #CollectionSection-{{ section.id }} .grid-overflow-wrapper .grid {
+      white-space: nowrap;
+      display: -ms-flexbox;
+    }
+    #CollectionSection-{{ section.id }} [data-aos="overflow__animation"] {
+      transform: translateX(100vw);
+      transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+  }
+  @media only screen and (max-width: 1024px) and (min-width: 590px) {
+    #CollectionSection-{{ section.id }} .grid-overflow-wrapper #desktop_slider {
+      width: 35%;
+      -ms-flex: 0 0 35%;
+      flex: 0 0 35%;
+    }
+  }
+  @media only screen and (max-width: 589px) {
+    #CollectionSection-{{ section.id }} .grid-overflow-wrapper .grid {
+      display: inline-flex;
+    }
+    #CollectionSection-{{ section.id }} .grid-overflow-wrapper .grid__item {
+      width: 66vw;
+      -ms-flex: 0 0 66vw;
+      flex: 0 0 66vw;
+    }
+  }
+  .scroll_buttons {
+    margin-top: 14%;
+    position: absolute;
+    width: 100%;
+    z-index: 9;
+  }
+  #slideLeft, #slideRight {
+    width: 50px;
+    height: 50px;
+    padding: 15px;
+    background: #fff;
+    margin: 0 10px;
+    transition-duration: 0.2s;;
+  }
+    #slideLeft:hover, #slideRight:hover {
+	transform: scale(1.2);
+  }
+</style>
+
+{% if section.settings.divider %}<div class="section--divider">{% endif %}
+
+<div id="CollectionSection-{{ section.id }}" data-section-id="{{ section.id }}" data-section-type="featured-collection">
+  {% if section.settings.title != blank %}
+    <div class="page-width">
+      <div class="section-header">
+        <h2 class="section-header__title">
+          {{ section.settings.title }}
+          {% if section.settings.view_all and section.settings.rows == 1 %}
+            <a href="{{ collections[section.settings.home_featured_products].url }}" class="section-header__link">{{ 'collections.general.all_of_collection' | t }}</a>
+          {% endif %}
+        </h2>
+      </div>
+    </div>
+  {% endif %}
+  
+  <div class="scroll_buttons">
+<button id="slideLeft" class="small--hide" type="button"><svg style="height: 100%;" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="chevron-left" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="svg-inline--fa fa-chevron-left fa-w-10 fa-7x"><path fill="currentColor" d="M34.52 239.03L228.87 44.69c9.37-9.37 24.57-9.37 33.94 0l22.67 22.67c9.36 9.36 9.37 24.52.04 33.9L131.49 256l154.02 154.75c9.34 9.38 9.32 24.54-.04 33.9l-22.67 22.67c-9.37 9.37-24.57 9.37-33.94 0L34.52 272.97c-9.37-9.37-9.37-24.57 0-33.94z" class=""></path></svg></button>  
+<button id="slideRight" class="small--hide" type="button" style="float:right;"><svg style="height: 100%;" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="chevron-right" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="svg-inline--fa fa-chevron-right fa-w-10 fa-7x"><path fill="currentColor" d="M285.476 272.971L91.132 467.314c-9.373 9.373-24.569 9.373-33.941 0l-22.667-22.667c-9.357-9.357-9.375-24.522-.04-33.901L188.505 256 34.484 101.255c-9.335-9.379-9.317-24.544.04-33.901l22.667-22.667c9.373-9.373 24.569-9.373 33.941 0L285.475 239.03c9.373 9.372 9.373 24.568.001 33.941z" class=""></path></svg></button>
+  </div>
+    
+    <div id="scroll_section" class="grid-overflow-wrapper">
+      <div class="grid grid--uniform" data-aos="overflow__animation">
+        {% assign grid_item_width = 'small--one-half medium-up--one-third' %}
+
+        {% case per_row %}
+        {% when 1 %}
+          {%- assign grid_item_width = '' -%}
+        {% when 2 %}
+          {%- assign grid_item_width = 'medium-up--one-half' -%}
+        {% when 3 %}
+          {%- assign grid_item_width = 'small--one-half medium-up--one-third' -%}
+        {% when 4 %}
+          {%- assign grid_item_width = 'small--one-half medium-up--one-quarter' -%}
+        {% when 5 %}
+          {%- assign grid_item_width = 'small--one-half medium-up--one-fifth' -%}
+        {% endcase %}
+
+        {% if section.settings.home_featured_products == blank or collections[section.settings.home_featured_products].empty? or collections[section.settings.home_featured_products].products_count == 0 %}
+
+          <div class="grid__item">
+            <div class="grid grid--uniform">
+              {% for block in section.blocks %}
+                <div class="grid__item grid-product {{ grid_item_width }}" data-aos="row-of-{{ per_row }}">
+                  <div class="grid-product__content">
+                    <a href="{{ product.url | within: collection }}" class="grid-product__link">
+                      <div class="grid-product__image-mask">
+                        {% capture current %}{% cycle 1, 2, 3, 4, 5, 6 %}{% endcapture %}
+                        <div class="image-wrap">{{ 'product-' | append: current | placeholder_svg_tag: 'placeholder-svg' }}</div>
+                      </div>
+                      <div class="grid-product__meta">
+                        <div class="grid-product__title">{{ 'home_page.onboarding.product_title' | t }}</div>
+                        <div class="grid-product__price">$29</div>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+
+        {% else %}
+
+          {% for block in section.blocks %}
+                {% unless grid_item_width %}
+                {%- assign grid_item_width = 'medium-up--one-quarter small--one-half' -%}
+                {% endunless %}
+
+                <div id="desktop_slider" class="grid__item grid-product {{ grid_item_width }}{% if settings.quick_shop_enable %} grid-product__has-quick-shop{% endif %}" data-aos="row-of-{{ per_row }}">
+                  <div class="grid-product__content">
+                    
+                    {%- assign fixed_aspect_ratio = false -%}
+                    {% unless settings.product_grid_image_size == 'natural' %}
+                    {%- assign fixed_aspect_ratio = true -%}
+                    {% endunless %}
+
+                    {%- assign preview_image = block.settings.image -%}
+                    {%- assign img_url = preview_image | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+
+                    <a href="{{ block.settings.link }}" class="grid-product__link">
+                      <div class="grid-product__image-mask">
+                        {% if fixed_aspect_ratio %}
+                        <div
+                             class="grid__image-ratio grid__image-ratio--{{ settings.product_grid_image_size }} lazyload"
+                             data-bgset="{% include 'bgset', image: preview_image %}"
+                             data-sizes="auto">
+                        </div>
+                        {% else %}
+                        <div class="image-wrap"
+                             style="height: 0; padding-bottom: {{ 100 | divided_by: preview_image.aspect_ratio }}%;"
+                             >
+                          {%- assign img_url = preview_image | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+                          <img class="grid-product__image lazyload"
+                               data-src="{{ img_url }}"
+                               data-widths="[180, 360, 540, 720, 900, 1080]"
+                               data-aspectratio="{{ preview_image.aspect_ratio }}"
+                               data-sizes="auto"
+                               alt="{{ preview_image.alt | escape }}">
+                          <noscript>
+                            <img class="grid-product__image lazyloaded"
+                                 src="{{ preview_image | img_url: '400x' }}"
+                                 alt="{{ preview_image.alt | escape }}">
+                          </noscript>
+                        </div>
+                        {% endif %}
+
+                        
+                        {% if settings.product_hover_image and product.images.size > 1 %}
+                        {% for image in product.images offset: 1 limit: 1 %}
+                        {%- assign second_image = image -%}
+                        {% endfor %}
+                        <div
+                             class="grid-product__secondary-image small--hide lazyload"
+                             data-bgset="{% include 'bgset', image: second_image %}"
+                             data-sizes="auto">
+                        </div>
+                        {% endif %}
+            
+                      </div>
+                      
+                        <div class="grid-product__meta">
+                          {% if block.settings.title != blank %}
+                          	<div class="grid-product__title">{{ block.settings.title }}</div>
+                          {% endif %}
+                          
+                          <div class="product_stats">
+                          
+                          {% if block.settings.calories != blank %}
+                          <div id="product_stat" class="grid-product__price">
+                            <div class="stat_data">
+                              {{ block.settings.calories }}
+                            </div>
+                            <div class="product__unit-price">
+                              Cals
+                            </div>
+                          </div>
+                          {% endif %}
+                          
+                          {% if block.settings.carbs != blank %}
+                          <div id="product_stat" class="grid-product__price">
+                            <div class="stat_data">
+                              {{ block.settings.carbs }}
+                            </div>
+                            <div class="product__unit-price">
+                              Carbs
+                            </div>
+                          </div>
+                          {% endif %}
+                          
+                          {% if block.settings.protein != blank %}
+                          <div id="product_stat" class="grid-product__price">
+                            <div class="stat_data">
+                              {{ block.settings.protein }}
+                            </div>
+                            <div class="product__unit-price">
+                              Protein
+                            </div>
+                          </div>
+                          {% endif %}
+                          </div>
+                          
+                          {% if section.settings.show_button %}
+                          <button class="btn btn--secondary btn--small">
+                            View Details
+                          </button>
+                          {% endif %}
+                      </div>
+                    </a>
+                  </div>
+                </div>
+
+          {% endfor %}
+        {% endif %}
+      </div>
+  </div>
+    {% if section.settings.section_button_text != blank %}
+      <div class="page-width">
+        <a href="{{ section.settings.section_button_link }}" class="btn btn--secondary" style="margin: 0 auto;display: table;">
+          {{ section.settings.section_button_text }}
+        </a>
+      </div>
+    {% endif %}
+</div>
+
+{% if settings.quick_shop_enable %}
+  {% for product in collections[section.settings.home_featured_products].products limit: product_limit %}
+    {% include 'quick-shop-modal' %}
+  {% endfor %}
+{% endif %}
+
+{% if section.settings.divider %}</div>{% endif %}
+
+<script>
+const rightButton = document.getElementById('slideRight');
+const leftButton = document.getElementById('slideLeft');
+
+  
+rightButton.onclick = function () {
+  document.getElementById('scroll_section').scrollLeft += 400;
+};
+
+leftButton.onclick = function () {
+  document.getElementById('scroll_section').scrollLeft -= 400;
+};
+</script>
+
+
+{% schema %}
+  {
+    "name": "Product slider",
+    "class": "index-section",
+    "settings": [
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Heading",
+        "default": "Featured collection"
+      },
+      {
+        "type": "collection",
+        "id": "home_featured_products",
+        "label": "Collection"
+      },
+      {
+        "type": "range",
+        "id": "visible_products",
+        "label": "Visible products",
+        "default": 4,
+        "min": 3,
+        "max": 7,
+        "step": 1
+      },
+      {
+        "type": "checkbox",
+        "id": "divider",
+        "label": "Show section divider",
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "show_button",
+        "label": "Show button",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "section_button_text",
+        "label": "Section button text"
+      },
+      {
+        "type": "url",
+        "id": "section_button_link",
+        "label": "Section button link"
+      }
+    ],
+    "blocks" : [
+      {
+        "type": "product",
+        "name": "Product",
+        "settings": [
+          {
+			"type": "url",
+            "id": "link",
+            "label": "Block link"
+          },
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Image"
+          },
+		  {
+            "type": "text",
+            "id": "title",
+            "label": "Heading"
+          },
+		  {
+            "type": "text",
+            "id": "calories",
+            "label": "Calories"
+          },
+		  {
+            "type": "text",
+            "id": "carbs",
+            "label": "Carbohydrates"
+          },
+		  {
+            "type": "text",
+            "id": "protein",
+            "label": "Protein"
+          }
+        ]
+      }
+	],
+    "presets": [
+	  {
+      	"name": "Product slider",
+      	"category": "Product"
+      }
+	]
+  }
+{% endschema %}

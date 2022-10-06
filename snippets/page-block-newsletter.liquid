@@ -1,0 +1,26 @@
+{% style %}
+  .newsletter-{{ block.id }} {
+    background-color: {{ block.settings.color_background }};
+    color: {{ block.settings.color_text }};
+  }
+
+  .newsletter-{{ block.id }} .input-group-btn {
+    background-color: {{ block.settings.color_background }};
+  }
+  .input-group-btn .btn {
+  	background-color: #fff !important;
+  }
+{% endstyle %}
+
+<div class="newsletter-section newsletter-{{ block.id }}{% if block.settings.color_background == settings.color_body_bg %} newsletter-section--with-divider{% endif %}">
+  <div class="page-width text-center">
+    {% if block.settings.title != blank %}
+      <h2 class="h3">{{ block.settings.title | escape }}</h2>
+    {% endif %}
+    {% if block.settings.text != blank %}
+      <div class="rte">{{ block.settings.text }}</div>
+    {% endif %}
+
+    {% include 'newsletter-form', section_id: block.id, snippet_context: 'section' %}
+  </div>
+</div>

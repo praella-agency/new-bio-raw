@@ -1,0 +1,297 @@
+<div class="page-width" style="margin-top:60px;">
+  {% unless section.settings.collection_image_enable and collection.image %}
+  <header class="section-header">
+    <h1 class="section-header__title collection-title">
+      {{ collection.title }}
+    </h1>
+  </header>
+  {% endunless %}
+
+  {%- if section.settings.description_position == 'top' -%}
+  {% if collection.description != blank %}
+  <div class="rte text-center larger-text">
+    <p>{{ collection.description }}</p>
+  </div>
+  <hr class="hr--clear hr--small">
+  {% endif %}
+  {%- endif -%}
+</div>
+
+{% for block in section.blocks %}
+<div class="index-section">
+  <div class="page-width">
+    {% capture image_layout %}
+      <div class="feature-row__item">
+          {% if block.settings.image != blank %}
+            {% if block.settings.button_label != blank and block.settings.button_link != blank %}<a href="{{ block.settings.button_link }}">{% endif %}
+            <div class="image-wrap" style="height: 0; padding-bottom: {{ 100 | divided_by: block.settings.image.aspect_ratio }}%;{% if block.settings.layout == 'right' %}padding-left:40px;{% else %}padding-right:40px;{% endif %}">
+              {%- assign img_url = block.settings.image | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+              <img class="feature-row__image lazyload"
+                  data-src="{{ img_url }}"
+                  data-widths="[180, 360, 540, 720, 900, 1080]"
+                  data-aspectratio="{{ block.settings.image.aspect_ratio }}"
+                  data-sizes="auto"
+                  alt="{{ block.settings.image.alt }}">
+            </div>
+            {% if block.settings.button_label != blank and block.settings.button_link != blank %}</a>{% endif %}
+          {% else %}
+            <div class="image-wrap">
+              {{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}
+            </div>
+          {% endif %}
+      </div>
+    {% endcapture %}
+
+    <div class="feature-row" data-aos style="align-items: normal;">
+      {% if block.settings.layout == 'left' %}
+        {{ image_layout }}
+      {% endif %}
+
+      <div class="feature-row__item feature-row__text feature-row__text--{{ block.settings.layout }} larger-text" style="padding-top: unset;padding-bottom: unset;">
+        {% if block.settings.subtitle != blank %}
+          <p class="subtitle">{{ block.settings.subtitle }}</p>
+        {% endif %}
+        {% if block.settings.title != blank %}
+          <h2 class="h3 meal_title">{{ block.settings.title | escape }}</h2>
+        {% endif %}
+        {% if block.settings.text != blank %}
+          <div class="rte featured-row__subtext">{{ block.settings.text }}</div>
+        {% endif %}
+        
+        {% if block.settings.calories != blank or block.settings.fibre != blank or  block.settings.protein != blank %}
+          <div class="grid" style="padding: 40px 0;">
+        {% endif %}
+        {% if block.settings.calories != blank %}
+          <div class="grid__item one-third">
+            <h2 class="h3">{{ block.settings.calories }}</h2>
+            <div class="rte featured-row__subtext larger-text"><p>calories per serving</p></div>
+          </div>
+        {% endif %}
+        {% if block.settings.fibre != blank %}
+          <div class="grid__item one-third">
+            <h2 class="h3">{{ block.settings.fibre }}</h2>
+            <div class="rte featured-row__subtext larger-text"><p>fibre per serving</p></div>
+          </div>
+        {% endif %}
+        {% if block.settings.protein != blank %}
+          <div class="grid__item one-third">
+            <h2 class="h3">{{ block.settings.protein }}</h2>
+            <div class="rte featured-row__subtext larger-text"><p>protein per serving</p></div>
+          </div>
+        {% endif %}
+        {% if block.settings.calories != blank or block.settings.fibre != blank or  block.settings.protein != blank %}
+        </div>
+        {% endif %}
+          
+        {% if block.settings.button_label != blank %}
+          <a href="{{ block.settings.button_link }}" class="btn">
+            {{ block.settings.button_label }}
+          </a>
+        {% endif %}
+      </div>
+
+      {% if block.settings.layout == 'right' %}
+        {{ image_layout }}
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{%- if section.settings.description_position == 'bottom' -%}
+  <div class="page-width">
+    {% if collection.description != blank %}
+    <hr class="hr--clear hr--small">
+    <div class="rte text-center">
+      {{ collection.description }}
+    </div>
+    {% endif %}
+  </div>
+{%- endif -%}
+
+{% schema %}
+  {
+    "name": "Custom Collection",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "custom_products",
+        "label": "Show custom products",
+        "default": false
+      },
+      {
+        "type": "range",
+        "id": "per_row",
+        "label": "Products per row",
+        "default": 4,
+        "min": 1,
+        "max": 5,
+        "step": 1
+      },
+      {
+        "type": "checkbox",
+        "id": "collection_image_enable",
+        "label": "Show collection image",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "parallax",
+        "label": "Parallax image",
+        "default": true
+      },
+      {
+        "type": "select",
+        "id": "description_position",
+        "label": "Collection description position",
+        "default": "top",
+        "options": [
+          {
+            "value": "top",
+            "label": "Top of page"
+          },
+          {
+            "value": "bottom",
+            "label": "Bottom of page"
+          }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "collection_subnav_style",
+        "label": "Subnavigation style",
+        "default": "inline",
+        "options": [
+          {
+            "value": "none",
+            "label": "None"
+          },
+          {
+            "value": "inline",
+            "label": "Inline"
+          }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "collection_tags_style",
+        "label": "Tag filter style",
+        "default": "none",
+        "options": [
+          {
+            "value": "none",
+            "label": "None"
+          },
+          {
+            "value": "inline",
+            "label": "Inline"
+          },
+          {
+            "value": "dropdown",
+            "label": "Dropdown"
+          }
+        ],
+        "info": "Only one option can use Inline style at a time"
+      },
+      {
+        "type": "checkbox",
+        "id": "collection_sort_enable",
+        "label": "Show sort options",
+        "default": false
+      }
+    ],
+    "blocks": [
+      {
+        "type": "collection_product",
+        "name": "Product",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Image"
+          },
+          {
+            "type": "text",
+            "id": "subtitle",
+            "label": "Subtitle",
+            "default": "Improved"
+          },
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Title",
+            "default": "Image with text"
+          },
+          {
+            "type": "richtext",
+            "id": "text",
+            "label": "Text",
+            "default": "<p>Pair large text with an image to tell a story, explain a detail about your product, or describe a new promotion.</p>"
+          },
+          {
+            "type": "text",
+            "id": "calories",
+            "label": "Calories per serving"
+          },
+          {
+            "type": "text",
+            "id": "fibre",
+            "label": "Fibre per serving"
+          },
+          {
+            "type": "text",
+            "id": "protein",
+            "label": "Protein per serving"
+          },
+          {
+            "type": "text",
+            "id": "button_label",
+            "label": "Button label",
+            "default": "Optional button"
+          },
+          {
+            "type": "url",
+            "id": "button_link",
+            "label": "Button link"
+          },
+          {
+            "type": "select",
+            "id": "layout",
+            "label": "Layout",
+            "default": "left",
+            "options": [
+              {
+                "value": "left",
+                "label": "Image on left"
+              },
+              {
+                "value": "right",
+                "label": "Image on right"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "presets": [
+      {
+        "name": "Custom Collection",
+        "category": "Image",
+        "blocks": [
+          {
+            "type": "collection_product"
+          },
+          {
+            "type": "collection_product"
+          },
+          {
+            "type": "collection_product"
+          },
+          {
+            "type": "collection_product"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

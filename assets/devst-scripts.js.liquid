@@ -1,0 +1,106 @@
+
+$( function(){
+
+  $('.down-icon').on('click',function (e) {
+
+    e.preventDefault();
+    var target = this.hash;
+    var $target = $(target);
+    $('html, body').stop().animate({
+      'scrollTop': $target.offset().top - ($('#text-with-icons').height() -300)
+    }, 500, 'swing');
+
+  });
+  var timer = setInterval(function(){
+
+    $("#submitButton").css("font-weight", "700 !important");
+
+
+  }, 7);
+
+
+
+});
+
+$(window).on("load",function() {
+  var position = $(window).scrollTop(); 
+  $(window).scroll(function() {
+    var scroll = $(window).scrollTop();
+    var windowBottom = $(this).scrollTop() + $(this).innerHeight();
+    $(".dev-step").each(function() {
+      /* Check the location of each desired element */
+      var objectBottom = $(this).offset().top + $(this).outerHeight();
+  if ( $(window).scrollTop() <= 20  ) {
+
+        $(this).removeClass('add-color');
+
+      }
+      /* If the element is completely within bounds of the window, fade it in */
+      if (objectBottom < windowBottom) { //object comes into view (scrolling down)
+        if(scroll > position) {
+          $(this).addClass("add-color"); 
+        }     
+      } else { //object goes out of view (scrolling up)
+
+        $(this).removeClass("add-color");
+
+      }
+    });
+    $(".dev-steps").each(function() {
+      /* Check the location of each desired element */
+      var objectBottom = $(this).offset().top + $(this).outerHeight();
+      
+      if ( $(window).scrollTop() <= 20  ) {
+
+        $(this).removeClass('add-color-green');
+
+      }
+
+      /* If the element is completely within bounds of the window, fade it in */
+      if (objectBottom < windowBottom) { //object comes into view (scrolling down)
+        if(scroll > position) {
+          $(this).addClass("add-color-green"); 
+        }     
+      } else { //object goes out of view (scrolling up)
+
+        $(this).removeClass("add-color-green");
+
+      }
+    });
+    $(".dashed").each(function() {
+
+      /* Check the location of each desired element */
+      var objectBottom = $(this).offset().top + $(this).outerHeight() + 100;
+  var objectTop = $(this).offset().top + 400;
+      
+      //position = $(window).scrollTop()
+      
+      if ( $(window).scrollTop() <= 20  ) {
+
+        $(this).removeClass('rev-grad');
+
+      }
+      
+      /* If the element is completely within bounds of the window, fade it in */
+      if (objectTop < windowBottom  && scroll > position ) {
+        //object comes into view (scrolling down)
+
+        $(this).addClass("add-grad"); 
+        $(this).removeClass('rev-grad');
+
+      } else if (objectBottom > windowBottom  && scroll < position ) { //object goes out of view (scrolling up)
+        if ($(this).hasClass( "add-grad" )) {
+          $(this).removeClass("add-grad");
+          $(this).addClass("rev-grad");        
+        }
+      }
+      else if ( $(window).scrollTop() <= 20  ) {
+
+        $(this).removeClass('rev-grad');
+
+      }
+    });
+    position = scroll;
+  }).scroll(); //invoke scroll-handler on page-load
+});
+

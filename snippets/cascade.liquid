@@ -1,0 +1,470 @@
+<section class="cascade {{ global__section_with_padding_class }} color--{{ section_color }}-text bg--{{ section_color }}-background" data-section-type="cascade" data-section-id="{{ section.id }}" data-fade-in="{{ fade_in }}" data-first-item="{{ section.settings.first_item }}">
+  <div class="page-width">
+    <div class="cascading-content">
+      <div class="grid overflow--hidden">
+        <div class="item-sizer"></div>
+        <div class="column-sizer"></div>
+
+        {%- assign col_count_desktop = '' -%}
+        {%- assign col_count_mobile = '' -%}
+
+        {%- for block in section.blocks -%}
+
+          {%- assign first_col_desktop = false -%}
+          {%- assign first_col_mobile = false -%}
+
+          {%- assign block_width_mobile = block.settings.block_width_mobile -%}
+          {%- assign block_width_desktop = block.settings.block_width -%}
+
+          {%- if block.type == 'product_feature' -%}
+            {%- assign block_width_mobile = 'full' -%}
+            {%- assign block_width_desktop = 'full' -%}
+          {%- endif -%}
+
+        <style>
+          @media (min-width: 769px){
+          .item--{{ block.id }} {
+            min-height: 480px;
+          }
+          }
+          @media (max-width: 768px){
+          .item--{{ block.id }} {
+            min-height: 380px;
+          }
+          }
+        </style>
+          
+          <div
+            class="grid__item medium-up--{{ block_width_desktop }} small--{{ block_width_mobile }} item--{{ block.id }} {% if forloop.first %}item--first{% endif %} {% if first_col_desktop %}first-col--desktop{% endif %} {% if first_col_mobile %}first-col--mobile{% endif %} {% if last_col %}item--last{% endif %} {% if fade_in%}fade-in{% endif %}"
+            data-width="{{ block_width_desktop }}"
+            data-block-id="{{ block.id }}"
+               {% if block.type == 'rich_text' or block.type == 'heading' or block.type == 'text' or block.type == 'image' %}
+               style="display: table;"
+               {% endif %}
+            >
+            <div class="item__inner {% if block_width_mobile == 'full' %} mx--auto{% endif %} {% if block_width_desktop == 'full' %} lg--up--mx--auto{% else %}lg--up--one-whole{% endif %}"
+                 {% if block.type == 'rich_text' or block.type == 'heading' or block.type == 'text' or block.type == 'image' %}
+               style="display: table-cell;vertical-align: middle; 
+                      {% if forloop.first == true and block.type == 'rich_text' %}
+                      padding-right: 10%;
+                      {% elsif forloop.first != true and block.type == 'rich_text' %}
+                      padding-left: 10%;
+                      {% endif %}
+                      "
+               {% endif %}{{ block.shopify_attributes }}>
+
+              {% comment %}
+              /* ============================================================================
+                Image
+              ============================================================================== *
+              {% endcomment %}
+
+              {% if block.type == 'image' %}
+                
+                {% if block.settings.url %}
+                  <a href="{{ block.settings.url }}" class="block">
+                {% endif %}
+                {% if block.settings.image %}
+                  {% assign image = block.settings.image %}
+                  {% assign image_ratio = block.settings.image.aspect_ratio  | plus: 0 %}
+                  <div class="image-holder {% if col_count_mobile == 2 or col_count_mobile == 3 %}seven-eighths mx--auto{% endif %} {% if col_count_desktop == 2 or col_count_desktop == 3 %}lg--up--mx--auto{% endif %}">
+                    
+                    {% include 'responsive-image' with
+                      image: image,
+                      max_width: 2000,
+                      max_height: 2000
+                    %}
+
+                  </div>
+                {% else %}
+                  <div class="onboarding-image">
+                    <div class="placeholder-img-wrapper {{ placeholder_bg }}">
+                      <div style="padding-top:{% cycle '66.6', '133.33', '100' %}%;" class="relative">
+                        {{ 'image' | placeholder_svg_tag }}
+                      </div>
+                    </div>
+                  </div>
+                {% endif %}
+                {% if block.settings.url %}
+                </a>
+                {% endif %}
+              {% endif %}
+
+              {% comment %}
+              /* ============================================================================
+                Image with Text
+              ============================================================================== *
+              {% endcomment %}
+
+              {% if block.type == 'image_text_overlay' %}
+                {% assign heading = block.settings.heading %}
+                {% assign cta_text = block.settings.cta_text %}
+                {% assign cta_url = block.settings.cta_url %}
+                {% assign local_color = block.settings.section_color %}
+                <div class="image-with-text__container relative  {% if col_count_mobile == 2 or col_count_mobile == 3 %}seven-eighths mx--auto{% endif %} {% if col_count_desktop == 2 or col_count_desktop == 3 %} lg--up--mx--auto{% endif %}">
+                  <div class="image-with-text__image">
+                    {% assign image = block.settings.image %}
+                    {% if image %}
+                      <div class="image-holder">
+                        {% include 'responsive-image' with
+                          image: image,
+                          max_width: 2000,
+                          max_height: 2000
+                        %}
+                      </div>
+                    {% else %}
+                      <div class="onboarding-image {{ placeholder_bg }} color--border">
+                        <span class="opacity--1">{{ 'image' | placeholder_svg_tag }}</span>
+                      </div>
+                    {% endif %}
+                  </div>
+                  <div class="image-with-text__content absolute full top--0 left--0 p1 z1">
+                    {% if cta_url != blank %}
+                    <a href="{{ cta_url }}" class="block full color--{{ section_color }}-text">
+                    {% endif %}
+                      <div class="table full">
+                        <div class="table-cell text-align--center align--middle">
+                          <div class="inline-block  align--middle">
+                            {% if block_width_mobile == 'full' %}
+                              {% assign heading_class = heading_fontsize__mobile_full %}
+                            {% else %}
+                              {% assign heading_class = heading_fontsize__mobile_half %}
+                            {% endif %}
+                            {% if heading != blank %}
+                            <h3 class=" m0 {{ heading_class }} color--{{ local_color }}-text">{{ heading }}</h3>
+                            {% endif %}
+                            {% if cta_text != blank %}
+                              <p class="{% if block_width_mobile == 'half' %}sm--hide{% endif %} m0 lg--up--mt1 inline-block {{ font_size }} link-underline f--accent color--{{ local_color }}-text border-bottom--{{ local_color }}-text hv--{{ local_color }}-accent hv--border-bottom--{{ local_color }}-accent" href="" target="_blank" >
+                                {{ cta_text }}
+                              </p>
+                            {% endif %}
+                          </div>
+                        </div>
+                      </div>
+                    {% if cta_url != blank %}
+                    </a>
+                    {% endif %}
+
+                  </div>
+                </div>
+              {% endif %}
+
+              {% comment %}
+              /* ============================================================================
+                Video
+              ============================================================================== *
+              {% endcomment %}
+              {% if block.type == 'video' %}
+                <div class="video-holder {% if col_count_mobile == 2 or col_count_mobile == 3 %}seven-eighths mx--auto{% endif %} {% if col_count_desktop == 2 or col_count_desktop == 3 %}lg--up--mx--auto{% endif %}">
+                  {% if block.settings.video_url %}
+                    {% if block.settings.video_url.type == 'youtube' %}
+                      {% capture image_url_mq %}//img.youtube.com/vi/{{ block.settings.video_url.id }}/mqdefault.jpg{% endcapture %}
+                      {% if block.settings.use_high_res_image %}
+                      {% capture image_url_max %}//img.youtube.com/vi/{{ block.settings.video_url.id }}/maxresdefault.jpg{% endcapture %}
+                      {% else %}
+                      {% capture image_url_max %}//img.youtube.com/vi/{{ block.settings.video_url.id }}/hqdefault.jpg{% endcapture %}
+                      {% endif %}
+                      <div class="responsive-image__wrapper js">
+                        <div style="padding-top: 56.25%;">
+                          <img
+                               class="responsive-image__image lazyload"
+                               data-srcset="{{ image_url_mq }} 320w,
+                                            {{ image_url_max }}"
+                               data-sizes="auto"
+                               >
+                        </div>
+                        <a href="//www.youtube.com/embed/{{ block.settings.video_url.id }}?autoplay=1&showinfo=0&controls=1" class="absolute top--0 left--0 full pointer modaal z1" data-modaal-type="video">
+                          <div class="full flex items--center justify--center color--white-text font-size--xl md--up--font-size--xxl lg--up--font-size--xxxxxl">
+                            {% include 'svg' | icon: 'icon-play' %}
+                          </div>
+                        </a>
+                      </div>
+                      <noscript>
+                        <img src="{{ image_url_max }}">
+                      </noscript>
+                    {% endif %}
+                    {% if block.settings.video_url.type == 'vimeo' %}
+                      <div class="responsive-image__wrapper  js">
+                        <div style="padding-top: 56.25%;">
+                          <img
+                               class="responsive-image__image vimeo-thumbnail"
+                               data-src=""
+                               data-widths="[540, 720, 900, 1080, 1296, 1512, 1728, 1944, 2048, 4472]"
+                               data-aspectratio="{{ image.aspect_ratio }}"
+                               data-sizes="auto"
+                               data-vimeo-id='{{ block.settings.video_url.id }}'
+                               data-vimeo-thumb
+                               >
+                        </div>
+                        <a href="//player.vimeo.com/video/{{ block.settings.video_url.id }}?autoplay=1%color={{ settings.color_primary }}&title=0&byline=0" class="absolute top--0 left--0 full pointer modaal z1" data-modaal-type="video">
+                          <div class="full flex items--center justify--center color--white-text font-size--xl md--up--font-size--xxl lg--up--font-size--xxxxxl">
+                            {% include 'svg' | icon: 'icon-play' %}
+                          </div>
+                        </a>
+                      </div>
+                    {% endif %}
+                  {% else %}
+                    <div class="responsive-image__wrapper  js">
+                      <div style="padding-top: 56.25%;">
+                       <div class="placeholder-img-wrapper {{ placeholder_bg }} absolute top--0 right--0 left--0 bottom--0">
+                         <div style="padding-top:56.25%;" class="relative">
+                            {{ 'lifestyle-1' | placeholder_svg_tag }}
+                         </div>
+                       </div>
+                      </div>
+                      <a class="absolute top--0 left--0 full pointer z1">
+                        <div class="full flex items--center justify--center color--white font-size--xl md--up--font-size--xxl lg--up--font-size--xxxxxl">
+                          {% include 'svg' | icon: 'icon-play' %}
+                        </div>
+                      </a>
+                    </div>
+                    <noscript>
+                      <img src="{{ image_url_max }}">
+                    </noscript>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+              {% comment %}
+              /* ============================================================================
+                Rich Text
+              ============================================================================== *
+              {% endcomment %}
+              {% if block.type == 'rich_text' or block.type == 'heading' or block.type == 'text' %}
+                   <div class="steps mobile hiw1 medium-up--hide">
+STEP
+  <div class="step1">
+  1</div>
+</div>
+              <div class="steps mobile hiw2 medium-up--hide">
+STEP
+  <div class="step2">
+  2</div>
+</div>
+              <div class="steps mobile hiw3 medium-up--hide">
+STEP
+  <div class="step3">
+  3</div>
+</div>
+              <div class="rich-text rich-text--{{ block.id }} {{ block.settings.text_align}}">
+                <div >
+                  {% if block.settings.heading != blank   %}
+                    {% if block_width_mobile == 'full' %}
+                      {% assign heading_class = heading_fontsize__mobile_full %}
+                    {% else %}
+                      {% assign heading_class = heading_fontsize__mobile_half %}
+                    {% endif %}
+                    {% if block.type == 'heading' and block.settings.font_size == 'large' %}
+                      {% if block_width_mobile == 'full' %}
+                        {% assign heading_class = 'f--heading font-size--xxxl line-height--8 pm--font-size--xxxxxl pm--line-height--11 wd--font-size--xxxxxxl wd--line-height--13' %}
+                      {% else %}
+                        {% assign heading_class = 'f--heading font-size--xxl line-height--7 pm--font-size--xxxxl pm--line-height--11 wd--font-size--xxxxxxl wd--line-height--13' %}
+                      {% endif %}
+                    {% endif %}
+                    <h3 class=" m0 {{ heading_class }}">
+                      {{ block.settings.heading }}
+                    </h3>
+                  {% endif %}
+                  {% if block.settings.rich_text != blank  %}
+                  <div class="richtext {{ font_size }} {% if block.settings.heading != blank %}mt2{% endif %}">
+                    {{ block.settings.rich_text }}
+                  </div>
+                  {% endif %}
+                  {% if block.settings.cta_url != blank %}
+                  <a class="btn" >
+                    {{ block.settings.cta_text }}
+                  </a>
+                  {% endif %}
+                </div>
+              </div>
+              {% endif %}
+
+              {% comment %}
+              /* ============================================================================
+                Collection
+              ============================================================================== *
+              {% endcomment %}
+              {% if block.type == 'collection' %}
+                {% assign local_color = block.settings.text_color %}
+                {% if block.settings.collection and block.settings.collection != '' %}
+                  {% assign collection = collections[block.settings.collection] %}
+                  {% if collection.image %}
+                    {% assign image = collection.image  %}
+                  {% else %}
+                    {% for product in collection.products limit:1 %}
+                      {% assign image = product.featured_image.src  %}
+                    {% endfor %}
+                  {% endif %}
+                  <div class="image-with-text__container relative  {% if col_count_mobile == 2 or col_count_mobile == 3 %}seven-eighths mx--auto{% endif %} {% if col_count_desktop == 2 or col_count_desktop == 3 %} lg--up--mx--auto{% endif %}">
+                    <div class="image-with-text__image">
+                      
+                      {% assign image_ratio = block.settings.image.aspect_ratio  | plus: 0 %}
+                      <div class="image-holder">
+                        {% include 'responsive-image' with
+                          image: image,
+                          max_width: 2000,
+                          max_height: 2000
+                        %}
+                      </div>
+                    </div>
+                    <div class="image-with-text__content absolute full top--0 left--0 p1 z1">
+                      <a href="{{ collection.url }}" class="block full">
+                        <div class="table full">
+                          <div class="table-cell text-align--center align--middle">
+                            <div class="inline-block  align--middle">
+                              {% if block_width_mobile == 'full' %}
+                                {% assign heading_class = heading_fontsize__mobile_full %}
+                              {% else %}
+                                {% assign heading_class = heading_fontsize__mobile_half %}
+                              {% endif %}
+                              <h3 class=" m0 {{ heading_class }} color--{{ local_color }}-text">{{ collection.title }}</h3>
+                              {% if block.settings.show_collection_link %}
+                                <p class="{% if block_width_mobile == 'half' %}sm--hide{% endif %} m0 lg--up--mt1 inline-block {{ font_size }} link-underline f--accent color--{{ local_color }}-text border-bottom--{{ local_color }}-text hv--{{ local_color }}-accent hv--border-bottom--{{ local_color }}-accent" href="" target="_blank" >
+                                  {{ block.settings.cta_text }}
+                                </p>
+                              {% endif %}
+                            </div>
+                          </div>
+                        </div>
+                      </a>
+                    </div>
+                  </div>
+                {% else %}
+                  {% include 'cascade__collection-placeholder' %}
+                {% endif %}
+              {% endif %}
+
+
+              {% comment %}
+              /* ============================================================================
+                Article
+              ============================================================================== *
+              {% endcomment %}
+
+              {% if block.type == 'article' %}
+                {% assign local_color = block.settings.text_color %}
+                {% if block.settings.article and block.settings.article != '' %}
+                  {% assign article = articles[block.settings.article] %}
+                  <div class="grid">
+                    <div class="grid__item {% if block_width_desktop == 'full' %}lg--up--four-sevenths{% endif %}">
+                      <a href="{{ article.url  }}">
+                      {% if article.image %}
+                        {% assign image = article.image %}
+                        <div class="image-holder">
+                          {% include 'responsive-image' with
+                            image: image,
+                            max_width: 2000,
+                            max_height: 2000
+                          %}
+                        </div>
+                      {% endif %}
+                      </a>
+                    </div>
+                    <div class="grid__item {% if block_width_desktop == 'full' %}lg--up--three-sevenths lg--up--pt3{% endif %}">
+                      <div class="seven-eighths pm--three-quarters {% if settings.list_and_grid_align %}mx--auto{% else %}pl1 lg--up--pl2 {% endif %} t--list-and-grid">
+                        <a href="{{ article.url  }}"  class="color--{{ section_color }}-text">
+
+                          {% if block_width_mobile == 'full' %}
+                            {% assign heading_class = heading_fontsize__mobile_full %}
+                          {% else %}
+                            {% assign heading_class = heading_fontsize__mobile_half %}
+                          {% endif %}
+                          <h3 class=" m0 {{ heading_class }} {% if article.image %}mt2 pm--mt3{% endif %}">
+                            {{ article.title }}
+                          </h3>
+
+                          <div class="mt1 lg--up--mt2 {{ font_size }}">
+                            {% if block.settings.show_excerpt %}
+                            {% if article.excerpt.size > 0 %}
+                              {{ article.excerpt }}
+                            {% else %}
+                              {{ article.content | strip_html | truncatewords: 20 }}
+                            {% endif %}
+                            {% endif %}
+                          </div>
+
+                          <p class="mt1 lg--up--mt2 inline-block {{ font_size }} {{ global__link_underline }} {{ global__hover_underline }}" target="_blank" >
+                            {{ 'blogs.article.read_more' | t }}
+                          </p>
+
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                {% else %}
+                  {% include 'cascade__article-placeholder' %}
+                {% endif %}
+              {% endif %}
+
+
+              {% comment %}
+              /* ============================================================================
+                Product - Simple
+              ============================================================================== *
+              {% endcomment %}
+              {% if block.type == 'product_simple' %}
+              <div class="product product--{{ block.id }} {% if col_count_mobile == 2 or col_count_mobile == 3 %}seven-eighths mx--auto{% endif %} {% if col_count_desktop == 2 or col_count_desktop == 3 %} lg--up--mx--auto{% endif %}">
+                {%- assign product = all_products[block.settings.product] -%}
+                {% if product == empty %}
+                  {% include 'product-grid-item__onboarding' %}
+                {% else %}
+                  {% assign feature_product = true %}
+                  {% include 'product-grid-item' %}
+                {% endif %}
+              </div>
+              {% endif %}
+
+              {% comment %}
+              /* ============================================================================
+                Product - Feature
+              ============================================================================== *
+              {% endcomment %}
+
+              {% if block.type == 'product_feature' %}
+              <div class="product product--{{ block.id }}">
+                {%- assign product = all_products[block.settings.product] -%}
+                {%- assign current_variant = product.selected_or_first_available_variant -%}
+                {%- assign featured_image = current_variant.featured_image | default: product.featured_image -%}
+                {%- assign hide_drop_down_labels = block.settings.hide_drop_down_labels -%}
+                {%- assign show_quantity = block.settings.show_quantity -%}
+                {%- assign enable_payment_button = block.settings.enable_payment_button -%}
+                {%- assign section_id = block.id -%}
+                <div id="shopify-section-{{ block.id }}" class="shopify-section" data-product-block>
+                  <section data-section-id="{{ block.id }}" data-section-type="product" itemscope itemtype="//schema.org/Product" data-product-block>
+                    {% assign feature_product = true %}
+                    {% if product == empty %}
+                      {% include 'product__onboarding' %}
+                    {% else %}
+                      {% assign section_id = block.id %}
+                      {% include 'product__top-section' %}
+                      <script type="application/json" data-product-json>
+                        {{ product | json }}
+                      </script>
+                    {% endif %}
+                  </section>
+                </div>
+              </div>
+              {% endif %}
+
+            </div>
+          </div>
+
+          {%- assign last_block_width_desktop = block_width_desktop -%}
+          {%- assign last_block_width_mobile = block_width_mobile -%}
+          {%- assign col_count_desktop = col_count_desktop | plus: 1 -%}
+          {%- assign col_count_mobile = col_count_mobile | plus: 1 -%}
+
+          {%- if col_count_desktop == 5 -%}
+            {%- assign col_count_desktop = 1 -%}
+          {%- endif -%}
+
+          {%- if col_count_mobile == 5 -%}
+            {%- assign col_count_mobile = 1 -%}
+          {%- endif -%}
+
+        {%- endfor -%}
+
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,473 @@
+<div data-plan-step="1" class="plan-meal-page" data-plan-meal-page>
+  {%- if section.settings.enable -%}
+  <div class="main-banner" style="background: url('{{section.settings.banner_img | img_url:'master'}}');">
+    <div class="page-width">
+      <div class="grid">
+        <div class="grid__item medium-up--eight-twelfths widescreen--one-half">
+          {%- if section.settings.banner_heading != blank -%} <h1>{{section.settings.banner_heading}}</h1> {%- endif -%}
+          {%- if section.settings.banner_subheading != blank -%} <p>{{section.settings.banner_subheading}}</p>
+          {%- endif -%}
+          <div class="zip-form-wrapper">
+            <div class="custom-form-wrapper">
+              <form action="https://www.getdrip.com/forms/616605332/submissions" method="post"
+                data-drip-embedded-form="616605332" data-drip-id="616605332">
+                <div class="grid">
+                  <div class="grid__item medium-up--one-half">
+                    <label for="drip-email">Email Address</label>
+                    <input type="email" id="drip-email" name="fields[email]" value="" />
+                  </div>
+                  <div class="grid__item medium-up--one-half">
+                    <label for="drip-zip">Delivery Postal Code</label>
+                    <input type="text" id="drip-zip" name="fields[zip]" value="" />
+                  </div>
+                  <div class="grid__item medium-up--one-half" style="display: none;">
+                    <label for="website">Website</label><br />
+                    <input type="text" id="website" name="website" tabindex="-1" autocomplete="false" value="" />
+                  </div>
+                  <div class="grid__item">
+                    <input type="submit" data-drip-attribute="sign-up-button" value="Build your box"
+                      class="zip-btn btn btn--green">
+                  </div>
+                </div>
+              </form>
+              <div class="custom-success lg--up--grid__item lg--up--one-whole lg--up--mt3 gram-item hide">
+                <div class="success-wrapper"><span class="success-msg">Awesome we can deliver to you! Scroll down for
+                    our available packages.</span></div>
+                <div class="scroll-icon"><a href="#text-with-icons" class="down-icon animated bounce"><i
+                      style="color: #fff; font-size: 32px;" class="fas fa-arrow-down"></i></a></div>
+              </div>
+              <div class="custom-error lg--up--grid__item lg--up--one-whole lg--up--mt3 gram-item hide">
+                <div class="error-wrapper"><span class="success-msg">Coming soon to you! We will notify you when we
+                    deliver in your area.</span></div>
+              </div>
+            </div>
+          </div>
+          {%- if settings.zipcode != blank -%}
+          {% assign zipcode = settings.zipcode | split:',' %}
+          {%- for zip in zipcode -%}
+          <div class="zipcodes hide">{{zip}}</div>
+          {%- endfor -%}
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  </div>
+  {%- endif -%}
+  <div class="page-width">
+    <div class="subscription-sections" data-template-type="meal-subscription" data-template="subscription">
+      <!------- Pick a Plan ------->
+      <div class="meal-section text-center" data-step="1">
+        <div class="section-content">
+          <div class="grid page-title">
+            <div class="grid__item medium-up--ten-twelfths mx-auto widescreen--one-half">
+              {%- if section.settings.plan_heading != blank -%}<h1>{{ section.settings.plan_heading}}</h1> {%- endif -%}
+              {%- if section.settings.plan_subheading != blank -%} <p>{{ section.settings.plan_subheading}}</p>
+              {%- endif -%}
+            </div>
+            <div class="each-bioraw-meal">
+              <div class="each-perfect-meal d-flex align-items-center justify-content-center">
+                <div class="meal--image">
+                  <img src="{{section.settings.pickplan_img | img_url:'140x'}}" />
+                </div>
+                <div class="">
+                  <h3 class="d-flex align-items-center mb-0">= <span
+                      class="number-of-meal">{{section.settings.equals_value}}</span></h3>
+                </div>
+              </div>
+              <p class="mb-0">{{section.settings.pickplan_footer}}</p>
+            </div>
+          </div>
+          <form class="radio-selection">
+            <div class="grid custom-item"
+              data-flickity='{ "cellAlign": "center", "contain": true, "groupCells": true, "pageDots": false, "prevNextButtons": false }'>
+              {%- if section.blocks.size > 0 -%}
+              {%- for block in section.blocks -%}
+              {%- if block.type == 'pick-plan' -%}
+              {%- if block.settings.enable_plan-%}
+
+             
+
+              <div class="grid__item medium-up--five-twelfths mx-sm-auto small--seven-tenths widescreen--one-quarter">
+                <div class="item" style="background: url('{{ block.settings.plan_img | img_url:'master' }}')">
+                  <input type="radio" name="plan" value="{{block.settings.plan_type}}"
+                    data-plan_name="{{block.settings.title}}" id="plan{{block.settings.plan_type}}"
+                    onchange="selectPlan('{{block.settings.title}}','{{block.settings.plan_type}}')">
+                  <label for="plan{{block.settings.plan_type}}">
+                    <div class="bg-white">
+                      {%- if block.settings.title != blank -%} <h1>{{block.settings.title}}</h1> {%- endif -%}
+                      {%- if block.settings.plan_type != blank -%} <h4 class="plan_type"><span
+                          class="h2 d-block">{{block.settings.plan_type}}</span> Meals / Week</h4> {%- endif -%}
+                      <!-- {% if block.settings.plan_meal_price != blank %}
+                                          <div class="meal-price">
+                                              <p>{{block.settings.plan_meal_price}}</p>
+                                          </div>
+                                          {% endif %} -->
+                    </div>
+                    {%- if block.settings.per_meal_price != blank -%}
+                    <div class="price">
+                      <div>
+                        <h1>{{block.settings.per_meal_price}}</h1>
+                        <p>per meal</p>
+                      </div>
+                      {%- if block.settings.free_shipping == true -%}
+                      <span>+</span>
+                      <div>
+                        <h1>free</h1>
+                        <p>shipping</p>
+                      </div>
+                      {%- endif -%}
+                    </div>
+                    {%- endif -%}
+                  </label>
+                </div>
+              </div>
+              {%- endif -%}
+              {%- endif -%}
+              {%- endfor -%}
+              {%- endif -%}
+            </div>
+            <a href="#frequency" class="btn btn--green next-btn" onclick="check_selectedPlan(event)">Next</a>
+          </form>
+        </div>
+        <span class="bkg-line"></span>
+      </div>
+      <!------- Choose a Frequency ------->
+      <div class="meal-section frequency-section frequencySection text-center full-height " id="frequency">
+        <div class="section-content">
+          <div class="grid page-title">
+            <div class="grid__item medium-up--ten-twelfths mx-auto widescreen--one-half">
+              {% if section.settings.plan_heading != blank%} <h1>{{ section.settings.frequency_heading}}</h1>
+              {% endif %}
+            </div>
+          </div>
+          {%- if section.blocks.size > 0 -%}
+          {%- for block in section.blocks -%}
+          {%- if block.type == 'choose-a-frequency' -%}
+          <form class="radio-selection">
+            <div class="grid custom-item" data-single-term
+              data-flickity='{ "cellAlign": "center", "contain": true, "groupCells": true, "pageDots": false, "prevNextButtons": false }'>
+              {%- if block.settings.enable_optset_1 -%}
+              {%- if block.settings.enable_opt1_1 -%}
+              {%- assign product1 = all_products[block.settings.choose_product1_1] -%}
+              {%- assign frqOpt1 = product1.title | remove:'The Single' | remove: '(' | remove: ')' | append: '(s)' -%}
+              {%- for variant in product1.variants -%}
+              <div class="grid__item medium-up--five-twelfths mx-sm-auto small--seven-tenths widescreen--one-quarter">
+                <div class="item {% if variant.inventory_quantity == 0 %}plan_disable{% endif %}">
+                  <input type="radio" data-buy-type name="plan" data-plan-{{variant.id}} value="{{variant.id}}"
+                    id="radio_{{variant.id}}"
+                    {% if variant.title == 'one-time' %}onchange=" choose_buy_type(event,'{{variant.id}}','one_time')"
+                    {% else %}onchange=" choose_buy_type(event,'{{variant.id}}','subscription')" {% endif %}>
+                  <label class="data-term" for="radio_{{variant.id}}">
+                    <div class="wrapper">
+                      <div class="position-absolute text-center card-top-bar">
+                        <h4 class="mb-0" {{variant.title}}>{% if variant.title == 'one-time' %}One time
+                          order{% else %}Weekly recurring plan{% endif %}</h4>
+                      </div>
+                      {% if variant.title == 'one-time' %} <p>{{frqOpt1}}</p> {% else %} <p>Subscribe and <span
+                          class="border-bottom-primary">save $10</span></p> {% endif %}
+                      <h1>{{variant.price | money}}</h1>
+                    </div>
+                  </label>
+                </div>
+              </div>
+              {%- endfor -%}
+              {%- endif -%}
+              {%- endif -%}
+            </div>
+            <div class="grid custom-item" data-weekly-term
+              data-flickity='{ "cellAlign": "center", "contain": true, "groupCells": true, "pageDots": false, "prevNextButtons": false }'>
+              {% if block.settings.enable_optset_2 %}
+              {% if block.settings.enable_opt2_1 %}
+              {% assign product2 = all_products[block.settings.choose_product2_1] %}
+              {% assign frqOpt2 = product2.title | remove:'The Weekly' | remove: '(' | remove: ')' | append: '(s)'%}
+              {% for variant in product2.variants %}
+              <div class="grid__item medium-up--five-twelfths mx-sm-auto small--seven-tenths widescreen--one-quarter">
+                <div class="item {% if variant.inventory_quantity == 0 %}plan_disable{% endif %}">
+                  <input type="radio" data-buy-type name="plan" data-plan-{{variant.id}} value="{{variant.id}}"
+                    id="radio_{{variant.id}}"
+                    {% if variant.title == 'one-time' %}onchange=" choose_buy_type(event,'{{variant.id}}','one_time')"
+                    {% else %}onchange=" choose_buy_type(event,'{{variant.id}}','subscription')" {% endif %}>
+                  <label class="data-term" for="radio_{{variant.id}}">
+                    <div class="wrapper">
+                      <div class="position-absolute text-center card-top-bar">
+                        <h4 class="mb-0">{% if variant.title == 'one-time' %}One time order{% else %}Weekly recurring
+                          plan{% endif %}</h4>
+                      </div>
+                      {% if variant.title == 'one-time' %} <p>{{frqOpt2}}</p> {% else %} <p>Subscribe and <span
+                          class="border-bottom-primary">save $10</span></p> {% endif %}
+                      <h1>{{variant.price | money}}</h1>
+                    </div>
+                  </label>
+                </div>
+              </div>
+              {% endfor %}
+              {% endif %}
+              {% endif %}
+            </div>
+            <div class="grid custom-item" data-double-term
+              data-flickity='{ "cellAlign": "center", "contain": true, "groupCells": true, "pageDots": false, "prevNextButtons": false }'>
+              {% if block.settings.enable_optset_3 %}
+              {% if block.settings.enable_opt3_1 %}
+              {% assign product3 = all_products[block.settings.choose_product3_1] %}
+              {% assign frqOpt3 = product3.title | remove:'The Double' | remove: '(' | remove: ')' | append: '(s)'%}
+              {% for variant in product3.variants %}
+              <div class="grid__item medium-up--five-twelfths mx-sm-auto small--seven-tenths widescreen--one-quarter">
+                <div class="item {% if variant.inventory_quantity == 0 %}plan_disable{% endif %}">
+                  <input type="radio" data-buy-type name="plan" data-plan-{{variant.id}} value="{{variant.id}}"
+                    id="radio_{{variant.id}}"
+                    {% if variant.title == 'one-time' %}onchange=" choose_buy_type(event,'{{variant.id}}','one_time')"
+                    {% else %}onchange=" choose_buy_type(event,'{{variant.id}}','subscription')" {% endif %}>
+                  <label class="data-term" for="radio_{{variant.id}}">
+                    <div class="wrapper">
+                      <div class="position-absolute text-center card-top-bar">
+                        <h4 class="mb-0">{% if variant.title == 'one-time' %}One time order{% else %}Weekly recurring
+                          plan{% endif %}</h4>
+                      </div>
+                      {% if variant.title == 'one-time' %} <p>{{frqOpt3}}</p> {% else %} <p>Subscribe and <span
+                          class="border-bottom">save $10</span></p> {% endif %}
+                      <h1>{{variant.price | money}}</h1>
+                    </div>
+                  </label>
+                </div>
+              </div>
+              {% endfor %}
+              {% endif %}
+              {% endif %}
+            </div>
+            <div class="grid custom-item" data-clubPack-term
+              data-flickity='{ "cellAlign": "center", "contain": true, "groupCells": true, "pageDots": false, "prevNextButtons": false }'>
+              {% if block.settings.enable_optset_4 %}
+              {% if block.settings.enable_opt4_1 %}
+              {% assign product4 = all_products[block.settings.choose_product4_1] %}
+              {% assign frqOpt4 = product4.title | remove:'The Club Pack' | remove: '(' | remove: ')' | append: '(s)'%}
+              {% for variant in product4.variants %}
+              <div class="grid__item medium-up--five-twelfths mx-sm-auto small--seven-tenths widescreen--one-quarter">
+                <div class="item {% if variant.inventory_quantity == 0 %}plan_disable{% endif %}">
+                  <input type="radio" data-buy-type name="plan" data-plan-{{variant.id}} value="{{variant.id}}"
+                    id="radio_{{variant.id}}"
+                    {% if variant.title == 'one-time' %}onchange=" choose_buy_type(event,'{{variant.id}}','one_time')"
+                    {% else %}onchange=" choose_buy_type(event,'{{variant.id}}','subscription')" {% endif %}>
+                  <label class="data-term" for="radio_{{variant.id}}">
+                    {% comment %}{% if variant.title == 'one-time' %} <p>{{frqOpt4}}</p> {% else %} <p>Subscribe and
+                      save $10</p> {% endif %}
+                    <h1>{{variant.price | money}}</h1>{% endcomment %}
+                    <div class="wrapper">
+                      <div class="position-absolute text-center card-top-bar">
+                        <h4 class="mb-0">{% if variant.title == 'one-time' %}One time order{% else %}Weekly recurring
+                          plan{% endif %}</h4>
+                      </div>
+                      {% if variant.title == 'one-time' %} <p>{{frqOpt4}}</p> {% else %} <p>Subscribe and <span
+                          class="border-bottom">save $10</span></p> {% endif %}
+                      <h1>{{variant.price | money}}</h1>
+                    </div>
+
+                  </label>
+                </div>
+              </div>
+              {% endfor %}
+              {% endif %}
+              {% endif %}
+            </div>
+            <a href="#meals" class="btn btn--green next-btn" onclick="check_selectedFrq(event)">Next</a>
+          </form>
+          {% endif %}
+          {% endfor%}
+          {% endif %}
+        </div>
+        <span class="bkg-line"></span>
+      </div>
+      <!------- Choose Meals ------->
+      <div class="meal-section frequency-section text-center full-height " id="meals">
+        <!------- Choose a Meal ------->
+        {% if section.blocks.size > 0 %}
+        {% for block in section.blocks %}
+        {% if block.type == 'choose-a-meal' %}
+        {%- assign collection1 = collections[block.settings.collection1] -%}
+        <div class="section-content">
+          <div class="grid page-title">
+            <div class="grid__item medium-up--ten-twelfths mx-auto widescreen--one-half">
+              {% if section.settings.meal_heading != blank%}<h1>{{ section.settings.meal_heading}}</h1> {% endif %}
+            </div>
+          </div>
+          <div class="selected-item selected-items">
+            <!-- <div class="items">
+                        <div>
+                            <span>2</span>
+                        </div>
+                    </div> -->
+          </div>
+          <div class="selected-item meal-list">
+            {% unless collection1.empty? %}
+            {% for product in collection1.products %}
+            <div class="items">
+              <a href="#" class="text-center"
+                onclick="selectMealQty(event,'{{product.id}}','{{  product.featured_image |img_url: '300x'}}','{{forloop.index}}')">+</a>
+              <div class="cursor-pointer">
+                <img src="{{ product.featured_image  | img_url: 'master'}}"
+                  onclick="show_description('{{product.id}}')">
+              </div>
+              <p>{{product.title}}</p>
+            </div>
+            {% endfor %}
+            {% endunless %}
+          </div>
+          <div class="final-plan">
+            {% if section.settings.final_heading != blank%} <h1>{{ section.settings.final_heading}}</h1> {% endif %}
+            <div class="final-result" data-final-plan>
+              <!-- <p>I would like to get <span>THE DOUBLE</span> meal plan for/<span>every 4 weeks</span> with above selected meal combos.</p>
+                      <a href="#" class="btn btn--green">Add to cart</a> -->
+            </div>
+          </div>
+        </div>
+        <span class="bkg-line"></span>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+      </div>
+      <!-------ADD-ONS ------->
+      {%- if section.settings.enable_addons -%}
+      <div class="meal-section frequency-section text-center full-height active" id="add-ons">
+        <!------- ADD-ONS ------->
+        <div class="section-content">
+          <div class="grid">
+            <div class="grid__item medium-up--ten-twelfths mx-auto widescreen--one-half">
+              <h1>{{section.settings.addon-title}}</h1>
+              <p>{{section.settings.addons-subtitle}}</p>
+            </div>
+          </div>
+          <div class="add-ons-slider grid">
+            <div class="grid__item eight-twelfths medium-down--one-whole mx-auto">
+              <form class="radio-selection">
+                <div class="grid custom-item"
+                  data-flickity='{ "cellAlign": "center", "contain": true, "groupCells": true, "pageDots": false, "prevNextButtons": false }'>
+                  {%- if section.settings.addon_collection -%}
+                  {%- for product in collections[section.settings.addon_collection].products -%}
+                  <div data-addons-products data-product-title="{{product.title}}"
+                    data-variant-id="{{product.selected_or_first_available_variant.id}}"
+                    data-shipping_interval_frequency="{{ product.metafields.subscriptions.shipping_interval_frequency }}"
+                    data-shipping_interval_unit_type="{{ product.metafields.subscriptions.shipping_interval_unit_type }}"
+                    data-charge_interval_frequency="{{product.selected_or_first_available_variant.metafields.subscriptions.charge_internal_frequency }}"
+                    data-subscription_id="{{ product.metafields.subscriptions.subscription_id }}"
+                    class="grid__item medium-up--five-twelfths mx-sm-auto small--seven-tenths widescreen--one-third">
+                    <div class="card">
+                      <div class="card-image">
+                        <div class="img-wrapper">
+                          <img src="{{product.featured_image | img_url:'300x'}}" />
+                        </div>
+                      </div>
+                      <div class="card-body">
+                        <h6 class="text-uppercase text-white">{{product.title}}</h6>
+                        <p class="">{{product.price | money}}</p>
+                        <div class="product-quantity">
+                          <button class="btn-qty btn-decrease" onclick="updateQty(event)">-</button>
+                          <input class="quantity-number qty-text" type="text" value="0" readonly />
+                          <button class="btn-qty btn-increase" onclick="updateQty(event)">+</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {%- endfor -%}
+                  {%- endif -%}
+                </div>
+              </form>
+            </div>
+          </div>
+          <div class="d-flex align-item-center justify-content-center">
+            <a href="#" class="btn btn--green next-btn" style="margin-right:10px;" data-addtoCart-Addons
+              onclick="addToCartAddons(event)">add to cart</a>
+            <a href="#" onclick="redirectTolink(event,'#bioraw-donation')" class="btn btn-outline">No Thanks</a>
+          </div>
+        </div>
+      </div>
+      {%- endif -%}
+      <!------- frontline workers fund ------->
+      <div class="meal-section bioraw-donation text-center full-height active" id="bioraw-donation">
+        <!------- bioraw supports ------->
+        <div class="section-content">
+          {% if section.settings.enable_makedonation %}
+          <div class="grid">
+            <div class="grid__item medium-up--ten-twelfths mx-auto widescreen--one-half">
+              <h1>{{section.settings.makedonation_title}}</h1>
+              <p>{{section.settings.makedonation_subtitle}}</p>
+            </div>
+          </div>
+          <div class="bioraw-donation grid">
+            <div class="grid__item medium-down--one-whole eight-twelfths mx-auto">
+              <form class="radio-selection donation-text"
+                data-flickity='{ "cellAlign": "center", "contain": true, "groupCells": true, "pageDots": false, "prevNextButtons": false }'>
+                {%- if section.settings.makedonation_collection -%}
+                {%- for product in collections[section.settings.makedonation_collection].products -%}
+                <div class="grid custom-item d-md-flex align-items-center justify-content-center" data-donation-products
+                  data-product-title="{{product.title}}"
+                  data-variant-id="{{product.selected_or_first_available_variant.id}}"
+                  data-shipping_interval_frequency="{{ product.metafields.subscriptions.shipping_interval_frequency }}"
+                  data-shipping_interval_unit_type="{{ product.metafields.subscriptions.shipping_interval_unit_type }}"
+                  data-charge_interval_frequency="{{product.selected_or_first_available_variant.metafields.subscriptions.charge_internal_frequency }}"
+                  data-subscription_id="{{ product.metafields.subscriptions.subscription_id }}">
+                  <div class="grid__item seven-twelfths medium-down--one-whole">
+                    <div class="card">
+                      <div class="card-image">
+                        <div class="img-wrapper">
+                          <img src="{{product.featured_image | img_url: '370x'}}" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="grid__item five-twelfths text-left medium-down--one-whole">
+                    <div class="donation-text">
+                      <div class="card-body">
+                        <h2 class="text-uppercase text-white">{{product.title}}</h2>
+                        <p class="">{{product.price | money}}</p>
+                        <p>Please choose how many meals you'd like to donate!</p>
+                        <div class="product-quantity">
+                          <button class="btn-qty btn-decrease" onclick="updateQty(event)">-</button>
+                          <input class="quantity-number qty-text" type="text" value="0" readonly />
+                          <button class="btn-qty btn-increase" onclick="updateQty(event)">+</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {%- endfor -%}
+                {%- endif -%}
+
+              </form>
+            </div>
+          </div>
+          <div class="d-flex align-item-center justify-content-center">
+            <a href="#" class="btn btn--green next-btn js-no-transition" style="margin-right:10px;"
+              data-addtoCart-Donations onclick="addToCartDonations(event)">add to cart</a>
+            <a href="#" class="btn btn-outline" onclick="nothanksDonation(event)">No Thanks</a>
+          </div>
+          {%- endif -%}
+          {%- if section.settings.enable_freeshipping -%}
+          <div class="selected-item meal-list all-orders pb-0">
+            <div id="6" class="page-width" data-aos="logo__animation">
+              <div>
+                <div class="section-header">
+                  <h4 class="section-header__title text-uppercase font-weigth-500 letter-spacing-normal">
+                    {{section.settings.free_shipping_title}}</h4>
+                </div>
+                <div class="grid d-flex flex-wrap logo-bar--1591925625885">
+                  {%- for block in section.blocks -%}
+                  {%- if block.type == 'image-text' -%}
+                  <div class="grid__item large-down--four-twelfths medium-down--four-twelfths one-sixth block-margin">
+                    {%- assign img_url = block.settings.image | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+                    <img class="logo-bar__image lazyload" data-src="{{img_url}}" data-widths="[180, 360, 540, 720]"
+                      data-aspectratio="1.0033333333333334" data-sizes="auto" alt="{{block.settings.title}}">
+                    <p>{{block.settings.title}}</p>
+                  </div>
+                  {%- endif -%}
+                  {%-  endfor -%}
+                </div>
+              </div>
+            </div>
+          </div>
+          {%- endif -%}
+          <!-- <span class="bkg-line"></span> -->
+        </div>
+      </div>
+      <!------- bioraw accordion ------->
+    </div>
+  </div>
+</div>

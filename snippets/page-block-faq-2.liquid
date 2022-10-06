@@ -1,0 +1,132 @@
+<style>
+  .faq_item {
+    border: 1px solid #fff;
+    margin-bottom: 20px;
+    padding: 0 15px;
+  }
+  #faq_link {
+    text-align: center;
+    margin: 20px 0;
+    color: #aed125;
+    font-weight: 800;
+    font-size: 1.2em;
+    text-decoration: underline; 
+  }
+</style>
+
+<div class="page-width" style="margin-top: 100px;margin-bottom: 100px;">
+
+  <div class="grid">
+    <div id="faq_list" class="grid__item medium-up--one-half medium-up--push-one-quarter">
+
+      {% if block.settings.heading != blank %}
+      <div class="section-header text-center">
+        <h2>{{ block.settings.heading }}</h2>
+      </div>
+      {% endif %}
+      
+      {% if block.settings.title_1 != blank %}
+      <div class="faq_item">
+        <button type="button" class="collapsible-trigger collapsible-trigger--inline collapsible--auto-height text-left" aria-controls="FAQ-content-1">
+          {% include 'collapsible-icons-alt', no_circle: true %}
+          {{ block.settings.title_1 }}
+        </button>
+        <div id="FAQ-content-1" class="collapsible-content collapsible-content--all">
+          <div class="collapsible-content__inner collapsible-content__inner--faq rte">
+            {{ block.settings.text_1 }}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if block.settings.title_2 != blank %}
+      <div class="faq_item">
+        <button type="button" class="collapsible-trigger collapsible-trigger--inline collapsible--auto-height text-left" aria-controls="FAQ-content-2">
+          {% include 'collapsible-icons-alt', no_circle: true %}
+          {{ block.settings.title_2 }}
+        </button>
+        <div id="FAQ-content-2" class="collapsible-content collapsible-content--all">
+          <div class="collapsible-content__inner collapsible-content__inner--faq rte">
+            {{ block.settings.text_2 }}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if block.settings.title_3 != blank %}
+      <div class="faq_item">
+        <button type="button" class="collapsible-trigger collapsible-trigger--inline collapsible--auto-height text-left" aria-controls="FAQ-content-3">
+          {% include 'collapsible-icons-alt', no_circle: true %}
+          {{ block.settings.title_3 }}
+        </button>
+        <div id="FAQ-content-3" class="collapsible-content collapsible-content--all">
+          <div class="collapsible-content__inner collapsible-content__inner--faq rte">
+            {{ block.settings.text_3 }}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if block.settings.title_4 != blank %}
+      <div class="faq_item">
+        <button type="button" class="collapsible-trigger collapsible-trigger--inline collapsible--auto-height text-left" aria-controls="FAQ-content-4">
+          {% include 'collapsible-icons-alt', no_circle: true %}
+          {{ block.settings.title_4 }}
+        </button>
+        <div id="FAQ-content-4" class="collapsible-content collapsible-content--all">
+          <div class="collapsible-content__inner collapsible-content__inner--faq rte">
+            {{ block.settings.text_4 }}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if block.settings.title_5 != blank %}
+      <div class="faq_item">
+        <button type="button" class="collapsible-trigger collapsible-trigger--inline collapsible--auto-height text-left" aria-controls="FAQ-content-5">
+          {% include 'collapsible-icons-alt', no_circle: true %}
+          {{ block.settings.title_5 }}
+        </button>
+        <div id="FAQ-content-5" class="collapsible-content collapsible-content--all">
+          <div class="collapsible-content__inner collapsible-content__inner--faq rte">
+            {{ block.settings.text_5 }}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      
+      {% if block.settings.title_6 != blank %}
+      <div class="faq_item">
+        <button type="button" class="collapsible-trigger collapsible-trigger--inline collapsible--auto-height text-left" aria-controls="FAQ-content-6">
+          {% include 'collapsible-icons-alt', no_circle: true %}
+          {{ block.settings.title_6 }}
+        </button>
+        <div id="FAQ-content-6" class="collapsible-content collapsible-content--all">
+          <div class="collapsible-content__inner collapsible-content__inner--faq rte">
+            {{ block.settings.text_6 }}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      
+      {% if block.settings.title_7 != blank %}
+      <div class="faq_item">
+        <button type="button" class="collapsible-trigger collapsible-trigger--inline collapsible--auto-height text-left" aria-controls="FAQ-content-7">
+          {% include 'collapsible-icons-alt', no_circle: true %}
+          {{ block.settings.title_7 }}
+        </button>
+        <div id="FAQ-content-7" class="collapsible-content collapsible-content--all">
+          <div class="collapsible-content__inner collapsible-content__inner--faq rte">
+            {{ block.settings.text_7 }}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="grid">
+        <a id="faq_link" href="/pages/faq/" style="margin: 0 auto;" class="grid__item one-whole">See all FAQs</a>
+      </div>
+
+    </div>
+  </div>
+</div>

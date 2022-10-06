@@ -1,0 +1,101 @@
+{%- assign blockId = block.id -%}
+{% if product %}
+  {%- assign blockId = block.id | append: product.id -%}
+{% endif %}
+<style>
+  #contactPageInfo div {
+    margin-bottom: 40px;
+  }
+</style>
+
+<div class="index-section">
+  <div class="page-width">
+
+    <div class="grid">
+      
+      <div class="grid__item medium-up--one-half">
+        
+       <div id="contactPageInfo" class="content-wrapper">
+         <div>
+            <h4>For most things</h4>
+            <a style="color:#aed125;" class="a_link1" href="mailto:info@bioraw.ca" target="_blank">info@bioraw.ca</a><br>
+            <a style="color:#aed125;" class="a_link1" href="tel:6478896736" target="_blank">(647) 889-6736</a>
+         </div>
+         <div>
+            <h4>For liking, loving, or hellos!</h4>
+
+            <a style="color:#aed125;" class="social_link" target="_blank" href="instagram.com/bioraw" title="Bioraw on Instagram">
+              <img src="https://cdn.shopify.com/s/files/1/1762/2215/files/instagram_4d3233f8-9a7e-4151-8cf1-87c114f054ba.png?5350" alt="Bioraw on Instagram">
+            </a>
+
+            <a style="color:#aed125;" class="social_link" target="_blank" href="facebook.com/BIORAWFOODS/" title="Bioraw on Facebook">
+              <img src="https://cdn.shopify.com/s/files/1/1762/2215/files/Facebook-Background.png?5352" alt="Bioraw on Facebook">
+            </a>
+
+            <a style="color:#aed125;" class="social_link" target="_blank" href="twitter.com/biorawfood" title="Bioraw on Twitter">
+              <img src="https://cdn.shopify.com/s/files/1/1762/2215/files/twitter.1.png?5352" alt="Bioraw on Twitter">
+            </a>
+         </div>
+         <div>
+            <h4>For wholesale orders</h4>
+            <a style="color:#aed125;" class="a_link1" href="mailto:order@bioraw.ca" target="_blank">order@bioraw.ca</a>
+         </div>
+         <div >
+           <p><span class="h4">Or</span> <a style="color:#aed125;font-weight:100;" class="a_link" href="/store-locator;"><u>find us on your favourite store shelves!</u></a>
+            </p>
+         </div>
+          </div>
+      </div>
+      
+      
+      
+      <div class="grid__item medium-up--one-half">
+        {% if block.settings.title != blank %}
+          <div class="section-header">
+            <h2 class="section-header__title">
+              {{ block.settings.title }}
+            </h2>
+          </div>
+        {% endif %}
+
+        <div class="form-vertical">
+          {% form 'contact' %}
+
+            {% if form.posted_successfully? %}
+              <p class="note note--success">
+                {{ 'contact.form.post_success' | t }}
+              </p>
+            {% endif %}
+
+            {{ form.errors | default_errors }}
+
+            <div class="grid grid--small">
+              <div class="grid__item medium-up--one-half">
+                <label for="ContactFormName-{{ blockId }}">{{ 'contact.form.name' | t }}</label>
+                <input type="text" id="ContactFormName-{{ blockId }}" class="input-full" name="contact[name]" autocapitalize="words" value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}">
+              </div>
+
+              <div class="grid__item medium-up--one-half">
+                <label for="ContactFormEmail-{{ blockId }}">{{ 'contact.form.email' | t }}</label>
+                <input type="email" id="ContactFormEmail-{{ blockId }}" class="input-full" name="contact[email]" autocorrect="off" autocapitalize="off" value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}">
+              </div>
+            </div>
+
+            {% if block.settings.show_phone %}
+              <label for="ContactFormPhone-{{ blockId }}">{{ 'contact.form.phone' | t }}</label>
+              <input type="tel" id="ContactFormPhone-{{ blockId }}" class="input-full" name="contact[phone]" pattern="[0-9\-]*" value="{% if form.phone %}{{ form.phone }}{% elsif customer %}{{ customer.phone }}{% endif %}">
+            {% endif %}
+
+            <label for="ContactFormMessage-{{ blockId }}">{{ 'contact.form.message' | t }}</label>
+            <textarea rows="5" id="ContactFormMessage-{{ blockId }}" class="input-full" name="contact[body]">{% if form.body %}{{ form.body }}{% endif %}</textarea>
+
+            <button type="submit" class="btn">
+              {{ 'contact.form.send' | t }}
+            </button>
+
+          {% endform %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

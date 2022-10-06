@@ -1,0 +1,1941 @@
+{% if template contains 'account' %}
+<script>
+  $('#customer_logout_link').click(function (e) {
+    e.preventDefault();
+    localStorage.setItem('hulk-login-customer', '');
+    window.location.href = '/account/logout';
+  });
+  var apiHeader = {
+    "Accept": "application/json",
+    "Content-Type": "application/json",
+    "X-Shop": "bio-raw.myshopify.com",
+  };
+  var isSubscriptionsLoaded = false;
+  var isSubscriptionsCanceled = false;
+  var skip_shippment = {
+    dateFormate: '',
+    nextChargeDate: '',
+    textSkip: null
+  };
+  var weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  var qty = 0;
+  var customerDetails = null;
+  var addresses = null;
+  var subscriptions = {};
+  var allCharges = {};
+  var subscriptionsProd = [];
+  var currentSubscription = {};
+  var currentAddons = [];
+  var currentSubscriptionAddress = {};
+  var getCurrrntID = null;
+  var currentProduct = {};
+  var currentProductTag = null;
+  var updatedVariant = {};
+  var updatedProduct = {};
+  var updatedProductTag = null;
+  var selectMealQty = {
+    total: 0,
+    selected: 0
+  };
+  totalMealProducts = [];
+  var totalMeals = {};
+  var selectedMeals = {};
+  var updatedMeal = {};
+  var properties = {};
+  var planType = null;
+  var checkzipAddress = true;
+
+  var currentAddonsIds = [];
+  var discountJson= [] ;
+
+  function initRechargeDashboard() {
+    customTriggers();
+    getSubscriptionOrder();
+  };
+
+  function customTriggers() {
+    new Shopify.CountryProvinceSelector('AddressCountry', 'AddressProvince', {
+      hideElement: 'AddressProvinceContainer',
+    });
+
+    new Shopify.CountryProvinceSelector('AddressCountry1', 'AddressProvince1', {
+      hideElement: 'AddressProvinceContainer1',
+    });
+    //     $('.warning-alert .close').click(function(e) {
+    //       e.preventDefault();
+    //       $('.warning-alert').addClass('d-none'); 
+    //     });
+
+    $('body').on('keyup blur change', '[data-address-box] input,[data-address-box] select', function (e) {
+      $('[data-editAddBtn]').show();
+    });
+    $('[data-meals-json]').each(function (index, item) {
+      var productObj = $(item).html();
+      var productData = JSON.parse(productObj);
+      var product = productData.product;
+      totalMealProducts.push(product);
+    });
+    $('[data-sub-json]').each(function (index, item) {
+      var productObj = $(item).html();
+      var productData = JSON.parse(productObj);
+      var product = productData.product;
+      subscriptionsProd.push(product);
+    });
+  };
+
+  function moveInPopup(event, eventType, startstep, endstep, type) {
+    $('[data-step="' + startstep + '"]').hide();
+    $('[data-step="' + endstep + '"]').show();
+    if (type == 'addon') {
+      $('[data-cancel-change]').text('Cancel add-on subscription');
+    } else {
+      $('[data-cancel-change]').text('cancel my Subscription');
+    }
+    if (eventType == 'cancel') {
+      var cancelReason = $('[data-cancellationValue]').val();
+      var cancelComment = $('[data-cancellationComment]').val();
+      if (cancelReason == 'Please Select') {
+        isLoading = false;
+        $('.cancel_subs').removeClass('btn--loading');
+        $('[data-cancellationComment]').attr('disabled', true);
+        return false;
+      }
+    };
+    if (eventType == 'removeCancelData') {
+      $('[data-cancellationValue]').val('Please Select');
+      $('[data-cancellationComment]').val('');
+      $('[data-cancelbtn').hide();
+    };
+    if (eventType == 'removeSkip') {
+      $('[data-skip]').prop('checked', false);
+      $('[data-skipBtn]').hide();
+    };
+    if (eventType == 'removePrd') {
+      getCurrentProduct(currentSubscription.shopify_product_id);
+      $('[data-changeMealBtn]').hide();
+    };
+    if (eventType == 'removeMeal') {
+      $('[data-updateMealBtn]').hide();
+      getCurrentMeals();
+    };
+    if (eventType == 'showAdd') {
+      getCurrentSubAddress(currentSubscription.address_id);
+    }
+    if (eventType == 'changeDeliveryDate') {
+       console.log("changeDeliveryDate called")
+      getCurrentDeliveryDetails(currentSubscription, currentSubscription.address_id);
+    }
+
+    if (eventType == 'nextChargeDate') {
+      get_nextdate();
+    }
+    if (eventType == 'checkAddons') {
+      updateAddonsProducts();
+    }
+    if (eventType == 'showDesc') {
+      var meal_product;
+      $.each(totalMealProducts, function (index, x) {
+        if (x.id == prodID) {
+          meal_product = x;
+          $('.meal_image img').attr('src', meal_product.featured_image);
+          $('.meal_description').html(meal_product.description);
+        }
+      })
+    }
+  };
+
+  // get all subscriptions details 
+  function getSubscriptionOrder() {
+    isSubscriptionsLoaded = false;
+    $('[data-subscriptions]').empty();
+    $('[data-active-subscriptions]').empty();
+    $('[data-inactive-subscriptions]').empty();
+    subscriptions = {};
+    var config = {
+      url: '/subscriptions',
+      method: 'GET',
+      data: {
+        shopify_customer_id: theme.settings.customersID,
+        //         shopify_customer_id: 1103681093677,
+        limit: 250,
+      },
+    };
+    $.ajax({
+      url: 'https://api-manager.hulkcode.com/api/recharge/common',
+      type: 'POST',
+      data: JSON.stringify(config),
+      headers: apiHeader,
+      dataType: 'json',
+      processData: false,
+      success: function (getdata) {
+        if (getdata.error == "shopify_customer_id not found" || subscriptions.length == 0) {
+          $('[data-subscriptions]').html('<p style="margin:15px 0;">You dont have any subscriptions yet <a href="/pages/our-meals">Shop now</a></p>');
+        } else {
+          subscriptions = getdata.subscriptions;
+          var activeHTML = '';
+          var addOnHTML = '';
+          var activeHTMLAddons = '';
+          var inactiveHTML = '';
+          currentAddonsIds = [];
+          var old = 0;
+          var newAdd = 0;
+          var addressSubs = [];
+          customerDetails = subscriptions[0].customer_id;
+          getSubscriptionAddresses();
+          getAllCharges();
+          getPayment(customerDetails);
+          getDiscounts();
+          setTimeout(function () {
+            $('[data-addon-product]').empty();
+            $.each($(subscriptions).get().reverse(), function (index, subscription) {
+              var subsLength = 0;
+              var subsAddId = subscription.address_id;
+              var productId = subscription.shopify_product_id;
+              var discount_code = '';
+              var mainTotal = 0.00;
+              var subscriptionPrice = 0.00;
+              var a = subscription.price + '00';
+              var price = theme.Currency.formatMoney(a);
+              var checkMainProduct = false;
+              var checkForDate = false;
+              var mainsubId;
+              var subSubscriptionId = [];
+
+              $.each(subscription.properties, function (index, prop) {
+                if (prop.value == "Main Product") {
+                  checkMainProduct = true;
+                  mainsubId = subscription.id;
+                }
+                if (prop.name == "changed" && prop.value == true) {
+                  checkForDate = true;
+                }
+              });
+
+              var img = '';
+              $.each(subscriptionsProd, function (i, e) {
+                var newSubImage = subscription.product_title.split('(')[0];
+                var newImage = e.title.split('(')[0];
+                if ($.trim(newSubImage) == $.trim(newImage)) {
+                  img = e.images[0];
+                }
+              });
+
+              var prodTitleMain = subscription.product_title;
+              if (checkMainProduct == true) {
+                var prodTitle = subscription.product_title.split('(')[0].split(' ');
+                if (prodTitle.length == 3) {
+                  prodTitleMain = prodTitle[1] + ' ' + prodTitle[2];
+                } else {
+                  prodTitleMain = prodTitle[1]
+                }
+              }
+
+              if (subscription.status == 'ACTIVE') {
+                $.each(allCharges, function (i, e) {
+                  if (e.address_id == subsAddId) {
+                    if (e.discount_codes) {
+                      if (e.discount_codes.length > 0) {
+                        discount_code = e.discount_codes[0].code;
+                      }
+                    }
+                    mainTotal = parseFloat(e.total_price) + parseFloat(mainTotal);
+                  }
+               
+                });
+
+                if (mainTotal.toString().indexOf('.') == -1) {
+                  mainTotal = mainTotal + '.00';
+                }
+
+                $.each(subscriptions, function (i, e) {
+                  if (e.address_id == subsAddId) {
+                    subsLength = subsLength + 1;
+                  }
+                });
+
+                var delivery_date, delivery_time, display_delivery_date, display_delivery_time;
+                $.each(addresses, function (i, e_address) {
+                  if (e_address.id == subsAddId) {
+                    $.each(e_address.note_attributes, function (i, e_note) {
+                      if (e_note.name == "delivery_date") { delivery_date = e_note.value; }
+                      if (e_note.name == "delivery_time") { delivery_time = e_note.value; }
+                      if (e_note.name == "display_delivery_date") { display_delivery_date = e_note.value; }
+                      if (e_note.name == "display_delivery_time") { display_delivery_time = e_note.value; }
+                    });
+                  }
+                });
+
+                //                 var nextDateNew = moment(delivery_date).format('MMMM D, YYYY');
+                //                 var nextTimeNew = delivery_time;
+
+                var final_date = subscription.next_charge_scheduled_at != null ? formatDate((subscription.next_charge_scheduled_at).toString()) : '---';
+                var shipdate = new Date(final_date);
+                var d = (new Date(shipdate.getFullYear(), shipdate.getMonth(), shipdate.getDate() + 1));
+                var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                var next_ship_date = '---';
+                var d_d_date = new Date(display_delivery_date);
+                var d_date = new Date(delivery_date);
+                if (checkIfOrderIsPlaced(display_delivery_date, display_delivery_time)) {
+                  var d_d = new Date(d_d_date.getFullYear(), d_d_date.getMonth(), d_d_date.getDate());
+                  delivery_date = (months[d_d.getMonth()] + ' ' + d_d.getDate() + ', ' + d_d.getFullYear());
+                  delivery_time = display_delivery_time;
+                } else {
+                  var d_d = new Date(d_date.getFullYear(), d_date.getMonth(), d_date.getDate());
+                  delivery_date = (months[d_d.getMonth()] + ' ' + d_d.getDate() + ', ' + d_d.getFullYear());
+                  delivery_time = delivery_time;
+                }
+
+                var shipNextChargeDate = '';
+                let skipNextChargeDate = '';
+                //console.log('subscription', subscription);
+                if (subscription.next_charge_scheduled_at != null) {
+                  skipNextChargeDate = moment(subscription.next_charge_scheduled_at).format('MMMM D, YYYY');
+                  f_date = new Date(skipNextChargeDate);
+                  let sf_date = new Date(f_date.setDate(f_date.getDate() + 2));
+                  sf_date = moment(sf_date).format('MMMM D, YYYY');
+                  shipNextChargeDate = sf_date;
+                } else {
+                  f_date = new Date((months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear()));
+                  let sf_date = new Date(f_date.setDate(f_date.getDate() + 2));
+                  sf_date = moment(sf_date).format('MMMM D, YYYY');
+                  shipNextChargeDate = (months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear());
+                }
+                addOnHTML = '';
+                var discount_id = discount_code != '' ? discount_code : '--';
+                var discount_value = null;
+                var discount_type = null;
+                let dateDifferance = null; 
+                var dateDifferanceText = null ;
+                var discount_expiration_date;
+
+                for( const discount of discountJson){
+                  if( discount.code == discount_code ){
+                    discount_value = discount.value;
+                    discount_type = discount.discount_type;
+                    if(discount_type == 'percentage'){
+                      discount_type = discount_type.replace('percentage','%');
+                      discount_text = `${discount_value}${discount_type}`
+                    }
+                    if(discount_type == 'fixed_amount' ){
+                      discount_type = discount_type.replace('fixed_amount','$');
+                      discount_text = `${discount_type}${discount_value}`
+                    }
+
+                    //discount code expiration code
+                    discount_expiration_date = discount.ends_at;
+                    if( discount_expiration_date != null ){
+                        discount_expiration_date = moment(discount_expiration_date)
+                        current_date = moment();
+                         dateDifferance =  discount_expiration_date.diff(current_date, 'weeks');
+                         dateDifferanceText = `Expires in ${dateDifferance} ${ dateDifferance == 1 ? 'week' : 'weeks '}`
+                    }
+                  }
+                }
+
+                if (checkMainProduct == true) {
+                  if (subsLength > 1 && subsLength < parseInt($('[data-collection-count]').attr('data-collection-count'))) {
+                    addOnHTML = '<p style="display:flex" ><a href="javascript:void(0);" data-subId="' + subscription.id + '" data-addId="' + subsAddId + '" class="view-addons" onclick="viewAddons(' + subsAddId + ')">View Addons</a> <img class="add-addons add-newAddons" data-addon-btn style="height:24px;margin-left:6px; cursor: pointer;" src="https://cdn.shopify.com/s/files/1/1762/2215/files/add_1.png?v=1617616413" onclick="getCurrentsubscription(event,' + subscription.id + ',' + subsAddId + ')"> </p>'
+                  } else if (subsLength == parseInt($('[data-collection-count]').attr('data-collection-count'))) {
+                    addOnHTML = '<p style="display:flex" ><a href="javascript:void(0);" data-subId="' + subscription.id + '" data-addId="' + subsAddId + '" class="view-addons" onclick="viewAddons(' + subsAddId + ')">View Addons</a></p>'
+                  } else {
+                    addOnHTML = '<p><a href="javascript:void(0);" data-subId="' + subscription.id + '" data-addId="' + subsAddId + '" class="add-addons add-newAddons"  onclick="getCurrentsubscription(event,' + subscription.id + ',' + subsAddId + ')">Add Addons</a></p>';
+                  }
+                  activeHTML = '';
+                  var a = subscription.price + '00';
+                  subscriptionPrice = subscription.price + '00'
+                  subscriptionPrice = theme.Currency.formatMoney(subscriptionPrice)
+                  var price = theme.Currency.formatMoney(a);
+                  activeHTML += '<div class="order-item clearfix" data-main-sub-id="' + mainsubId + '" data-order-match="' + subsAddId + '">';
+                  activeHTML += '<div class="order"><img src="' + img + '"/> <div class="order-image-info"><p class="order-id">' + subscription.id + '</p> <h5>' + prodTitleMain + '</h5> <p>' + price + '/' + subscription.order_interval_unit + '</p><p><a href="javascript:void(0);" data-display-addon-id="' + subsAddId + '" onclick="getCurrentsubscription(event,' + subscription.id + ',' + subsAddId + ')">EDIT</a></p>' + addOnHTML + '</div> </div>';
+                  if (delivery_date.indexOf('undefined') > -1) {
+                    //                     activeHTML += '<div class="date-time"><p class="for-responsive">Shipment Date/Time:</p><p><i>Please select delivery date/time.</i></p></div>';
+                    activeHTML += '<div class="shipping"><p class="for-responsive">Subscription Renewal Date:</p><p>' + skipNextChargeDate + '</p></div>';
+                    activeHTML += '<div class="discount"><p class="for-responsive">Next Shipment Date/Time:</p><p>' + shipNextChargeDate + '</p></div>';
+                    activeHTML += '<div class="discount"><p class="for-responsive">Discount:</p><p>' + discount_id + '</p></div>';
+                  } else {
+                    //                     activeHTML += '<div class="date-time"><p class="for-responsive">Shipment Date/Time:</p><p>'+delivery_date+'<br>'+delivery_time+'</p></div>';
+                    activeHTML += '<div class="shipping"><p class="for-responsive">Subscription Renewal Date:</p><p>' + skipNextChargeDate + '</p></div>';
+                    activeHTML += '<div class="discount"><p class="for-responsive">Next Shipment Date/Time:</p><p>' + shipNextChargeDate + '<br>' + delivery_time + '</p></div>';
+                    activeHTML += `<div class="discount"><p class="for-responsive">Discount:</p><p>  ${discount_id}  </p> <p> ${ (discount_value != null  && discount_type != null ) ? ` ${discount_text} off` : '' }  </p> <p>${dateDifferanceText != null ? dateDifferanceText :  '' }</p> </div>`;
+                  }
+                  activeHTML += `<div class="total"><h5>total</h5><p class="for-responsive">total:</p><p class="${subscriptionPrice.replace('$','') == mainTotal ? '' :  'text-success' }">$${mainTotal}  </p><del>  ${subscriptionPrice.replace('$','') == mainTotal ? '' :  subscriptionPrice } </del></div>`
+                  activeHTML += '</div>';
+                  $.each(subscriptions, function (j, addonSub) {
+                    if (addonSub.address_id == subscription.address_id) {
+                      if (addonSub.id != subscription.id) {
+                        var a = (addonSub.price * addonSub.quantity) + '00';
+                        var addPrice = theme.Currency.formatMoney(a);
+                        var subimg = '';
+                        $.each(subscriptionsProd, function (i, e) {
+                          var newSubImage = addonSub.product_title.split('(')[0];
+                          var newImage = e.title.split('(')[0];
+                          if ($.trim(newSubImage) == $.trim(newImage)) {
+                            subimg = e.images[0];
+                          }
+                        });
+                        activeHTMLAddons = '';
+                        activeHTMLAddons += '<div class="order-item clearfix" data-main-sub-id="' + mainsubId + '"  style="display:none;" data-addon-product data-order-match="' + subsAddId + '">';
+                        activeHTMLAddons += '<div class="order" style="width: 100%;"><img src="' + subimg + '"/> <div class="order-image-info"><p class="order-id">' + addonSub.id + '</p> <h5>' + addonSub.product_title + '</h5> <p>' + addPrice + '/' + addonSub.order_interval_unit + '</p><p><a href="javascript:void(0);" class="addon-product" data-product-id="' + addonSub.shopify_product_id + '" onclick="getCurrentsubscription(event,' + addonSub.id + ',' + subsAddId + ')">EDIT</a></p></div> </div></div>';
+                        activeHTML += activeHTMLAddons;
+                      }
+                    }
+                  });
+                  $('[data-active-subscriptions]').append(activeHTML);
+                  discount_expiration_date = null ;
+                  dateDifferanceText= null;
+                }
+
+              } else if (subscription.status == 'CANCELLED') {
+                inactiveHTML += checkMainProduct == true
+                  ? '<div class="order-item clearfix" data-order-match="' + subsAddId + '">'
+                  : '<div class="order-item clearfix" style="display:none;" data-addon-product data-order-match="' + subsAddId + '">';
+
+                inactiveHTML += checkMainProduct == true
+                  ? '<div class="order"><img src="' + img + '"/> <div class="order-image-info"><p class="order-id">' + subscription.id + '</p> <h5>' + prodTitleMain + '</h5> <p>' + price + '/' + subscription.order_interval_unit + '</p><p class="action1"><a href="javascript:void(0);" onclick="reactiveSubscription(event,' + subscription.id + ')">Reactive</a></p></div> </div>'
+                  : '<div class="order"><img src="' + img + '"/> <div class="order-image-info"><p class="order-id">' + subscription.id + '</p> <h5>' + prodTitleMain + '</h5> <p>' + price + '/' + subscription.order_interval_unit + '</p><p class="action1"><a href="javascript:void(0);" onclick="reactiveSubscription(event,' + subscription.id + ')">Reactive</a></p></div> </div>';
+
+                //                 inactiveHTML +=  '<div class="date-time"><h2>---</h2></div>';
+                inactiveHTML += '<div class="shipping"><h2>---</h2></div>';
+                inactiveHTML += '<div class="discount"><h2>---</h2></div>';
+                inactiveHTML += '<div class="discount"><h2>---</h2></div>';
+                inactiveHTML += '<div class="total"><h5>total</h5><h2>---</h2></div>';
+                inactiveHTML += '</div>';
+              }
+
+            });
+            // $('[data-active-subscriptions]').html(activeHTML);
+            $('[data-inactive-subscriptions]').html(inactiveHTML);
+            isSubscriptionsLoaded = true;
+            const productObj = $('[data-mealProducts-json]').html();
+            const productData = JSON.parse(productObj);
+            totalMeals = productData;
+            if (activeHTML == '') {
+              $('[data-active-subscriptions]').html('<p style="margin:15px 0;">You dont have any active subscriptions.</p>');
+            }
+            else if (inactiveHTML == '') {
+              $('[data-inactive-subscriptions]').html('<p style="margin:15px 0;">You dont have any inactive subscriptions.</p>');
+            }
+          }, 2000);
+        }
+      }
+    });
+  };
+
+
+
+//get subscription Discounts
+getDiscounts = () => {
+  const config = {
+              url: '/discounts?limit=250',
+              method: 'GET'
+            };
+            $.ajax({
+              url: 'https://api-manager.hulkcode.com/api/recharge/common',
+              type: 'POST',
+              data: JSON.stringify(config),
+              headers: apiHeader,
+              processData: false,
+              dataType: 'json',
+              async: false,
+              success: function (data) {
+                for( const discount of data.discounts ){
+                    discountJson.push(discount);
+                }
+              }
+            });
+}
+
+
+
+
+
+  // get current subscription details
+  function getCurrentsubscription(event, subcriptionId, addressId) {
+    // console.log("subcriptionId",subcriptionId)
+    // console.log("addressId",addressId)
+    // console.log("getCurrentsubscription() called")
+    event.preventDefault();
+    getCurrrntID = addressId;
+    currentAddonsIds = [];
+    currentSubscription = {};
+    var prodID = $(event.currentTarget).attr('data-product-id');
+    if ($(event.currentTarget).hasClass('addon-product')) {
+      //       $('body').css('overflow','hidden');
+      $('body').addClass('body-fixed');
+      $('[data-modal]').show();
+      $.each(subscriptions, function (i, subscription) {
+        if (subscription.id == subcriptionId) {
+          currentSubscription = subscription;
+        }
+      });
+      $('[data-edit-subscription]').show();
+      $('[data-edit-address] [data-editaddbtn]').attr('data-address-id', addressId);
+      $('[data-div-changeAddons]').show();
+      $('[data-div-changeSub], [data-div-changeDeliveryDate], [data-div-changeMeals],[data-div-skipShipment],[data-div-showAddress], [data-hide-for-addon]').hide();
+      var mainSubId = $(event.currentTarget).closest('.order-item').attr('data-main-sub-id');
+      var mainaddressId = $(event.currentTarget).closest('.order-item').attr('data-order-match');
+      $('.subscription-addons-listing .item').each(function (i, ei) {
+        var $this = $(this);
+        var $thisId = $(this).attr('data-product-id');
+      });
+
+      $.each(subscriptions, function (i, subscription) {
+        if (subscription.address_id == mainaddressId) {
+          $('.subscription-addons-listing .item').each(function (i, ei) {
+            var $this = $(this);
+            var $thisId = $(this).attr('data-product-id');
+            var $thismainId = $(this).attr('data-main-sub-id');
+            if ($thisId == prodID) {
+              $this.find('.product-quantity').attr('style', 'visibility: visible;');
+              $(this).attr('data-addressId', mainaddressId);
+              // $this.find('.product-quantity').show();
+              $this.attr('data-check-add', 'update').show();
+              var productId = '';
+              var quantity = 0;
+              var checkActive = '';
+              if ($thisId == subscription.shopify_product_id) {
+                productId = subscription.shopify_product_id;
+                quantity = subscription.quantity;
+                checkActive = subscription.status;
+              }
+              if ($thisId == productId && checkActive == 'ACTIVE') {
+                $this.find('.quantity-number').val(quantity);
+                $('[data-updateaddons]').attr('data-address', mainaddressId);
+                $(this).attr('data-subscription_id', subscription.id);
+              }
+            } else {
+              $this.find('.product-quantity').attr('style', 'visibility: hidden;');
+              $this.removeAttr('data-check-add').hide();
+            }
+          });
+        }
+      });
+    }
+    else if ($(event.currentTarget).hasClass('add-newAddons')) {
+      $('[data-add_addons]').hide();
+      // var subID = $(event.currentTarget).closest('.order-item-listing').find('[data-main-sub-id]').data('main-sub-id');
+      $.each(subscriptions, function (i, subscription) {
+        if (subscription.id == subcriptionId) {
+          currentSubscription = subscription;
+        }
+      });
+      $.each(subscriptions, function (i, subscription) {
+        if (subscription.address_id == getCurrrntID) {
+          $.each(subscription.properties, function (j, prop) {
+            if (prop.name === '_product_type' && prop.value === 'Sub Product') {
+              currentAddonsIds.push(subscription.shopify_variant_id);
+            }
+          });
+        }
+      });
+
+      $('.subscription-addons-listing-forAdd .item').each(function (i, e) {
+        var $this = $(this);
+        var $thisId = $(this).attr('data-variant-id');
+        $.each(currentAddonsIds, function (i, id) {
+          if (id == $thisId) {
+            $this.find('.product-quantity').css('visibility', 'hidden');
+            $this.find('.individual-option').addClass('active').hide();
+            $this.hide();
+          } else {
+            $this.find('.individual-option').closest('.item');
+          }
+        });
+      });
+      //       $('body').css('overflow','hidden');
+      $('body').addClass('body-fixed');
+      $('[data-modal]').show();
+      $('[data-add-addons]').show();
+    }
+    else {
+      //       $('body').css('overflow','hidden');
+      $('body').addClass('body-fixed');
+      $('[data-modal]').show();
+      $('[data-edit-subscription]').show();
+      $('[data-edit-address] [data-editaddbtn]').attr('data-address-id', addressId);
+      $('[data-div-changeAddons]').hide();
+      $('[data-div-changeSub], [data-div-changeDeliveryDate], [data-div-changeMeals],[data-div-skipShipment],[data-div-showAddress], [data-hide-for-addon]').show();
+
+      $.each(subscriptions, function (i, subscription) {
+        if (subscription.id == subcriptionId) {
+          currentSubscription = subscription;
+          properties = currentSubscription.properties;
+          getCurrentSubAddress(currentSubscription.address_id);
+          getCurrentProduct(currentSubscription.shopify_product_id);
+          getCurrentMeals();
+        }
+      });
+    }
+    // currentAddons
+    $.each(subscriptions, function (i, subscription) {
+      if (subscription.address_id == getCurrrntID) {
+        if (subscription.id != currentSubscription.id) {
+          currentAddons.push(subscription.id);
+        }
+      }
+    });
+    //console.log('currentAddons',currentAddons);
+  };
+
+  // update deliverydate and time
+  function updateDeliveryDateandTime() {
+    $('.update_address').addClass('btn--loading');
+    var delivery_date, discount_code, delivery_time, display_delivery_date, display_delivery_time, unit_number, buzzer_code, delivery_instruction, delivery_option;
+    var config = {};
+    var update_delivery_date = $('[data-delivery-address-box] [data-address-delivery-date]').val();
+    var update_delivery_time = $('[data-delivery-address-box] [data-address-delivery-time]').val();
+    var update_delivery_option = 'all';
+
+    $.each(currentSubscriptionAddress.note_attributes, function (i, e_note) {
+      //console.log("e_note",e_note)
+      if (e_note.name == "delivery_date") { delivery_date = e_note.value }
+      if (e_note.name == "delivery_time") { delivery_time = e_note.value }
+      if (e_note.name == "display_delivery_date") { display_delivery_date = e_note.value }
+      if (e_note.name == "display_delivery_time") { display_delivery_time = e_note.value }
+
+      if (e_note.name == "unit_number") { unit_number = e_note.value }
+      if (e_note.name == "buzzer_code") { buzzer_code = e_note.value }
+      if (e_note.name == "delivery_instruction") { delivery_instruction = e_note.value }
+      if (e_note.name == "delivery_option") { delivery_option = e_note.value }
+      if (e_note.name == "discount_code") { discount_code = e_note.value }
+    });
+    if (checkIfOrderIsPlaced(display_delivery_date, display_delivery_time)) {
+      config = {
+        url: '/addresses/' + currentSubscriptionAddress.id,
+        method: 'PUT',
+        data: {
+          note_attributes: [
+            { name: "delivery_date", value: update_delivery_date },
+            { name: "delivery_time", value: update_delivery_time },
+            { name: "delivery_option", value: update_delivery_option },
+            { name: "display_delivery_date", value: display_delivery_date },
+            { name: "display_delivery_time", value: display_delivery_time },
+            { name: "unit_number", value: unit_number },
+            { name: "buzzer_code", value: buzzer_code },
+            { name: "delivery_instruction", value: delivery_instruction },
+            { name: "discount_code", value: discount_code }
+          ],
+        },
+      };
+    } else {
+      config = {
+        url: '/addresses/' + currentSubscriptionAddress.id,
+        method: 'PUT',
+        data: {
+          note_attributes: [
+            { name: "delivery_date", value: update_delivery_date },
+            { name: "delivery_time", value: update_delivery_time },
+            { name: "display_delivery_date", value: update_delivery_date },
+            { name: "display_delivery_time", value: update_delivery_time },
+            { name: "delivery_option", value: update_delivery_option },
+            { name: "unit_number", value: unit_number },
+            { name: "buzzer_code", value: buzzer_code },
+            { name: "delivery_instruction", value: delivery_instruction },
+            { name: "discount_code", value: discount_code }
+          ],
+        }
+      };
+    }
+    $.ajax({
+      url: 'https://api-manager.hulkcode.com/api/recharge/common',
+      type: 'POST',
+      data: JSON.stringify(config),
+      headers: apiHeader,
+      processData: false,
+      dataType: 'json',
+      success: function (getdata) {
+        let dateNEW = new Date(update_delivery_date);
+        dateNEW.setDate(dateNEW.getDate() - 2);
+        let withNextChargeDate = moment(dateNEW).format('Y-MM-DD');
+        withNextChargeDate = withNextChargeDate + 'T00:00:00';
+        const configNext = {
+          url: '/subscriptions/' + currentSubscription.id + '/set_next_charge_date',
+          method: 'POST',
+          data: {
+            date: withNextChargeDate,
+          },
+        };
+        $.ajax({
+          url: 'https://api-manager.hulkcode.com/api/recharge/common',
+          type: 'POST',
+          data: JSON.stringify(configNext),
+          headers: apiHeader,
+          dataType: 'json',
+          async: false,
+          processData: false,
+          success: function (getdata) {
+            if (getdata.data && getdata.data.error) {
+              toastr.error(getdata.data.error, 'error');
+              $('[data-updateDate]').removeClass('btn--loading');
+              return false;
+            } else {
+              toastr.success('Your subscription has been Updated Successfully.', 'success');
+              getSubscriptionOrder();
+              setTimeout(function () {
+                $('.update_chrageDate').removeClass('btn--loading');
+                $('.update_address').removeClass('btn--loading');
+                $('[data-address-delivery-time]').html('');
+                $('[data-address-delivery-date]').val('');
+                moveInPopup(event, null, 15, 1);
+                closeModal();
+              }, 3000);
+            }
+          },
+        });
+        $.each(currentAddons, function (i, e) {
+          var addOn_Id = e;
+          const config = {
+            url: '/subscriptions/' + addOn_Id + '/set_next_charge_date',
+            method: 'POST',
+            data: {
+              date: withNextChargeDate,
+            },
+          };
+          $.ajax({
+            url: 'https://api-manager.hulkcode.com/api/recharge/common',
+            type: 'POST',
+            data: JSON.stringify(config),
+            headers: apiHeader,
+            dataType: 'json',
+            async: false,
+            processData: false,
+            success: function (getdata) {
+              // console.log(getdata, 'getdata');
+            },
+          });
+        });
+      }
+    });
+  };
+  // get subscription addresses
+  function getSubscriptionAddresses() {
+    var config = {
+      url: '/customers/' + customerDetails + '/addresses',
+      method: 'GET',
+      data: {},
+    };
+    $.ajax({
+      url: 'https://api-manager.hulkcode.com/api/recharge/common',
+      type: 'POST',
+      data: JSON.stringify(config),
+      headers: apiHeader,
+      dataType: 'json',
+      success: function (getdata) {
+        //console.log("getdata",getdata)
+        addresses = getdata.addresses;
+        return getdata;
+      },
+    });
+  };
+  function viewAddons(addressId) {
+    $('[data-addon-product][data-order-match="' + addressId + '"]').toggle();
+  };
+  function getAllCharges() {
+    var config = {
+      url: '/charges?status=QUEUED&customer_id=' + customerDetails,
+      method: 'GET',
+      data: {},
+    };
+    $.ajax({
+      url: 'https://api-manager.hulkcode.com/api/recharge/common',
+      type: 'POST',
+      data: JSON.stringify(config),
+      headers: apiHeader,
+      dataType: 'json',
+      success: function (getdata) {
+        allCharges = getdata.charges;
+        return getdata;
+      },
+    });
+  };
+  // get payment details
+  function getPaymentForm() {
+    //     $('body').css('overflow','hidden');
+    $('body').addClass('body-fixed');
+    $('[data-modal]').show();
+    $('[data-edit-payment]').removeClass('d-none');
+  };
+  // get addons
+  function getCurrentAddons() {
+    $.each(subscriptions, function (i, e) {
+      $.each(e.subscriptions, function (index, subscription) {
+        var productId = subscription.shopify_product_id;
+        $('.subscription-addons-listing .item').each(function (i, e) {
+          var $this = $(this);
+          var $thisId = $(this).attr('data-product-id');
+          var $thismainId = $(this).attr('data-main-sub-id');
+          if ($thisId == productId) {
+            $this.find('.quantity-number').val(subscription.quantity);
+          }
+        })
+      });
+    });
+  };
+  // update addons product
+  function updateAddonsProducts() {
+    $('[data-updateaddons]').addClass('btn--loading');
+    var dataAddress = $('[data-updateaddons]').attr('data-address');
+    $.each(subscriptions, function (i, currsubscription) {
+      var productId = currsubscription.shopify_product_id;
+      $('.subscription-addons-listing .item').each(function (i, e) {
+        var $this = $(this);
+        sub = $this.attr('data-subscription_id');
+        var $thisId = $(this).attr('data-product-id');
+        var $thisAddressId = $(this).attr('data-addressid');
+        if ($(this).attr('data-check-add')) {
+          if ($thisId == productId) {
+            var quantity = $this.find('.quantity-number').val();
+            const config = {
+              url: '/subscriptions/' + sub,
+              method: 'PUT',
+              data: {
+                quantity
+              },
+            };
+            $.ajax({
+              url: 'https://api-manager.hulkcode.com/api/recharge/common',
+              type: 'POST',
+              data: JSON.stringify(config),
+              headers: apiHeader,
+              processData: false,
+              dataType: 'json',
+              async: false,
+              success: function (getdata) {
+                toastr.success('Your addons has been Updated Successfully.', 'Success');
+                setTimeout(function () {
+                  $('[data-updateaddons]').removeClass('btn--loading');
+                  moveInPopup(event, null, 16, 1);
+                  closeModal();
+                }, 2000);
+                //                 window.location.reload();
+                return getdata;
+              }
+            });
+          }
+        }
+      })
+      // });
+    });
+    getSubscriptionOrder();
+  };
+
+  function createBulkAddons(event) {
+    event.preventDefault();
+    var newAddonsIds = [];
+    $('[data-Add_Addons]').addClass('btn--loading');
+    // var dataAddress = $('[data-Add_Addons]').attr('data-address');   
+    $('.subscription-addons-listing-forAdd .item').each(function (i, e) {
+      var $this = $(this);
+      var varId = $(this).attr('data-variant-id');
+      var quantity = $this.find('.quantity-number').val();
+      if (quantity > 0) {
+        var sub = {};
+        sub['id'] = varId;
+        sub['quantity'] = quantity;
+        newAddonsIds.push(sub);
+      };
+    });
+
+    var selectedMainSubProp = [];
+    var finalCreateSubList = [];
+    $.each(currentSubscription.properties, function (i, prop) {
+      if (prop.name.startsWith('Meal') || prop.name.startsWith('_') || prop.name === '_product_type') {
+      } else {
+        selectedMainSubProp.push(prop);
+      }
+    });
+    selectedMainSubProp.push({ 'name': '_product_type', 'value': 'Sub Product' });
+    $.each(newAddonsIds, function (i, sub) {
+      const createSub = {};
+      createSub['charge_interval_frequency'] = currentSubscription.charge_interval_frequency;
+      createSub['next_charge_scheduled_at'] = currentSubscription.next_charge_scheduled_at;
+      createSub['order_interval_frequency'] = currentSubscription.order_interval_frequency;
+      createSub['order_interval_unit'] = currentSubscription.order_interval_unit;
+      createSub['quantity'] = sub.quantity;
+      createSub['shopify_variant_id'] = sub.id;
+      createSub['properties'] = selectedMainSubProp;
+      finalCreateSubList.push(createSub);
+    });
+
+    const Createconfig = {
+      url: `/addresses/${currentSubscription.address_id}/subscriptions-bulk`,
+      method: 'POST',
+      data: {
+        "subscriptions": finalCreateSubList
+      },
+    };
+    $.ajax({
+      url: 'https://api-manager.hulkcode.com/api/recharge/common',
+      type: 'POST',
+      data: JSON.stringify(Createconfig),
+      headers: apiHeader,
+      dataType: 'json',
+      processData: false,
+      success: function (getdata) {
+        toastr.success('Your Addon Subscription has been created Successfully.', 'Success');
+        setTimeout(function () {
+          $('[data-Add_Addons]').removeClass('btn--loading');
+          closeModal();
+        }, 2000);
+        getSubscriptionOrder();
+        window.location.reload();
+        return getdata;
+      }
+    });
+
+  };
+
+  function updateQty(event, eventType) {
+    //console.log("updateQty",event,eventType);
+    event.preventDefault();
+    var $button = $(event.currentTarget);
+    var oldValue = $button.parent().find("input").val();
+    if ($button.text() == "+") {
+      var newVal = parseFloat(oldValue) + 1;
+    } else {
+      // Don't allow decrementing below zero
+      if (eventType === 'updateAddon') {
+        if (oldValue > 1) {
+          var newVal = parseFloat(oldValue) - 1;
+        } else {
+          newVal = 1;
+        }
+      } else if (eventType === 'addAddon') {
+        if (oldValue > 0) {
+          var newVal = parseFloat(oldValue) - 1;
+        } else {
+          newVal = 0;
+        }
+      }
+    }
+    if (newVal > 0) {
+      $('[data-add_addons]').show();
+    } else {
+      $('[data-add_addons]').hide();
+    }
+
+    $button.parent().find("input").val(newVal);
+  };
+
+  // get current reachrge product
+  function getCurrentProduct(productID) {
+    $('.selectFrq').css('pointer-events', 'none');
+    $('.selectFrq').val('Please select plan');
+    $('.individual-option').removeClass('active');
+    const productObj = $('[data-' + productID + '-json]').html();
+    const productData = JSON.parse(productObj);
+    //console.log(productData, 'productData');
+    currentProduct = productData.product;
+    currentVariant = productData.variant;
+    $.each(currentProduct.tags, function (index, tag) {
+     //console.log(tag, 'tag');
+      if (tag.startsWith('type-')) {
+        currentProductTag = tag;
+      }
+    });
+    currentVariant.metafields = productData.metafields;
+    updatedVariant = currentVariant;
+    updatedProduct = currentProduct;
+    updatedProductTag = currentProductTag;
+    var tag = null;
+    $.each(currentProduct.tags, function (index, tag1) {
+      if (tag1.startsWith('meals')) {
+        tag = tag1;
+      };
+    });
+    selectMealQty.total = parseInt(tag.split('x')[1]);
+    selectMealQty.selected = selectMealQty.total;
+    $('[data-display_total_meals]').html('Change Meals(Total meals:' + selectMealQty.total + ')');
+    var check = currentProduct.title.split('(')[0];
+    if (check.indexOf('Single') > -1) {
+      $('[data-the-single]').attr('checked', true);
+      $('[data-the-single]').closest('.item').find('.individual-option').addClass('active');
+      $('[data-the-single]').closest('.item').find('.selectFrq').attr('disabled', false);
+      $('[data-the-single]').closest('.item').find('.selectFrq').val(currentProduct.id).prop("selected", true);
+    } else if (check.indexOf('Double') > -1) {
+      $('[data-the-double]').attr('checked', true);
+      $('[data-the-double]').closest('.item').find('.individual-option').addClass('active');
+      $('[data-the-double]').closest('.item').find('.selectFrq').attr('disabled', false);
+      $('[data-the-double]').closest('.item').find('.selectFrq').val(currentProduct.id).prop("selected", true);
+    } else if (check.indexOf('Weekly') > -1) {
+      $('[data-the-weekly]').attr('checked', true);
+      $('[data-the-weekly]').closest('.item').find('.individual-option').addClass('active');
+      $('[data-the-weekly]').closest('.item').find('.selectFrq').attr('disabled', false);
+      $('[data-the-weekly]').closest('.item').find('.selectFrq').val(currentProduct.id).prop("selected", true);
+    } else if (check.indexOf('Club Pack') > -1) {
+      $('[data-the-club-pack]').attr('checked', true);
+      $('[data-the-club-pack]').closest('.item').find('.individual-option').addClass('active');
+      $('[data-the-club-pack]').closest('.item').find('.selectFrq').attr('disabled', false);
+      $('[data-the-club-pack]').closest('.item').find('.selectFrq').val(currentProduct.id).prop("selected", true);
+    }
+  };
+
+  // get current meals products
+  function getCurrentMeals() {
+    //console.log("getCurrentMeals()  called")
+    $('.js-qty__wrapper input').val(0);
+    const selected_meals = [];
+    const currentMeals = [];
+
+    var totalcount = 0;
+    if (totalMeals.length > 0) {
+      let valReapet = '';
+      $.each(currentSubscription.properties, function (index, property) {
+        //console.log("property",property)
+        if (property.name.startsWith('_manage')) {
+          if (valReapet == '' || (valReapet.indexOf(property.name) == -1 && valReapet != '')) {
+            valReapet = valReapet + ',' + property.name;
+            const propValue = property.value.split('-');
+            const obj = { variant_ids: propValue[1], qty: propValue[2] };
+            currentMeals.push(obj);
+          }
+        }
+      });
+      $.each(totalMeals, function (index, item) {
+        $.each(currentMeals, function (i, prop) {
+          if (prop.variant_ids == item.variant_ids) {
+            prop.product = item.product;
+            $('.js-qty__wrapper .cart__product-qty_' + item.variant_ids).val(prop.qty);
+          }
+        });
+      });
+      selectedMeals = currentMeals;
+      updatedMeal = currentMeals;
+    }
+  };
+
+  function updatedMealsQty(event, variantId) {
+    //console.log("qty update calles");
+    //console.log("event,variantId",event,variantId);
+    $('[data-updateMealBtn]').show();
+    var qtyValue = $('.js-qty__wrapper .cart__product-qty_' + variantId).val();
+    $('.js-qty__wrapper .cart__product-qty_' + variantId).attr('max', selectMealQty.total);
+    let totalMeals = 0;
+
+    if (updatedMeal.length > 0) {
+      $.each(updatedMeal, function (index, meal) {
+        totalMeals += parseInt(meal.qty)
+      });
+    }
+
+    if ($(event.currentTarget).data('increase') !== undefined) {
+      if (selectMealQty.total == totalMeals) {
+        toastr.error('You have reached limit for select meals.', 'Error');
+        return false;
+      } else if (selectMealQty.total < totalMeals) {
+        toastr.error('Please select appropriate quantity of meals.', 'Error');
+        return false;
+      }
+    }
+
+    if ($(event.currentTarget).data('decrease') !== undefined) {
+      if (parseInt(qtyValue) >= 1) {
+        qtyValue = parseInt(qtyValue) - 1;
+        selectMealQty.selected = selectMealQty.selected - 1;
+      }
+    } else if ($(event.currentTarget).data('increase') !== undefined) {
+      qtyValue = parseInt(qtyValue) + 1;
+      selectMealQty.selected = selectMealQty.selected + 1;
+    }
+
+    $('.js-qty__wrapper .cart__product-qty_' + variantId).val(qtyValue);
+    getSelectMealsArr(qtyValue, variantId);
+
+  };
+
+  function getSelectMealsArr(qtyValue, variantId) {
+    //console.log("getSelectMealsArr() called")
+    totalMeals.forEach(function (item) {
+      var obj = item;
+      var addMeal = false;
+      if (item.variant_ids == variantId) {
+        if (qtyValue == 0) {
+          const newArr = $.grep(updatedMeal, function (n, i) {
+            return n.variant_ids != variantId;
+          });
+          //console.log("newArr",newArr)
+          updatedMeal = newArr;
+          
+        } else {
+          var findMeal;
+          $.each(updatedMeal, function (index, meal) {
+            if (meal.variant_ids == variantId) {
+              findMeal = meal;
+            }
+          });
+          // const findMeal =updatedMeal.find((meal)=>meal.variant_ids == variantId);
+          if (findMeal !== undefined) {
+            addMeal = false;
+            updatedMeal.forEach(function (meal) {
+              if (meal.variant_ids == variantId) { meal.qty = qtyValue; }
+            });
+          } else { obj.qty = qtyValue; addMeal = true; updatedMeal.push(obj) }
+        }
+      }
+    });
+  };
+
+  function getSelectedMeals() {
+    //console.log("getSelectedMeals() called")
+   // console.log("currentSubscription.properties", currentSubscription.properties)
+    $('[data-updateSub]').addClass('btn--loading');
+    const c = [];
+    properties = [];
+    //console.log("currentSubscription",currentSubscription)
+    $.each(currentSubscription.properties, function (i, property) {
+      if (property.name == "changed") { properties.push({ name: 'changed', value: property.value, }); }
+      if (property.name == "delivery_date") { properties.push({ name: 'delivery_date', value: property.value, }); }
+      if (property.name == "delivery_time") { properties.push({ name: 'delivery_time', value: property.value, }); }
+      if (property.name == "display_delivery_date") { properties.push({ name: 'display_delivery_date', value: property.value, }); }
+      if (property.name == "display_delivery_time") { properties.push({ name: 'display_delivery_time', value: property.value, }); }
+      if (property.name == "delivery_instruction") { properties.push({ name: 'delivery_instruction', value: property.value, }); }
+      if (property.name == "buzzer_code") { properties.push({ name: 'buzzer_code', value: property.value, }); }
+      if (property.name == "unit_number") { properties.push({ name: 'unit_number', value: property.value, }); }
+      if (property.name == "delivery_instruction_other") { properties.push({ name: 'delivery_instruction_other', value: property.value, }); }
+      if (property.name == "charge_interval_frequency") { properties.push({ name: 'charge_interval_frequency', value: property.value, }); }
+      if (property.name == "parent_subr_id") { properties.push({ name: 'parent_subr_id', value: property.value, }); }
+      if (property.name == "_product_type") { properties.push({ name: '_product_type', value: property.value, }); }
+      if (property.name == "_random_number") { properties.push({ name: '_random_number', value: property.value, }); }
+      if (property.name == "shipping_interval_frequency") { properties.push({ name: 'shipping_interval_frequency', value: property.value, }); }
+      if (property.name == "shipping_interval_unit_type") { properties.push({ name: 'shipping_interval_unit_type', value: property.value, }); }
+    });
+    let totalMeals = 0;
+    //console.log('updatedMeal', updatedMeal);
+    if (updatedMeal.length > 0) {
+      updatedMeal.forEach(function (x) { totalMeals += parseInt(x.qty); });
+    }
+    if (totalMeals < selectMealQty.total) {
+      $('[data-updateSub]').removeClass('btn--loading');
+      toastr.error('Please select appropriate quantity of Meals.', 'error');
+      $('[data-updateSub]').removeClass('btn--loading');
+      return false;
+    }
+    if (totalMeals > selectMealQty.total) {
+      $('[data-updateSub]').removeClass('btn--loading');
+      toastr.error('You have reached limit for select Meals.', 'error');
+      $('[data-updateSub]').removeClass('btn--loading');
+      return false; 
+    }
+   // console.log('updatedMeal1:', updatedMeal)
+    $.each(updatedMeal, function (index, item) {
+      for (let i = 1; i <= item.qty; i++) { c.push(item.product.title); }
+      const obj1 = {
+        name: '_manage_qty_' + (index + 1),
+        value: item.product.id + '-' + item.variant_ids + '-' + item.qty,
+      };
+      properties.push(obj1);
+    });
+    console.log('updatedMeal2:', updatedMeal) 
+    // $.each(updatedMeal, function(index, item){
+    //   for (let i = 1; i <= item.qty; i++) { c.push(item.product.title); }
+    //   const obj1 = {
+    //     name: '_manage_qty_'+(index+1), 
+    //     value: item.product.id+'-'+item.variant_ids+'-'+item.qty,
+    //   };
+    //   properties.push(obj1);
+    // });
+    c.forEach(function (x, i) {
+      i += 1;
+      const obj2 = {
+        name: 'Meal ' + i,
+        value: x,
+      }
+     // console.log("obj2", obj2)
+      properties.push(obj2);
+    });
+    //console.log("c",c)
+    updateSubscriptionAPI(currentSubscription.next_charge_scheduled_at);
+  };
+
+  function getSelectedPrd(event, plan, count) {
+    $('[data-changeMealBtn]').hide();
+    $('.selectFrq').css('pointer-events', 'none');
+    $('.selectFrq').val('Please select plan');
+    $(event.currentTarget).closest('.item').find('.selectFrq').css('pointer-events', 'visible');
+    $('.individual-option').removeClass('active');
+    $(event.currentTarget).closest('.item').find('.individual-option').addClass('active');
+    planType = plan;
+    $('[data-changemealbtn]').show();
+    selectMealQty.total = count;
+    $('[data-display_total_meals]').html('Change Meals(Total meals:' + selectMealQty.total + ')');
+    getChangedPrd(planType, $(event.currentTarget).closest('.item').find('[data-product-id]').attr('data-product-id'));
+  };
+
+  function getChangedPrd(planType, id) {
+    if (currentProductTag.indexOf(planType) <= 0) {
+      $('[data-meal-products] input').each(function () {
+        $(this).val(0);
+      });
+    }
+    selctedPrdId = id;
+    updatedMeal = [];
+    if (currentProductTag.indexOf(planType) > -1 && selctedPrdId != 'Please select plan') {
+      const productObj = $('[data-' + selctedPrdId + '-json]').html();
+      const productData = JSON.parse(productObj);
+      updatedProduct = productData.product;
+      updatedVariant = productData.variant;
+      updatedVariant.metafields = productData.metafields;
+      $.each(updatedProduct.tags, function (index, tag) {
+        if (tag.startsWith('type-')) {
+          updatedProductTag = tag;
+        };
+        if (tag.startsWith('meals')) {
+          selectMealQty.total = parseInt(tag.split('x')[1]);
+        };
+      });
+    } else {
+      const productObj = $('[data-' + selctedPrdId + '-json]').html();
+      const productData = JSON.parse(productObj);
+      updatedProduct = productData.product;
+      updatedVariant = productData.variant;
+      updatedVariant.metafields = productData.metafields;
+      $.each(updatedProduct.tags, function (index, tag) {
+        if (tag.startsWith('type-')) {
+          updatedProductTag = tag;
+        };
+        if (tag.startsWith('meals')) {
+          selectMealQty.total = parseInt(tag.split('x')[1]);
+          $('[data-display_total_meals]').html('Change Meals(Total meals:' + selectMealQty.total + ')');
+          selectMealQty.selected = selectMealQty.total;
+        };
+      });
+    }
+  };
+
+  function updateSubscriptionAPI(subscriptionNextDate) {
+    let updateConfig = {};
+    const price = theme.Currency.formatMoney(updatedVariant.price);
+    updatedVariant.price = price.replace('$', '');
+    updateConfig = {
+      url: '/subscriptions/' + currentSubscription.id,
+      method: 'PUT',
+      data: {
+        shopify_variant_id: updatedVariant.id,
+        shopify_product_id: updatedProduct.id,
+        product_title: updatedProduct.title,
+        variant_title: updatedVariant.title,
+        price: updatedVariant.price,
+        order_interval_unit: currentSubscription.order_interval_unit,
+        order_interval_frequency: updatedVariant.metafields.shipping_interval_frequency,
+        charge_interval_frequency: updatedVariant.metafields.charge_internal_frequency,
+        next_charge_scheduled_at: subscriptionNextDate,
+        sku: updatedVariant.sku,
+        quantity: 1,
+        properties: properties,
+      },
+    };
+
+    $.ajax({
+      url: 'https://api-manager.hulkcode.com/api/recharge/common',
+      type: 'POST',
+      data: JSON.stringify(updateConfig),
+      headers: apiHeader,
+      dataType: 'json',
+      processData: false,
+      success: function (getdata) {
+        getSubscriptionOrder();
+        toastr.success('Your Subscription has been Updated Successfully.', 'Success');
+        setTimeout(function () {
+          $('[data-updateSub]').removeClass('btn--loading');
+          moveInPopup(event, null, 14, 1);
+          closeModal();
+        }, 2000);
+        return getdata;
+      },
+    });
+
+  };
+
+  function convertDate(inputFormat) {
+    function pad(s) { return (s < 10) ? s : s; }
+    var d = new Date(inputFormat)
+    return [pad(d.getDate()), pad(d.getMonth() + 1), d.getFullYear()].join('-')
+  };
+
+  // get current Subscription Delivery DEtails
+  function getCurrentDeliveryDetails(subscription, address_id) {
+    $('[data-delivery-address-box]').hide();
+    $('[data-delivery-address-box]').after('<div data-del-load style=" text-align: center;margin-top: 15px;"><img style="margin: 0 auto;" src="//cdn.shopify.com/s/files/1/1762/2215/t/75/assets/ajax-loader_small.gif?v=4135686330247201572"/></div><p data-del-load style="text-align: center;">Please Wait...</p>');
+    $.each(addresses, function (index, address) {
+      if (address.id == address_id) {
+        currentSubscriptionAddress = address;
+        var data = {
+          "postal_code": currentSubscriptionAddress.zip,
+          "email": theme.settings.customerEmail
+        }
+        $.ajax({
+          url: '/apps/manage-subscription/zip/validate',
+          method: 'POST',
+          dataType: 'json',
+          headers: { "content-type": "application/json", "accept": "application/json" },
+          data: JSON.stringify(data),
+          success: function (response) {
+            $('[data-delivery-address-box]').show();
+            $('[data-del-load]').remove();
+            var deliveryDetail = response.delivery_days;
+            var listDays = [];
+            var blockWeek = [];
+            var nextShppingDate = new Date(subscription.next_charge_scheduled_at);
+            var NextShippmentDay = nextShppingDate.getDay();
+            var fisrDay =  nextShppingDate.getDate() - nextShppingDate.getDay();
+            var lastDay =  fisrDay + 6;
+            var currentMonth =("0" + (nextShppingDate.getMonth()+1)).slice(-2);
+            var currentYear = nextShppingDate.getFullYear();
+            for(let i=fisrDay;i<=lastDay;i++){
+             var dateOfweek = ("0"+i).slice(-2);
+             blockWeek.push(currentYear+"-"+currentMonth+"-"+dateOfweek);
+              var dateOfweek = new Date(i.toString())
+            }
+            $.each(deliveryDetail, function (i, detail) {
+              switch (detail.day) {
+                case "monday":
+                  listDays.push(1);
+                  break;
+                case "tuesday":
+                  listDays.push(2);
+                  break;
+                case "wednesday":
+                  listDays.push(3);
+                  break;
+                case "thursday":
+                  listDays.push(4);
+                  break;
+                case "friday":
+                  listDays.push(5);
+                  break;
+                case "saturday":
+                  listDays.push(6);
+                  break;
+                case "sunday":
+                  listDays.push(0);
+                  break;
+              }
+            });
+            var blackOutDays = [];
+            $.each(response.black_out_dates, function (i, e) {
+              var a = convertDate(e);
+              blackOutDays.push(a);
+            });
+            var display_delivery_date, display_delivery_time , display_first_delivery_date;
+            $.each(currentSubscriptionAddress.note_attributes, function (i, e_note) {
+              if (e_note.name == "display_delivery_date") { display_delivery_date = e_note.value }
+              if (e_note.name == "display_delivery_time") { display_delivery_time = e_note.value }
+              if (e_note.name == "first_delivery_date" ){ display_first_delivery_date = moment(moment(e_note.value, 'DD-MM-YYYY')).format('MM-DD-YYYY') }
+            });
+
+            var dateToday = new Date(new Date().toLocaleString("en-US",{timeZone:'America/Toronto'}));
+            var minDate;
+            if (checkIfOrderIsPlaced(display_delivery_date, display_delivery_time)) {
+              var dateNEW = new Date(display_delivery_date);
+              dateNEW.setDate(dateNEW.getDate() + 1);
+              minDate = dateNEW;
+              //               $('.warning-alert').removeClass('d-none');
+            } else {
+              minDate = new Date(dateToday.getFullYear(), dateToday.getMonth(), dateToday.getDate() + 2);
+            }
+            let newMinDate = new Date(new Date(nextShppingDate).toLocaleString("en-US",{timeZone:'America/Toronto'}));
+            let newDateMin = new Date(newMinDate.getFullYear(), newMinDate.getMonth(), newMinDate.getDate() + 2);
+            var maxDate = new Date(dateToday.getFullYear(), dateToday.getMonth(), dateToday.getDate() + 60);
+            
+            $("#datepicker").datepicker({
+              minDate: newMinDate,
+              beforeShowDay: function (date) {
+                var string = $.datepicker.formatDate('yy-mm-dd', date);
+                if(blockWeek.indexOf(string) != -1){
+                  return false;
+                }
+                dmy = date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
+                if (moment(display_first_delivery_date).isBefore(date) && $.inArray(dmy, blackOutDays) == -1) {
+                  var day = date.getDay();
+                  return [($.inArray(day, listDays) != -1)];
+                } else {
+                  return [false, "", "Unavailable"];
+                }
+              },
+              onSelect: function (dateText) { 
+                var date1 = new Date(this.value);
+                var day = weekdays[date1.getDay()];
+                $.each(deliveryDetail, function (i, detail) {
+                  if (detail.day == day) {
+                    var addDays = '';
+                    $.each(detail.time_slots, function (i_timeslot, e_timeslot) {
+                      addDays += '<option value="' + e_timeslot.from + ' - ' + e_timeslot.until + '">' + e_timeslot.from + ' - ' + e_timeslot.until + '</option>';
+                    });
+                    $('[data-address-delivery-time]').html(addDays);
+                  }
+                });
+              }
+            });
+          }
+        });
+
+        //FETCH CALL FOR CHARGES
+        //   const config = {
+        //    url: `/charges?address_id=${address_id}`,
+        //     method: 'GET'   
+        //   }
+        //  	fetch('https://api-manager.hulkcode.com/api/recharge/common', {
+        //   method: 'POST',
+        //   headers: apiHeader,
+        //   body: JSON.stringify(config),
+        // 	})
+        // 	.then(response => response.json())
+        // 	.then(data => {
+        //     let TotalCharges = data.charges;
+        //      console.log("charges",TotalCharges);
+        //     TotalCharges.forEach( charge => {
+        //        console.log("charge",charge.scheduled_at)
+        //      })
+
+        // 	})
+        // 	.catch((error) => {
+        //   	console.error('Error:', error);
+        // });
+      }
+    });
+  };
+
+  // get current Subscription address
+  function getCurrentSubAddress(address_id) {
+    $.each(addresses, function (index, address) {
+      if (address.id == address_id) {
+        currentSubscriptionAddress = address;
+        $('[data-address-box] [data-first-name]').val(currentSubscriptionAddress.first_name);
+        $('[data-address-box] [data-last-name]').val(currentSubscriptionAddress.last_name);
+        $('[data-address-box] [data-address1]').val(currentSubscriptionAddress.address1);
+        $('[data-address-box] [data-address2]').val(currentSubscriptionAddress.address2);
+        $('[data-address-box] [data-city]').val(currentSubscriptionAddress.city);
+        $('[data-address-box] [data-country]').val(currentSubscriptionAddress.country);
+        new Shopify.CountryProvinceSelector('AddressCountry', 'AddressProvince', {
+          hideElement: 'AddressProvinceContainer',
+        });
+        $('[data-address-box] [data-zip]').val(currentSubscriptionAddress.zip);
+        $('[data-address-box] [data-province]').val(currentSubscriptionAddress.province);
+
+        $.each(currentSubscriptionAddress.note_attributes, function (i, e_note) {
+          if (e_note.name == "unit_number") { $('[data-address-box] [data-unit-number]').val(e_note.value); }
+          if (e_note.name == "buzzer_code") { $('[data-address-box] [data-buzzer-code]').val(e_note.value); }
+        });
+      }
+    });
+
+  };
+
+  // update current subscription shipping address
+  function updateSubscriptionAddress() {
+    $('[data-editAddBtn]').addClass('btn--loading');
+
+    setTimeout(function () {
+      const fname = $('[data-address-box] [data-first-name]').val();
+      const lname = $('[data-address-box] [data-last-name]').val();
+      const address1 = $('[data-address-box] [data-address1]').val();
+      const address2 = $('[data-address-box] [data-address2]').val();
+      const city = $('[data-address-box] [data-city]').val();
+      const country = $('[data-address-box] [data-country]').val();
+      const zip = $('[data-address-box] [data-zip]').val();
+      const province = $('[data-address-box] [data-province]').val();
+
+      const unit_number = $('[data-address-box] [data-unit-number]').val();
+      const buzzer_code = $('[data-address-box] [data-buzzer-code]').val();
+      var checkflag = false;
+
+      var data = {
+        "postal_code": $('[data-zip-from-app]').val(),
+        "email": theme.settings.customerEmail
+      }
+      $.ajax({
+        url: '/apps/manage-subscription/zip/validate',
+        method: 'POST',
+        dataType: 'json',
+        headers: { "content-type": "application/json", "accept": "application/json" },
+        data: JSON.stringify(data),
+        async: false,
+        success: function (response) {
+        },
+        error: function (jqXHR, exception) {
+          var error = JSON.parse(jqXHR.responseText).errors;
+          if (error.postal_code) {
+            toastr.error('Coming soon to you! We will notify you when we deliver in your area.', 'error');
+            $('.update_address').removeClass('btn--loading');
+            checkflag = true;
+            return false;
+          }
+        }
+      });
+
+      $.ajax({
+        url: 'https://www.bioraw.ca/apps/manage-subscription/validate-address?address=' + $('[data-zip-from-app]').val() + '&shop=bio-raw.myshopify.com',
+        method: 'POST',
+        dataType: 'json',
+        headers: { "content-type": "application/json", "accept": "application/json" },
+        async: false,
+        success: function (response) {
+          if (response.is_valid == false) {
+            toastr.error('Please enter a valid postal code.', 'error');
+            $('.update_address').removeClass('btn--loading');
+            checkflag = true;
+            return false;
+          }
+        },
+        error: function (jqXHR, error) {
+          console.log(error);
+        }
+      });
+
+      var delivery_date, delivery_time, display_delivery_date, display_delivery_time, delivery_instruction, delivery_option, discount_code;
+      $.each(currentSubscriptionAddress.note_attributes, function (i, e_note) {
+        if (e_note.name == "delivery_date") { delivery_date = e_note.value }
+        if (e_note.name == "delivery_time") { delivery_time = e_note.value }
+        if (e_note.name == "display_delivery_date") { display_delivery_date = e_note.value }
+        if (e_note.name == "display_delivery_time") { display_delivery_time = e_note.value }
+        if (e_note.name == "delivery_instruction") { delivery_instruction = e_note.value }
+        if (e_note.name == "delivery_option") { delivery_option = e_note.value }
+        if (e_note.name == "discount_code") { discount_code = e_note.value }
+      });
+      let config;
+      if (province == null) {
+        config = {
+
+          url: '/addresses/' + currentSubscriptionAddress.id,
+          method: 'PUT',
+          data: {
+            first_name: fname,
+            last_name: lname,
+            address1: address1,
+            address2: address2,
+            city: city,
+            country: country,
+            zip: zip,
+            note_attributes: [
+              { name: "delivery_date", value: delivery_date },
+              { name: "delivery_time", value: delivery_time },
+              { name: "display_delivery_date", value: display_delivery_date },
+              { name: "display_delivery_time", value: display_delivery_time },
+              { name: "delivery_option", value: delivery_option },
+              { name: "unit_number", value: unit_number },
+              { name: "buzzer_code", value: buzzer_code },
+              { name: "delivery_instruction", value: delivery_instruction },
+              { name: "discount_code", value: discount_code }
+            ],
+          },
+
+        };
+      } else {
+        config = {
+          url: '/addresses/' + currentSubscriptionAddress.id,
+          method: 'PUT',
+          data: {
+            first_name: fname,
+            last_name: lname,
+            address1: address1,
+            address2: address2,
+            city: city,
+            country: country,
+            zip: zip,
+            province: province,
+            note_attributes: [
+              { name: "delivery_date", value: delivery_date },
+              { name: "delivery_time", value: delivery_time },
+              { name: "display_delivery_date", value: display_delivery_date },
+              { name: "display_delivery_time", value: display_delivery_time },
+              { name: "delivery_option", value: delivery_option },
+              { name: "unit_number", value: unit_number },
+              { name: "buzzer_code", value: buzzer_code },
+              { name: "delivery_instruction", value: delivery_instruction },
+              { name: "discount_code", value: discount_code }
+            ],
+          },
+
+        };
+      }
+      if (!checkflag) {
+        if ($('[data-address-box] [data-address1]').val() == '') {
+          $('[data-address-box] [data-address1]').addClass('border-danger'); toastr.error("Can't blank address field.", 'error');
+          $('.update_address').removeClass('btn--loading');
+          return false;
+        } else if ($('[data-address-box] [data-first-name]').val() == '') {
+          $('[data-address-box] [data-first-name]').addClass('border-danger'); toastr.error("Can't blank first name field.", 'error');
+          $('.update_address').removeClass('btn--loading');
+          return false;
+        } else if ($('[data-address-box] [data-last-name]').val() == '') {
+          $('[data-address-box] [data-last-name]').addClass('border-danger'); toastr.error("Can't blank last name field.", 'error');
+          $('.update_address').removeClass('btn--loading');
+          return false;
+        } else if ($('[data-address-box] [data-city]').val() == '') {
+          $('[data-address-box] [data-city]').addClass('border-danger'); toastr.error("Can't blank city field.", 'error');
+          $('.update_address').removeClass('btn--loading');
+          return false;
+        } else if ($('[data-address-box] [data-zip]').val() == '') {
+          $('[data-address-box] [data-zip]').addClass('border-danger'); toastr.error("Can't blank zip field.", 'error');
+          $('.update_address').removeClass('btn--loading');
+          return false;
+        } else if ($('[data-address-box] [data-province]').val() == '') {
+          $('[data-address-box] [data-province]').addClass('border-danger'); toastr.error("Can't blank province field.", 'error');
+          $('.update_address').removeClass('btn--loading');
+          return false;
+        }
+        $.ajax({
+          url: 'https://api-manager.hulkcode.com/api/recharge/common',
+          type: 'POST',
+          data: JSON.stringify(config),
+          headers: apiHeader,
+          processData: false,
+          dataType: 'json',
+          success: function (getdata) {
+            if (getdata.error) {
+              toastr.error(getdata.error, 'Error');
+              $('.update_address').removeClass('btn--loading');
+              return false;
+            } else if (getdata.errors) {
+              if (getdata.errors.address1) { $('[data-address-box] [data-address1]').addClass('border-danger'); toastr.error(getdata.data.errors.address1, 'error'); }
+              if (getdata.errors.last_name) { $('[data-address-box] [data-last-name]').addClass('border-danger'); toastr.error(getdata.data.errors.last_name, 'error'); }
+              if (getdata.errors.city) { $('[data-address-box] [data-city]').addClass('border-danger'); toastr.error(getdata.data.errors.city, 'error'); }
+              if (getdata.errors.zip) { $('[data-address-box] [data-zip]').addClass('border-danger'); toastr.error(getdata.data.errors.zip, 'error'); }
+              if (getdata.errors.province) { $('[data-address-box] [data-province]').addClass('border-danger'); toastr.error(getdata.data.errors.province, 'error'); }
+              $('.update_address').removeClass('btn--loading');
+              return false;
+            } else {
+              toastr.success('Your Subscription Address has been Updated Successfully.', 'Success');
+              currentSubscriptionAddress = getdata.addresses;
+              getSubscriptionOrder();
+              getCurrentSubAddress(currentSubscription.address_id);
+              setTimeout(function () {
+                $('.update_address').removeClass('btn--loading');
+                $('[data-address-box] input').removeClass('border-danger');
+                moveInPopup(event, null, 13, 1);
+                closeModal();
+              }, 3000)
+            };
+            return getdata;
+          }
+        });
+      }
+    }, 1000);
+  };
+
+  function disable_data(event) {
+    $('[data-cancelBtn]').show();
+    var cancelReason = $('[data-cancellationValue]').val();
+    if (cancelReason == 'Please Select') {
+      $('[data-cancellationComment]').attr('disabled', true);
+    } else {
+      $('[data-cancellationComment]').attr('disabled', false);
+    }
+  };
+
+  function updateDate() {
+    $('[data-skipBtn]').show();
+  };
+
+  // cancel subscription
+  function cancelSubscription() {
+    isSubscriptionsCanceled = false;
+    $('.cancel_subs').addClass('btn--loading');
+    var cancelReason = $('[data-cancellationValue]').val();
+    var cancelComment = $('[data-cancellationComment]').val();
+    if (cancelReason == 'Please Select') {
+      isLoading = false;
+      $('.cancel_subs').removeClass('btn--loading');
+      toastr.error('Please select Cancellation reason.', 'Error');
+      return false;
+    }
+    //     if (cancelComment == '') {
+    //       isLoading = false;
+    //       $('.cancel_subs').removeClass('btn--loading');
+    //       toastr.error('Please select Cancellation Comment.','Error' );
+    //       return false;
+    //     }
+    const config = {
+      url: '/subscriptions/' + currentSubscription.id + '/cancel',
+      method: 'POST',
+      data: {
+        cancellation_reason: cancelReason,
+        cancellation_reason_comments: cancelComment,
+      },
+    };
+    $.ajax({
+      url: 'https://api-manager.hulkcode.com/api/recharge/common',
+      type: 'POST',
+      data: JSON.stringify(config),
+      headers: apiHeader,
+      dataType: 'json',
+      processData: false,
+      success: function (getdata) {
+        isSubscriptionsCanceled = true;
+        toastr.success('Your subscription has been canceled Successfully.', 'success');
+        setTimeout(function () {
+          $('.cancel_subs').removeClass('btn--loading');
+          moveInPopup(event, null, 2, 1);
+          closeModal();
+          //           getSubscriptionOrder();
+          location.reload();
+        }, 1500);
+
+      }
+    });
+  };
+
+  // reactivate subscription
+  function reactiveSubscription(event, subscriptionId) {
+    $(event.currentTarget).closest('.action1').html('<img src="//cdn.shopify.com/s/files/1/1762/2215/t/75/assets/ajax-loader_small.gif?v=4135686330247201572"/>');
+    const config = {
+      url: '/subscriptions/' + subscriptionId + '/activate',
+      method: 'POST',
+      data: {
+        cancelled_at: null,
+        cancellation_reason: null,
+        cancellation_reason_comments: null
+      },
+    };
+    $.ajax({
+      url: 'https://api-manager.hulkcode.com/api/recharge/common',
+      type: 'POST',
+      data: JSON.stringify(config),
+      headers: apiHeader,
+      processData: false,
+      dataType: 'json',
+      success: function (getdata) {
+        if (getdata.data && getdata.data.errors) {
+          toastr.error(getdata.data.error, 'error');
+          $(event.currentTarget).closest('.action1').html('<a href="javascript:void(0);" onclick="reactiveSubscription(event,' + subscriptionId + ')">Reactive</a></div>');
+          return false;
+        } else {
+          getSubscriptionOrder();
+          toastr.success('Your Subscription has been Activate Successfully.', 'success');
+        }
+      },
+    });
+  };
+
+  //get next date 
+  function get_nextdate() {
+    let SimplenextChargeDate = '';
+    let skipNextChargeDate = '';
+    skipNextChargeDate = moment(currentSubscription.next_charge_scheduled_at).add(currentSubscription.order_interval_frequency, 'week').format('MMMM D, YYYY');
+    SimplenextChargeDate = moment(currentSubscription.next_charge_scheduled_at).add(currentSubscription.order_interval_frequency, 'week').format('Y-MM-DD');
+    skip_shippment.dateFormate = skipNextChargeDate;
+    skip_shippment.nextChargeDate = SimplenextChargeDate + 'T00:00:00';
+    $('[data-skip-date]').html('Old Charge Date:  <b style="font-size: 16px;padding-left: 10px;">' + moment(currentSubscription.next_charge_scheduled_at).format('MMMM D, YYYY') + '</b>');
+    $('[data-skip-date-new]').html('New Charge Date:  <b style="font-size: 16px;padding-left: 10px;">' + skip_shippment.dateFormate + '</b>');
+  };
+
+  function getPayment(customerDetails) {
+    const config = {
+      url: '/customers/' + customerDetails + '/payment_sources',
+      method: 'GET',
+      data: [],
+    };
+    $.ajax({
+      url: 'https://api-manager.hulkcode.com/api/recharge/common',
+      type: 'POST',
+      data: JSON.stringify(config),
+      headers: apiHeader,
+      processData: false,
+      dataType: 'json',
+      success: function (payment) {
+        if (payment.payment_sources[0].card_last4 != null && payment.payment_sources[0].card_brand != null) {
+          $('[data-payment-div]').show();
+          $('[data-card-number]').text(payment.payment_sources[0].card_last4);
+          $('[data-card-type]').text(payment.payment_sources[0].card_brand);
+          $('[data-card-name]').text(payment.payment_sources[0].cardholder_name);
+        }
+      }
+    });
+  };
+
+  function updateNextChargeDate(event) {
+    console.log("update next charge date called");
+    $('.update_chrageDate').addClass('btn--loading');
+
+    setTimeout(function () {
+      var nextChargeDate = '';
+      skip_shippment.textSkip = 'Skip';
+      let dateNEW = new Date(skip_shippment.nextChargeDate.replace('T00:00:00', ''));
+      dateNEW.setDate(dateNEW.getDate() - 2);
+      nextChargeDate = moment(dateNEW).format('Y-MM-DD');
+
+      var delivery_date, discount_code, delivery_time, display_delivery_date, display_delivery_time, unit_number, buzzer_code, delivery_instruction, delivery_option;
+
+      $.each(currentSubscriptionAddress.note_attributes, function (i, e_note) {
+        console.log("e_note",e_note)
+        if (e_note.name == "delivery_date") { delivery_date = e_note.value }
+        if (e_note.name == "delivery_time") { delivery_time = e_note.value }
+        if (e_note.name == "display_delivery_date") { display_delivery_date = e_note.value }
+        if (e_note.name == "display_delivery_time") { display_delivery_time = e_note.value }
+
+        if (e_note.name == "unit_number") { unit_number = e_note.value }
+        if (e_note.name == "buzzer_code") { buzzer_code = e_note.value }
+        if (e_note.name == "delivery_instruction") { delivery_instruction = e_note.value }
+        if (e_note.name == "delivery_option") { delivery_option = e_note.value }
+        if (e_note.name == "discount_code") { discount_code = e_note.value }
+      });
+
+      var a = new Date(delivery_date);
+      var d = (new Date(a.getFullYear(), a.getMonth(), a.getDate() + 7));
+      var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      var update_delivery_date = (d.getMonth() + '/' + d.getDate() + '/' + d.getFullYear());
+      var config1 = {};
+      if (checkIfOrderIsPlaced(display_delivery_date, display_delivery_time)) {
+        config1 = {
+          url: '/addresses/' + currentSubscriptionAddress.id,
+          method: 'PUT',
+          data: {
+            note_attributes: [
+              { name: "delivery_date", value: update_delivery_date },
+              { name: "delivery_time", value: delivery_time },
+              { name: "delivery_option", value: delivery_option },
+              { name: "display_delivery_date", value: display_delivery_date },
+              { name: "display_delivery_time", value: display_delivery_time },
+              { name: "unit_number", value: unit_number },
+              { name: "buzzer_code", value: buzzer_code },
+              { name: "delivery_instruction", value: delivery_instruction },
+              { name: "discount_code", value: discount_code }
+            ],
+          },
+        };
+      } else {
+        config1 = {
+          url: '/addresses/' + currentSubscriptionAddress.id,
+          method: 'PUT',
+          data: {
+            note_attributes: [
+              { name: "delivery_date", value: update_delivery_date },
+              { name: "delivery_time", value: delivery_time },
+              { name: "display_delivery_date", value: update_delivery_date },
+              { name: "display_delivery_time", value: display_delivery_time },
+              { name: "delivery_option", value: delivery_option },
+              { name: "unit_number", value: unit_number },
+              { name: "buzzer_code", value: buzzer_code },
+              { name: "delivery_instruction", value: delivery_instruction },
+              { name: "discount_code", value: discount_code }
+            ],
+          }
+        };
+      }
+      $.ajax({
+        url: 'https://api-manager.hulkcode.com/api/recharge/common',
+        type: 'POST',
+        data: JSON.stringify(config1),
+        headers: apiHeader,
+        processData: false,
+        dataType: 'json',
+        async: false,
+        success: function (getdata) {
+        }
+      });
+
+      const config = {
+        url: '/subscriptions/' + currentSubscription.id + '/set_next_charge_date',
+        method: 'POST',
+        data: {
+          date: nextChargeDate,
+        },
+      };
+      $.ajax({
+        url: 'https://api-manager.hulkcode.com/api/recharge/common',
+        type: 'POST',
+        data: JSON.stringify(config),
+        headers: apiHeader,
+        dataType: 'json',
+        async: false,
+        processData: false,
+        success: function (getdata) {
+          if (getdata.data && getdata.data.error) {
+            toastr.error(getdata.data.error, 'error');
+            $('[data-updateDate]').removeClass('btn--loading');
+            return false;
+          } else {
+            toastr.success('Your subscription ' + skip_shippment.textSkip + ' successfully ', 'success');
+            getSubscriptionOrder();
+            setTimeout(function () {
+              $('.update_chrageDate').removeClass('btn--loading');
+              moveInPopup(event, null, 12, 1);
+              closeModal(event);
+            }, 3000)
+          }
+        },
+      });
+
+      $.each(currentAddons, function (i, e) {
+        var addOn_Id = e;
+        const config = {
+          url: '/subscriptions/' + addOn_Id + '/set_next_charge_date',
+          method: 'POST',
+          data: {
+            date: nextChargeDate,
+          },
+        };
+        $.ajax({
+          url: 'https://api-manager.hulkcode.com/api/recharge/common',
+          type: 'POST',
+          data: JSON.stringify(config),
+          headers: apiHeader,
+          dataType: 'json',
+          async: false,
+          processData: false,
+          success: function (getdata) {
+            // console.log(getdata);
+          },
+        });
+      });
+    }, 1000);
+  };
+  function closeModal(event) {
+    $('body').removeClass('body-fixed');
+    $('[data-modal]').hide();
+    $('[data-skip]').prop('checked', false);
+    $('[data-edit-subscription]').hide();
+    $('[data-add-addons]').hide();
+    $('[data-edit-payment]').addClass('d-none');
+    $('[data-skipBtn]').hide();
+    $('[data-edit-default-address]').addClass('d-none');
+    $('.subscription-addons-listing-forAdd .quantity-number').val(0);
+    currentAddonsIds = [];
+    $('.subscription-addons-listing-forAdd .item').each(function (i, e) {
+      var $this = $(this);
+      var $thisId = $(this).attr('data-variant-id');
+      $this.find('.product-quantity').css('visibility', 'visible');
+      $this.find('.individual-option').removeClass('active');
+    });
+  }
+
+  function formatDate(value) {
+    const date = moment(value).utc().format('MMM D, YYYY');
+    return date;
+  };
+
+  function checkIfOrderIsPlaced(prefix_date, prefix_time) {
+    var prefixDate = new Date(prefix_date);
+    var currentDate = new Date(new Date().toLocaleString("en-US",{timeZone:'America/Toronto'}));
+    var currentTime = currentDate.getTime();
+    var checkTime, prefixTime;
+    if (prefix_time) {
+      checkTime = new Date(prefix_date + ' ' + prefix_time.split(' - ')[1]);
+      prefixTime = checkTime.getTime();
+    }
+
+    if (prefixDate > currentDate) {
+      return true;
+    }
+    if (prefixDate < currentDate) {
+      return false;
+    }
+    if (prefixDate == currentDate) {
+      if (prefixTime > currentTime) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  };
+
+  function formatDate(value) {
+    const date = moment(value).utc().format('MMM D, YYYY');
+    return date;
+  };
+
+  $(document).ready(function () {
+    initRechargeDashboard();
+  });
+</script>
+{% endif %}

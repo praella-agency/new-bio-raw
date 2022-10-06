@@ -1,0 +1,108 @@
+{%- assign section_color = section.settings.color_scheme -%}
+{%- include 'global-variables' -%}
+
+{%- assign custom_grid_width = 'lg--up--three-quarters' -%}
+{%- if section.settings.title == blank and section.settings.description == blank and section.settings.cta_url == blank -%}
+  {%- assign custom_grid_width = 'lg--up--one-whole' -%}
+{%- endif -%}
+ {% unless section.settings.title == blank and section.settings.description == blank and  section.settings.cta_url == blank %}
+<section class="custom" data-section-type="custom" data-section-id="{{ section.id }}">
+  <div class="max-site-width lg--up--px3">
+    <div class="grid">
+
+     
+        <div class="grid__item lg--up--one-quarter">
+          <div class="pb3 pl2 pr4 lg--up--px0">
+
+            {% if section.settings.title  %}
+              <h2 class="{{ global__heading_font_size }}">{{ section.settings.title }}</h2>
+            {% endif %}
+
+            {% if section.settings.subheading != blank %}
+              <div class="{{ global__basic_font_size }}">
+                {{ section.settings.subheading }}
+              </div>
+            {% endif %}
+
+            {% if section.settings.cta_url %}
+            <a class="inline-block {{ global__homepage_more_link }} {{ global__basic_font_size }}  {{ global__link_underline }}  {{ global__hover_underline }} " href="{{ section.settings.cta_url }}" >
+              {{ section.settings.cta_text }}
+            </a>
+            {% endif %}
+
+          </div>
+        </div>
+      
+      {% if section.settings.custom_html contains '<hr>' %}
+      {% else %}
+      <div class="grid__item {{ custom_grid_width }}">
+        <div class="px2 lg--up--px0">
+          {{ section.settings.custom_html }}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+{% endunless %}
+ {% if section.settings.custom_html contains '<hr>' %}
+<div class="hr-wrapper">
+{{ section.settings.custom_html }}
+</div>
+{% endif %}
+{% schema %}
+{
+  "name": "Custom HTML",
+  "class": "section-video",
+  "settings": [
+    {
+      "id": "title",
+      "type": "text",
+      "label": "Heading",
+      "default": "Custom HTML"
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Subheading goes here"
+    },
+    {
+      "type": "url",
+      "id": "cta_url",
+      "label": "Optional: Call to action URL"
+    },
+    {
+      "type": "text",
+      "id": "cta_text",
+      "label": "Call to action button text",
+      "default": "Shop Now"
+    },
+    {
+      "type": "textarea",
+      "id": "custom_html",
+      "label": "Custom HTML"
+    },
+    {
+      "type":      "header",
+      "content":   "Color"
+    },
+    {
+       "type": "select",
+       "id": "color_scheme",
+       "label": "Color scheme",
+       "options": [
+          { "value": "primary", "label": "Primary"},
+          { "value": "secondary ", "label": "Secondary"},
+          { "value": "tertiary", "label": "Tertiary"}
+       ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom HTML",
+      "category": "Advanced Layout"
+    }
+  ]
+}
+{% endschema %}

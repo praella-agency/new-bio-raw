@@ -1,0 +1,1914 @@
+{% if template contains 'our-meals'%}
+
+<script>
+var discount = document.URL;
+var url = discount.split('?')[0];
+// console.log(document.URL);
+
+if(discount.indexOf('discount') > -1){  
+  const urlParams = new URLSearchParams(window.location.search);
+  const myParam = urlParams.get('discount');
+  // console.log(myParam);
+  localStorage.setItem('hulk-discount-add',myParam);   
+  window.history.pushState({}, document.title, url);
+}
+
+$('[data-address-delivery-instructions]').change(function(event){
+  localStorage.setItem('hulk-delivery-instruction',$(this).val());
+  if($(this).val() == 'Other'){
+    $('#other-instruction').val('');
+    $('#other-instruction').fadeIn();
+  }else{    
+    $('#other-instruction').val('');
+    $('#other-instruction').fadeOut();
+  }
+});
+
+// if($('[data-address-postal-code]').val() != ''){
+//   addressFunctionality();
+// }
+
+// $('[data-address-postal-code]').on('change keyup', function(e){
+//   $(this).val($(this).val().toUpperCase());
+//   searchthoughPostal(e);
+//   console.log($(this).val());
+// });
+
+windowsize = $(window).width();
+if (windowsize <= 1024) {
+  flkty = new Flickity('[data-step="1"] .custom-item, #frequency .radio-selection', {
+    adaptiveHeight: true,
+    contain: false,
+    accessibility: true,
+    dragThreshold: '20',
+    prevNextButtons: true,
+    pageDots: false,
+    arrowShape: "M 0,50 L 60,00 L 50,30 L 80,30 L 80,70 L 50,70 L 60,100 Z"
+  });
+}
+
+// back button functionality
+$('[data-back-btn]').click(function(event){
+  event.preventDefault();
+  let currentStep = $(this).closest('[data-plan-step]').data('plan-step'),
+  backStep = parseInt(currentStep) - 1;
+  localStorage.setItem('hulk-plan-step',backStep);
+  if(backStep > 0){
+     if(localStorage.getItem('hulk-plan-step-2') == 'one_time'){
+       if(backStep == 2){
+         backStep = 1;
+       }
+     }
+    $('[data-plan-step="'+ backStep +'"]').show();
+    $('[data-plan-step="'+ backStep +'"]').siblings('[data-plan-step]').hide();
+    autoFillData();
+  }
+  setTimeout(function(){
+    if($('.testimonials-text').height() > 0 && $('.testimonials-text .flickity-viewport').length < 1){
+      $('.testimonials-text').flickity({
+        adaptiveHeight: true,
+        contain: false,
+        wrapAround: true,
+        accessibility: true,
+        dragThreshold: '20',
+        prevNextButtons: true,
+        pageDots: true,
+        arrowShape: "M 0,50 L 60,00 L 50,30 L 80,30 L 80,70 L 50,70 L 60,100 Z"
+      });
+    }
+  },1000);
+});
+
+// Next button functionality
+
+$('[data-next-btn]').click(function(){
+  let currentStep = $(this).closest('[data-plan-step]').data('plan-step'),
+      nextStep = parseInt(currentStep) + 1;
+      // console.log(nextStep);
+  if(nextStep > 0){
+    $('[data-plan-step="'+ nextStep +'"]').show();
+    $('[data-plan-step="'+ nextStep +'"]').siblings('[data-plan-step]').hide();
+  }
+})
+// $( "#datepicker" ).datepicker();
+  var meals= null;
+  var mealArray=[];
+  var count=0;
+  var flkty = null;
+  var currentTemplateType=null;
+  var purchase_type= null;
+  var purchase_type_id = '';
+  const ShopifyQueue = [];
+  var flagAddToCart = false;
+  var deliverySettings;
+  var parent_subr_id = '';
+  var weekdays = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  // var domain = {{ shop.permanent_domain | json }},
+    var subscription= {
+      productVariants: [],
+      products: [],
+      totalMealProducts:[],
+      totalMealProductVariants:[],
+      selectedPrdVariant: null,
+      selectedMeals: [],
+      totalSelectedMeals: [],
+      frequency: null,
+      plan_name: null
+    }
+    localStorage.setItem('hulk-mealArray',JSON.stringify(mealArray));
+    var windowsize = 0;
+
+  function init() {    
+    if(localStorage.getItem('hulk-plan-step') != ''){
+      var stepnumber = localStorage.getItem('hulk-plan-step');
+      $('[data-plan-step="'+stepnumber+'"]').show();
+      $('[data-plan-step="'+stepnumber+'"]').siblings('[data-plan-step]').hide();
+      if(localStorage.getItem('hulk-plan-step') > 1){
+        $('[data-section-type="header-section"]').hide();
+      }
+    }
+
+    windowsize = $(window).width();
+    if (windowsize <= 1024) {
+      flkty = new Flickity('.selected-items', {
+        // options
+        cellAlign: 'left',
+        contain: true,
+        groupCells: false,
+        pageDots: false,
+        prevNextButtons: true,
+      });
+    }
+    currentTemplateType= $('[data-template]').attr('data-template-type');
+    initProducts();
+    
+    if(localStorage.getItem('hulk-plan-step')){
+      setTimeout(function(){
+        $('[data-address-postal-code]').val(localStorage.getItem('hulk-postal-code'));    
+        $('[data-address-search]').click();
+        addressFunctionality();
+        productOrderSummary();
+      },1500);
+    }
+    
+      $('[data-customer-exists] [data-email]').blur(function(){
+        if(localStorage.getItem('hulk-delivery-details')){
+          $('#register-form #addresspage-lnk').addClass('d-none');
+          $('#register-form #addresspage-lnk').css('pointer-events','auto')
+          $('#register-form button').css('display','block');
+        }
+      });
+      $('[data-customer-exists] [data-email]').click(function(){
+        if(localStorage.getItem('hulk-delivery-details')){
+        $('#register-form #addresspage-lnk').css('pointer-events','none');
+        };
+      });
+      $('[data-postal-code]').click(function(){
+        if(localStorage.getItem('hulk-delivery-details')){
+        $('#register-form #addresspage-lnk').css('pointer-evets','none');
+        };
+      });
+      $('[data-postal-code]').blur(function(){
+        if(localStorage.getItem('hulk-delivery-details')){
+          $('#register-form #addresspage-lnk').css('pointer-evets','auto')
+          $('#register-form #addresspage-lnk').addClass('d-none');
+          $('#register-form button').css('display','block');
+        }
+      });
+      window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+          //console.log('This page was restored from the bfcache.');
+        } else {
+          $('[data-plan_name]').each(function(){
+            $(this).prop('checked', false);
+          });
+        }
+      });
+  };
+
+  function saveDiscount(event){
+    localStorage.setItem('hulk-discount-add',$(event.currentTarget).closest('.show-more-details').find('input').val());
+  }
+  
+  function autoFillData(){
+    if(localStorage.getItem('hulk-plan-step') == 1){  
+      $('[data-section-type="header-section"]').show();  
+    }
+    
+    if(localStorage.getItem('hulk-plan-step-1')){
+      $('[data-plan_name="'+localStorage.getItem('hulk-plan-step-1')+'"]').click();      
+    }
+    if(localStorage.getItem('hulk-postal-code')){
+      $('[data-postal-code]').val(localStorage.getItem('hulk-postal-code'));
+    }
+    if(localStorage.getItem('hulk-email')){
+      $('[data-email]').val(localStorage.getItem('hulk-email'));     
+    }
+
+    if(localStorage.getItem('hulk-plan-step-2')){
+      $('[data-plan-step-edit="1"] .bkg-line, #frequency').addClass('active');
+      $('[data-plan-'+localStorage.getItem("hulk-plan-step-2-id")+']').next('label').addClass('checkbox_active');
+      choose_buy_type(event,localStorage.getItem('hulk-plan-step-2-id'),localStorage.getItem('hulk-plan-step-2'))
+      check_selectedFrq(event,'autoFill');
+
+      $.each(JSON.parse(localStorage.getItem('hulk-plan-selected-products')), function(index,e){
+        var img = $('[data-meal-product-text="'+e.title+'"]').attr('data-img');  
+        $('[data-meal-product-text="'+e.title+'"]').click();
+        $('.item_'+(index+1)).find('.item').attr('src', img)
+      });
+    }
+    flagAddToCart = true;
+
+    if(localStorage.getItem('hulk-step-product-addons') != '[]'){
+      $.each(JSON.parse(localStorage.getItem('hulk-step-product-addons')), function(i,e){
+        $('[data-product-title="'+e.title+'"] .quantity-number').val(e.quantity);
+      });
+      $('#meals .bkg-line, #add-ons').addClass('active');
+      $('[data-addtocart-addons]').text(`${window.sectionSettingsText.updateCartText}`);
+
+    } else{
+      $('[data-product-title] .quantity-number').val(0);
+      $('#meals .bkg-line, #add-ons').addClass('active');
+    }
+  
+    if(localStorage.getItem('hulk-step-product-donations') != '[]'){
+      $.each(JSON.parse(localStorage.getItem('hulk-step-product-donations')), function(i,e){
+        $('[data-product-title="'+e.title+'"] .quantity-number').val(e.quantity);
+      });
+      $('#add-ons .bkg-line, #bioraw-donation').addClass('active');
+      $('[data-addtocart-donations]').text(`${window.sectionSettingsText.updateCartText}`);
+    } else{
+      $('[data-product-title] .quantity-number').val(0);
+      $('#meals .bkg-line, #add-ons').addClass('active');
+    }
+  }
+  
+  function initProducts(){
+    $('[data-sub-json]').each(function(index, item){  
+      var productObj = $(item).html();
+      var productData = JSON.parse(productObj);
+      var product = productData.product;
+      var variants = productData.variants;
+      $(variants).each(function(index,variant){
+        variant.product_title = product.title;
+        variant.product_id = product.id;
+        // console.log(variant.product_title+'--1');
+        if(variant.title == 'subscription'){
+          variant.subscription_id = metafields.subscription_id;
+          variant.shipping_interval_unit_type = metafields.shipping_interval_unit_type;
+          variant.charge_internal_frequency = metafields.charge_internal_frequency;
+          variant.shipping_interval_frequency = metafields.shipping_interval_frequency;
+          variant.discount_variant_id = metafields.discount_variant_id;
+        };   
+      });    
+      subscription.productVariants.push(variants);   
+      subscription.products.push(product);
+    });
+    $('[data-meals-json]').each(function( index, item ){  
+      var productObj = $(item).html();
+      var productData = JSON.parse(productObj);
+      var product = productData.product;
+      var variant = productData.variant;
+      variant.product_title = product.title;
+      variant.product_id = product.id;
+      subscription.totalMealProducts.push(product);
+      subscription.totalMealProductVariants.push(variant);
+    });
+
+  }
+
+  function updateQty(event){
+    event.preventDefault();
+    var $button = $(event.currentTarget);
+    var oldValue = $button.parent().find("input").val();
+    if ($button.text() == "+") {
+      var newVal = parseFloat(oldValue) + 1;
+    } else {
+      // Don't allow decrementing below zero
+      if (oldValue > 0) {
+        var newVal = parseFloat(oldValue) - 1;
+      } else {
+        newVal = 0;
+      }
+    }
+    $button.parent().find("input").val(newVal);
+  }
+
+  function check_selectedPlan(event){
+    var updatedPlanName = subscription.plan_name;
+    //console.log("check_selectedPlan called",updatedPlanName);
+    event.preventDefault();
+    if(subscription.plan_name == null){
+      $(this).attr('href','');
+      toastr.error('Please select Meal Plan.','error' );
+      return false;
+    }else{
+      $(this).attr('href','#frequency');
+      var href = $(this).attr('href');
+      $(href).addClass('active');
+      
+      $('html, body').animate({
+        scrollTop: $(href).offset().top - 50
+      }, 200);
+      
+      if(subscription.plan_name != localStorage.getItem('hulk-plan-step-1')){
+        localStorage.removeItem('hulk-mealArray');
+      }
+      
+      localStorage.setItem('hulk-plan-step-1',subscription.plan_name);
+      $(event.currentTarget).closest('.meal-section').find('.bkg-line').addClass('active');
+    }
+  };
+  
+  function check_selectedFrq(event,event_type){
+    console.dir("check_selectedFrq");
+    console.dir(subscription.selectedPrdVariant,"subscription.selectedPrdVariant");
+    let variantID = subscription.selectedPrdVariant.variant.id;
+    let planInput = document.querySelectorAll("[data-plan-input]");
+    planInput.forEach(input =>{
+      if(input.checked)
+      {
+        subscription.selectedPrdVariant.variant.id = input.value;
+        subscription.selectedPrdVariant.variant.price =  parseInt(input.getAttribute("data-plan-price"));
+      }
+    })
+    //console.log("subscription",subscription);
+    event.preventDefault();
+    if(purchase_type == null){
+      $(this).attr('href','');
+      toastr.error('Please choose a frequency.','error' );
+      return false;
+    }else{
+      $(this).attr('href','#meals');
+      var href = $(this).attr('href');
+      $(href).addClass('active');
+      if(event_type === 'selectFrq'){
+        $('html, body').animate({
+          scrollTop: $(href).offset().top - 50
+        }, 200);
+      }
+      localStorage.setItem('hulk-plan-step-2',purchase_type);
+      localStorage.setItem('hulk-plan-step-2-id',purchase_type_id);
+      $(event.currentTarget).closest('.frequency-section').find('.bkg-line').addClass('active');
+    }
+    if(purchase_type == 'one_time'){
+      $('[data-final-plan]').html('<p>I would like to get <span class="text-capitalize">'+subscription.plan_name+'</span> meal plan for a <span>One Time Order</span> with above selected meal combos.</p> <a href="#add-ons" class="btn btn--green" data-addToCart  onclick="addToCart(event)">Add to cart</a>')
+    }else if (purchase_type == 'subscription'){
+      $('[data-final-plan]').html('<p>I would like to get <span class="text-capitalize">'+subscription.plan_name+'</span> meal plan for a <span> Weekly Subscription </span> with above selected meal combos.</p><a href="#add-ons" class="btn btn--green" data-addToCart onclick="addToCart(event)">Add to cart</a>')
+    }
+  };
+    
+  function selectPlan(planName,totalmeals){
+   //console.log("selectPlan called");
+    // console.log(planName+'--2');
+    if(localStorage.getItem('hulk-plan-step-1')){
+      if(planName != localStorage.getItem('hulk-plan-step-1')){
+        $('[data-plan-step-edit="1"] .bkg-line').removeClass('active');
+        $('#frequency, #frequency .bkg-line').removeClass('active');
+        $('#meals, #meals .bkg-line').removeClass('active');
+      }
+    }
+    
+    $('.next-btn').attr('href','#frequency');
+      meals= parseInt(totalmeals);
+      purchase_type = null;
+      mealArray=[];
+      count=0;
+      subscription.frequency='1 week(s)';
+      subscription.plan_name = planName;
+
+      $('[data-selected-counter]').text('0 / '+totalmeals +' Meals');
+      // console.log(subscription.plan_name,'==', totalmeals );
+      $('[data-meal-heading]').text('Choose '+totalmeals+' Meals');
+        if(subscription.plan_name == 'the single' ){
+          $('[data-single-term]').show();
+          $('[data-weekly-term]').hide();
+          $('[data-double-term]').hide();
+          $('[data-clubPack-term]').hide();
+        }else if (subscription.plan_name == 'the weekly' ){
+          $('[data-single-term]').hide();
+          $('[data-weekly-term]').show();
+          $('[data-double-term]').hide();
+          $('[data-clubPack-term]').hide();
+        }else if (subscription.plan_name == 'the double' ){
+          $('[data-single-term]').hide();
+          $('[data-weekly-term]').hide();
+          $('[data-double-term]').show();
+          $('[data-clubPack-term]').hide();
+        }else if (subscription.plan_name == 'the club pack'){
+          $('[data-single-term]').hide();
+          $('[data-weekly-term]').hide();
+          $('[data-double-term]').hide();
+          $('[data-clubPack-term]').show();
+        }
+        else{
+          $('[data-single-term]').hide();
+          $('[data-weekly-term]').hide();
+          $('[data-double-term]').hide();
+          $('[data-clubPack-term]').hide();
+        }
+        localStorage.setItem('hulk-plan-meals-total',totalmeals);
+
+        windowsize = $(window).width();
+        if (windowsize <= 1024) {
+          let flkty1 = new Flickity('#frequency [data-single-term]', {
+            adaptiveHeight: true,
+            contain: false,
+            accessibility: true,
+            dragThreshold: '20',
+            prevNextButtons: true,
+            pageDots: false,
+            arrowShape: "M 0,50 L 60,00 L 50,30 L 80,30 L 80,70 L 50,70 L 60,100 Z"
+          });
+          let flkty2 = new Flickity('#frequency [data-weekly-term]', {
+            adaptiveHeight: true,
+            contain: false,
+            accessibility: true,
+            dragThreshold: '20',
+            prevNextButtons: true,
+            pageDots: false,
+            arrowShape: "M 0,50 L 60,00 L 50,30 L 80,30 L 80,70 L 50,70 L 60,100 Z"
+          });
+          let flkty3 = new Flickity('#frequency [data-double-term]', {
+            adaptiveHeight: true,
+            contain: false,
+            accessibility: true,
+            dragThreshold: '20',
+            prevNextButtons: true,
+            pageDots: false,
+            arrowShape: "M 0,50 L 60,00 L 50,30 L 80,30 L 80,70 L 50,70 L 60,100 Z"
+          });
+          let flkty4 = new Flickity('#frequency [data-clubPack-term]', {
+            adaptiveHeight: true,
+            contain: false,
+            accessibility: true,
+            dragThreshold: '20',
+            prevNextButtons: true,
+            pageDots: false,
+            arrowShape: "M 0,50 L 60,00 L 50,30 L 80,30 L 80,70 L 50,70 L 60,100 Z"
+          });
+        }
+      if (windowsize <= 1024) {
+          if($('.meal-section .selected-items .flickity-viewport .flickity-slider ').length > 0){
+            $('.meal-section .selected-items .flickity-viewport .flickity-slider').empty();       
+            flkty.destroy();
+          }
+          flkty = new Flickity('.selected-items', {
+          // options
+          cellAlign: 'left',
+          contain: true,
+          groupCells: false,
+          pageDots: false,
+          prevNextButtons: true,
+          });
+        setTimeout(function(){ 
+          for (var i = 1; i <= meals; i++) {
+            var $cellElems = $('<div class="items item_'+i+'"><div><span>'+i+'</span></div></div>');
+            flkty.append($cellElems);
+            };
+        },1000)
+      } else {
+        $('.selected-items').empty();
+        for (var i = 1; i <= meals; i++) {
+          $('.selected-items').append('<div class="items item_'+i+'"><div><span>'+i+'</span></div></div>');
+        };
+      }  
+  };
+
+  function selectMealQty(event,productId,productImg,selectedindex){  
+    //console.log("selected meals called") 
+    event.preventDefault();
+    var btn = $(event.currentTarget);
+    var selectedPrd_img = productImg;
+    var get_index=selectedindex;
+    var emptyIndex=null;
+    count++;
+    if(count<=meals) {
+      $( ".selected-items .items" ).each(function( index,item ) {
+        //item.style.transform = "translateX(-30%)";
+       // $('.selected-items .flickity-slider items').css('transform','translateX(-30%)')
+        //console.log("item",item)
+      //   let thirdItem = document.getElementsByClassName("item_3")[0];
+      //  console.log("==>",thirdItem.childElementCount);
+      //  if(thirdItem.childNodes.length != 1){
+      //   console.log("inside if")
+      //    $('.selected-items .flickity-slider').css('transform','translateX(-70%)')
+      //  }
+        if($(item).html() == '<div><span>'+(index+1)+'</span></div>'){
+          $('[data-selected-counter]').text(count+' / '+meals +' Meals');
+          if(count > 2){
+            $('.flickity-prev-next-button.next').trigger('click');
+          }
+          //btn.parent().addClass('added');
+          emptyIndex = index;
+         // console.log("empty index",emptyIndex)
+          mealArray.splice(emptyIndex,0,productImg);
+          $(item).html('<a href="#" class="text-center minus_icon" onclick="removeMeal(event,'+emptyIndex+')">-</a><div><img class="item" data-product-id="'+productId+'" src='+selectedPrd_img+'/></div>');
+          
+          return false;
+        }
+      });
+    }
+    if(count == meals){
+      //console.log("inside selected if")
+      $('html, body').animate({
+      scrollTop: $('.meal-list').offset().top
+    }, 200);  
+    }
+   
+    if(count > meals){
+      count--;
+      if(!localStorage.getItem('hulk-plan-selected-products')){
+        toastr.error('You have reached limit to select Meals.','error' );
+      }else{
+      }
+      // toastr.error('You have reached limit to select Meals.','error' );
+      return false;
+    }
+    localStorage.setItem('hulk-mealArray',JSON.stringify(mealArray));
+  };
+
+  function removeMeal(el,index){
+    el.preventDefault();
+    var btn = $(el.currentTarget);
+    count--;
+    // const prdindex = mealArray.indexOf(prdImg);
+    if(index > -1){
+      mealArray.splice(index,1);
+    }
+    $( ".selected-items .items" ).each(function( i,item ) {
+      if (index == i){
+        //btn.parent().removeClass('added');
+        $(item).html('<div><span>'+(index+1)+'</span></div>');
+      }
+    });
+    $('[data-selected-counter]').text(index+' / '+localStorage.getItem('hulk-plan-meals-total') +' Meals');
+    
+      $('.flickity-prev-next-button.previous').trigger('click');
+    
+    localStorage.setItem('hulk-mealArray',JSON.stringify(mealArray));
+  };
+
+  function chooseFrq(variantId){
+    console.log('chosse chooseFrq')
+    $('.data-term').removeClass('checkbox_active');
+    subscription.selectedPrdVariant = {};
+    $(subscription.productVariants).each(function(index,item){
+      console.log(item,"item")
+      $(item).each(function(inner_index,inner_item){
+        //console.log("inner_item",inner_item);
+        if(inner_item.variant.id == variantId){
+          subscription.selectedPrdVariant = inner_item;
+        }
+      });
+    });
+    // subscription.selectedPrdVariant = subscription.productVariants.find((x) => x.id == variantId);
+    $('[data-plan-'+variantId+']').closest('.item').find('.data-term').addClass('checkbox_active');
+  };
+
+  function choose_buy_type(event,variantId,buy_type){
+
+    purchase_type = buy_type;
+    purchase_type_id = variantId;
+    // console.log($(event.currentTarget).attr('data-price'));
+    localStorage.setItem('hulk-main-product-price',$(event.currentTarget).attr('data-price'));
+    $('.data-term').removeClass('checkbox_active');
+    
+    if(purchase_type == 'one_time'){
+    // console.log(purchase_type+'--3 if');
+      chooseFrq(variantId);
+      $(event.currentTarget).closest('.item').find('.data-term').addClass('checkbox_active');
+      $('[data-final-plan]').html('<p>I would like to get <span>'+subscription.plan_name+'</span> meal plan for a <span>One Time Order</span> with above selected meal combos.</p> <a href="#add-ons" class="btn btn--green" data-addToCart  onclick="addToCart(event)">Add to cart</a>')
+    } else if (purchase_type == 'subscription'){
+      chooseFrq(variantId);
+      $(event.currentTarget).closest('.item').find('.data-term').addClass('checkbox_active');
+      $('[data-final-plan]').html('<p>I would like to get <span>'+subscription.plan_name+'</span> meal plan for a <span> Weekly Subscription </span> with above selected meal combos.</p><a href="#add-ons" class="btn btn--green" data-addToCart onclick="addToCart(event)">Add to cart</a>')
+    }
+  }
+
+  function addToCartAddons(event){
+    //console.log("Add to cart added")
+    event.preventDefault();
+    var addOnProds = [];
+    var totalPriceAddons = 0.00;
+    if(flagAddToCart == true){
+      $('[data-addons-products]').each(function() {
+        var $this = $(this);
+        if($this.find('.quantity-number').val() > 0){
+          var qtyVal = $this.find('.quantity-number').val();
+          var variantId = $this.attr('data-variant-id');
+          var price = parseFloat($this.attr('data-price'))
+          totalPriceAddons += price * parseInt(qtyVal);
+          const properties = {};
+          properties.random_number = $('[data-random-number]').attr('data-random-number');
+          properties.product_type="Sub Product";
+          properties['Purchase Type'] = "One Time";
+          properties.changed=false;
+          if(purchase_type != 'one_time'){
+            properties.shipping_interval_frequency = $this.attr('data-shipping_interval_frequency');
+            properties.shipping_interval_unit_type = $this.attr('data-shipping_interval_unit_type');
+            properties.charge_interval_frequency = $this.attr('data-charge_interval_frequency');
+            properties.subscription_id = $this.attr('data-subscription_id');
+          }
+          addOnProds.push({ 
+            quantity: qtyVal,
+            variantId: variantId,
+            properties: properties,
+            title: $this.find('h6').text(),
+            price: price
+          });
+          localStorage.setItem('hulk-step-product-addons',JSON.stringify(addOnProds));
+          localStorage.setItem('hulk-step-product-addons-price',totalPriceAddons);
+        }
+      });
+      if(addOnProds.length > 0){
+        if($('#bioraw-donation').length > 0){
+          gotoDonation();
+        }else{
+          goToRegister();
+        }
+      }else{
+         //console.log('in else');
+        if(localStorage.getItem('hulk-step-product-addons-price') > 0){
+          addOnProds = [];
+          totalPriceAddons = 0.00;
+          localStorage.setItem('hulk-step-product-addons',JSON.stringify(addOnProds));
+          localStorage.setItem('hulk-step-product-addons-price',totalPriceAddons);
+          if($('#bioraw-donation').length > 0){
+            gotoDonation();
+          }else{
+            goToRegister();
+          }
+          
+        }else {
+          toastr.error('Please add addons products.','error' );
+        }
+      }
+    }else{
+      if(!localStorage.getItem('hulk-step-product')){
+        toastr.error('Please select Plan.','error' );
+      }
+
+    }
+  }
+
+  function addToCartDonations(event){
+    event.preventDefault();
+    var donationsProds = [];
+    var totalPricedonations = 0.00;
+    if (mealArray.length < meals){
+      //console.log(mealArray.length+'--'+meals);
+      toastr.error('Please select Meals.','error' );
+      return false;
+    }
+    if(flagAddToCart == true){
+      $('[data-donation-products]').each(function(){
+        var $this = $(this);
+        if($this.find('.quantity-number').val() > 0){
+          var qtyVal = $this.find('.quantity-number').val();
+          var variantId = $this.attr('data-variant-id');
+          var price = parseFloat($this.attr('data-price'));
+          totalPricedonations += price * parseInt(qtyVal);
+          const properties = {};
+
+          properties.random_number = $('[data-random-number]').attr('data-random-number');
+          properties.product_type="Sub Product";
+          properties.changed=false;
+          donationsProds.push({
+            quantity: qtyVal,
+            variantId: variantId,
+            title: $this.find('h2').text(),
+            properties: properties,
+            price: price
+          });
+          localStorage.setItem('hulk-step-product-donations',JSON.stringify(donationsProds));
+          localStorage.setItem('hulk-step-product-donations-price',totalPricedonations);
+
+        }
+      });
+      if(donationsProds.length > 0){
+        //console.log('inif');        
+        {% if customer %}
+           localStorage.setItem('hulk-plan-step',3);
+            $('[data-adress]').show(); 
+            $('[data-plan-meal-page]').hide();
+            $('[data-section-type="header-section"]').hide();
+            $('html, body').animate({
+              scrollTop: $('[data-adress]').offset().top
+            }, 1000);
+        {% else %}
+            if(localStorage.getItem('hulk-plan-step-2') == 'one_time'){
+              localStorage.setItem('hulk-plan-step',3);
+                $('[data-adress]').show(); 
+                $('[data-plan-meal-page]').hide();
+                $('[data-section-type="header-section"]').hide();
+                $('html, body').animate({
+                  scrollTop: $('[data-adress]').offset().top
+                }, 1000);
+            } else if(localStorage.getItem('hulk-plan-step-2') == 'subscription'){
+              localStorage.setItem('hulk-plan-step',2);
+               	$('[data-account-register]').show();
+                $('[data-plan-meal-page]').hide();
+                $('[data-section-type="header-section"]').hide();
+                $('html, body').animate({
+                  scrollTop: $('[data-account-register]').offset().top
+                }, 1000);
+                windowsize = $(window).width();
+                  if (windowsize <= 1024) {
+                    flkty2 = new Flickity('.radio-selection.testimonials-text', {
+                      adaptiveHeight: true,
+                      contain: false,
+                      accessibility: true,
+                      dragThreshold: '20',
+                      prevNextButtons: true,
+                      pageDots: false,
+                      arrowShape: "M 0,50 L 60,00 L 50,30 L 80,30 L 80,70 L 50,70 L 60,100 Z"
+                    });
+                  }
+            }
+           
+        {% endif %}       
+      } else {
+         //console.log('in else ');
+         if(localStorage.getItem('hulk-step-product-donations-price') > 0){
+            
+        {% if customer %}
+           localStorage.setItem('hulk-plan-step',3);
+           $('[data-adress]').show(); 
+           $('[data-plan-meal-page]').hide();
+           $('[data-section-type="header-section"]').hide();
+            $('html, body').animate({
+              scrollTop: $('[data-adress]').offset().top
+            }, 1000);
+        {% else %}
+           if(localStorage.getItem('hulk-plan-step-2') == 'one_time'){
+             localStorage.setItem('hulk-plan-step',3);
+                $('[data-adress]').show(); 
+                $('[data-plan-meal-page]').hide();
+                $('[data-section-type="header-section"]').hide();
+                $('html, body').animate({
+                  scrollTop: $('[data-adress]').offset().top
+                }, 1000);
+            } else if(localStorage.getItem('hulk-plan-step-2') == 'subscription'){
+              localStorage.setItem('hulk-plan-step',2);
+               	$('[data-account-register]').show();
+                $('[data-plan-meal-page]').hide();
+                $('[data-section-type="header-section"]').hide();
+                $('html, body').animate({
+                  scrollTop: $('[data-account-register]').offset().top
+                }, 1000);
+            }
+        {% endif %}
+          donationsProds = [];
+          totalPricedonations = 0.00;
+          localStorage.setItem('hulk-step-product-donations',JSON.stringify(donationsProds));
+          localStorage.setItem('hulk-step-product-donations-price',totalPricedonations);          
+        } else {
+        	toastr.error('Please add donation products.','error');
+        }
+      }
+    }else{
+      if(!localStorage.getItem('hulk-step-product')){
+        toastr.error('Please select Plan.','error');
+      }
+    }
+    {% unless customer %}
+    setTimeout(function(){
+      if($('.testimonials-text').height() > 0 && $('.testimonials-text .flickity-viewport').length < 1){
+        $('.testimonials-text').flickity({
+          adaptiveHeight: true,
+          contain: false,
+          wrapAround: true,
+          accessibility: true,
+          dragThreshold: '20',
+          prevNextButtons: true,
+          pageDots: true,
+          arrowShape: "M 0,50 L 60,00 L 50,30 L 80,30 L 80,70 L 50,70 L 60,100 Z"
+        });
+      }
+    },1000);
+    {% endunless %}
+    productOrderSummary();
+  }
+
+  function nothanksDonation(event){
+    event.preventDefault();
+    if (mealArray.length < meals){
+      toastr.error('Please select Meals.','error' );
+      return false;
+    }
+    if(ShopifyQueue.length > 0 || localStorage.getItem('hulk-step-product')){
+      if(localStorage.getItem('hulk-step-product-donations') == null){
+        $('[data-donation-products]').each(function(){
+          var $this = $(this);
+          $this.find('.quantity-number').val('0');
+        });
+      }
+       if(localStorage.getItem('hulk-plan-step-2') == 'one_time'){
+          localStorage.setItem('hulk-plan-step',3);
+           $('[data-adress]').show(); 
+           $('[data-plan-meal-page]').hide();
+           $('[data-section-type="header-section"]').hide();
+           $('html, body').animate({
+             scrollTop: $('[data-adress]').offset().top
+           }, 1000);
+         productOrderSummary();
+       } else {
+          localStorage.setItem('hulk-plan-step',2);
+          $('[data-account-register]').show(); 
+          $('[data-plan-meal-page]').hide();
+          $('[data-section-type="header-section"]').hide();
+          $('html, body').animate({
+              scrollTop: $('[data-account-register]').offset().top
+          }, 1000);
+       }
+    }else{
+      toastr.error('Please select plan.','error');
+    }
+    
+  }
+ 
+  function logoutFromAccount(event){
+     event.preventDefault();
+     if($('[data-customer-email]').data('customer-email') == '' ){
+      for (var key in localStorage){
+        if(key.startsWith('hulk')){
+          localStorage.removeItem(key); 
+        }
+      }     
+    }
+    $.ajax( $(event.currentTarget).attr('href') )
+    .done(function() {
+    /* Here you can perform required things to achieve  i.e. redirect to specific url, reload same page*/
+    window.location.href="/account/login"
+    });
+    return false;
+    
+  }
+
+  function goToAddressPage(event){
+    event.preventDefault();
+    if($('[data-customer-email]').data('customer-email') != ''){
+       $('#register-form button').hide();
+      if($('[data-customer-email]').data('customer-email') != localStorage.getItem('hulk-email')){
+        toastr.error('Please logout from old email to Place the order with new email','error' );
+        $('#register-form .error-msg').addClass('success').html('');
+        $('#register-form #addresspage-lnk').removeClass('d-none');
+        $('#register-form button').hide();        
+        return false;
+      }
+    }
+    $('[data-adress]').show();
+    $('[data-account-register]').hide();
+    localStorage.setItem('hulk-postal-code', $('[data-postal-code]').val());
+    localStorage.setItem('hulk-email', $('[data-email]').val())
+    localStorage.setItem('hulk-plan-step',3);
+    addressFunctionality();
+    productOrderSummary();
+  }
+
+  function convertDate(inputFormat) {
+    function pad(s) { return (s < 10) ? s : s; }
+    var d = new Date(inputFormat)
+    //console.log(d.getDate(), 'dddddd');
+    return [pad(d.getDate()), pad(d.getMonth()+1), d.getFullYear()].join('-')
+  }
+
+  function addressFunctionality(){
+    if(localStorage.getItem('hulk-delivery-details')){
+      $('[data-address-postal-code]').val(localStorage.getItem('hulk-postal-code'));
+      var delDet = localStorage.getItem('hulk-delivery-details');
+      var deliveryDetail = JSON.parse(delDet);
+      // console.log(deliveryDetail);
+      // var listDays = [];
+      // $.each(deliveryDetail, function(i,e){
+      //   switch(e.day) {
+      //     case "monday":
+      //       listDays.push(1);
+      //       break;
+      //     case "tuesday":
+      //       listDays.push(2);
+      //       break;
+      //     case "wednesday":
+      //       listDays.push(3);
+      //       break;
+      //     case "thursday":
+      //       listDays.push(4);
+      //       break;
+      //     case "friday":
+      //       listDays.push(5);
+      //       break;
+      //     case "saturday":
+      //       listDays.push(6);
+      //       break;
+      //     case "sunday":
+      //       listDays.push(0);
+      //       break;
+      //   }
+      // }); 
+      var detDetailsAll = JSON.parse(localStorage.getItem('hulk-delivery-all-details'));
+      var instruction = '';
+      $.each(detDetailsAll.delivery_instructions, function(i,e){
+        instruction += '<option value="'+e+'">'+e+'</option>';
+      });
+      instruction += '<option value="Other">Other</option>';
+      $('[data-address-delivery-instructions]').html(instruction);
+      $('#btn-checkout').removeAttr('disabled');
+      $('[data-address-delivery-time]').html();
+    }
+  }
+
+  function showPopup(event,showDet){
+    event.preventDefault();
+    $(showDet).toggle();
+  }
+
+  
+
+  function searchthoughPostal(event){
+    //console.log("searchthoughPostal called");
+    event.preventDefault();
+    $(event.currentTarget).addClass('btn--loading');
+    const shop_domain = '{{ shop.permanent_domain }}'; 
+    var email = $('[data-email]').val();
+    var postalCode  = $('[data-address-postal-code]').val();
+    localStorage.setItem('hulk-postal-code', postalCode); 
+    var data = {
+      "postal_code": postalCode, 
+      "email": email
+    }
+    $.ajax({
+      url: '/apps/manage-subscription/zip/validate',      
+      method: 'POST',
+      dataType: 'json',
+      headers:{ "content-type": "application/json", "accept": "application/json"},
+      data: JSON.stringify(data),
+      async:false,
+      success: function(response){
+        $(event.currentTarget).removeClass('btn--loading');
+        var custData = response;
+        //console.log("custData",custData)
+        deliverySettings = custData.delivery_days;
+        localStorage.setItem('hulk-delivery-details',JSON.stringify(deliverySettings));
+        localStorage.setItem('hulk-delivery-all-details',JSON.stringify(custData));
+        var day = "monday";
+        var deliveryDetail = custData;
+        let currentdate =  new Date(new Date().toLocaleString("en-US",{timeZone:'America/Toronto'}));
+//         var localTime = new Date();
+//         var ptTime = new Date();
+//         ptTime.setMinutes(ptTime.getMinutes() + localTime.getTimezoneOffset() - 250);
+//         console.log(ptTime,'ptTime');
+//         let currentdate = ptTime;
+//         currentdate1 = new Date(new Date().toLocaleString("en-US",{timeZone:'America/Toronto'}));
+       //console.log(currentdate,'---currentdate');
+        var globalDatesArray = [];
+        let currentDay = currentdate.getDate();
+        let currentMonth = currentdate.getMonth()+1;
+        let currentYear = currentdate.getFullYear();
+        //var dates = [currentDay+"-"+"0"+currentMonth+"-"+currentYear];
+        $.each(deliveryDetail.delivery_days, function(i,detail){
+          if(detail.day == day){
+            var addDays = '';
+            $.each(detail.time_slots, function(i_timeslot,e_timeslot){
+              addDays+='<option value="'+e_timeslot.from+' - '+e_timeslot.until+'">'+e_timeslot.from+' - '+e_timeslot.until+'</option>';            
+            });
+            $('[data-address-delivery-time]').html(addDays);
+          }
+        }); 
+        //CODE FOR GLOBAL CUTTOFF  
+        let globalCuttof = custData.disable_order_date_times.global_time;
+        //console.log("global cuttof",globalCuttof)
+        let currentHours = ("0" + currentdate.getHours()).slice(-2);
+        let currentMin = ("0" + currentdate.getMinutes()).slice(-2);
+        let currentSec = ("0" + currentdate.getSeconds()).slice(-2);
+        let currentTime = currentHours+":"+currentMin+":"+currentSec;
+        //console.log("currentTime",currentTime)
+        if(currentTime > globalCuttof){
+          //console.log("inside global cuttof");
+          var formatedDate = ("0" + currentDay).slice(-2);
+          var formatedMonth = ("0" + currentMonth).slice(-2);
+          var todayDate = formatedDate+"-"+formatedMonth+"-"+currentYear;
+          globalDatesArray.push(todayDate)
+        }
+        //CODE FOR FORCESTOP    
+        if(custData.disable_order_date_times.close_the_day == true){
+          //console.log("inside force stop");
+          var formatedDate = ("0" + currentDay).slice(-2);
+          var formatedMonth = ("0" + currentMonth).slice(-2);
+          let todayDate = formatedDate+"-"+formatedMonth+"-"+currentYear;
+          globalDatesArray.push(todayDate)
+        }
+        //CODE FOR BLACKOUT DATES
+        if(custData.black_out_dates != null){
+          $.each(custData.black_out_dates, function(i,e){
+           spiltStr = e.split("-").join("/");
+           let blockOff = new Date(spiltStr);
+           var BlockOffDate = blockOff.getDate();
+           var BlockOffMonth = blockOff.getMonth()+1;
+           var BlockOffYear = blockOff.getFullYear();
+           var formatedDate = ("0" + BlockOffDate).slice(-2);
+           var formatedMonth = ("0" + BlockOffMonth).slice(-2);
+           var updatedDate = formatedDate+"-"+formatedMonth+"-"+BlockOffYear;
+           globalDatesArray.push(updatedDate);
+          });
+          //console.log("globalDatesArray",globalDatesArray)
+        }
+        $("#datepicker_new").datepicker({
+            dateFormat: "dd-mm-yy",
+            beforeShowDay: function (date) {
+              var string = $.datepicker.formatDate('dd-mm-yy',date);
+              return [globalDatesArray.indexOf(string) == -1];
+            },
+            minDate:currentdate,
+            onSelect: function(dateText) {
+              var splitedDate = this.value.split("-").reverse().join("/")
+              var date1 = new Date(splitedDate);
+              var day = weekdays[date1.getDay()];
+              $.each(custData.delivery_days, function(i,detail){
+                if(detail.day == day){
+                  var addDays = '';
+                  $.each(detail.time_slots, function(i_timeslot,e_timeslot){
+                    addDays+='<option value="'+e_timeslot.from+' - '+e_timeslot.until+'">'+e_timeslot.from+' - '+e_timeslot.until+'</option>';            
+                  });
+                  $('[data-address-delivery-time]').html(addDays);
+                }
+              });
+            }
+        });
+        $('[data-address-delivery-time]').html();
+        $('#btn-checkout').removeAttr('disabled');
+        $('[data-delivery-msg]').text('Great! You are eligible for the delivery.').removeClass('text-red').show(); 
+   $('[data-delivery-msg]').addClass('text-success');
+        addressFunctionality();
+      },
+      error: function (jqXHR, exception) {
+        $(event.currentTarget).removeClass('btn--loading');
+        var error = JSON.parse(jqXHR.responseText).errors;
+        if(error.customer_exist){
+        }else if(error.postal_code ){ 
+          if(error.postal_code && document.querySelector("[data-address-postal-code]").value != '' ){
+            $('[data-delivery-msg]').text('Sorry, your postal code is not eligible for delivery. Please enter a valid postal code.').addClass('text-red').show();            
+            $('[data-address-delivery-date]').val('');
+            $('[data-address-delivery-time]').html('');
+            localStorage.removeItem('hulk-delivery-date');
+            localStorage.removeItem('hulk-delivery-time');
+            $("#datepicker").datepicker("destroy");
+            $('#btn-checkout').attr('disabled','true');
+          }
+        }
+      }
+    });
+  }
+
+  function editPlan(event,level){
+    //console.log("editPlan",event,level); 
+    event.preventDefault();
+    flagAddToCart = true;
+    var $level = level.replace('level-','');
+    $('#meals .bkg-line, #add-ons').addClass('active');
+    $('#add-ons .bkg-line, #bioraw-donation').addClass('active');
+    $('[data-plan-step="1"]').show();
+    $('[data-plan-step="1"]').siblings('[data-plan-step]').hide();
+        
+    if(localStorage.getItem('hulk-step-product-addons') != '[]'){
+      $.each(JSON.parse(localStorage.getItem('hulk-step-product-addons')), function(i,e){
+        $('[data-product-title="'+e.title+'"] .quantity-number').val(e.quantity);
+      });
+      $('#meals .bkg-line, #add-ons').addClass('active');
+      $('[data-addtocart-addons]').text(`${window.sectionSettingsText.updateCartText}`);
+
+    } else{
+      $('[data-product-title] .quantity-number').val(0);
+      $('#meals .bkg-line, #add-ons').addClass('active');
+    }
+  
+    if(localStorage.getItem('hulk-step-product-donations') != '[]'){
+      $.each(JSON.parse(localStorage.getItem('hulk-step-product-donations')), function(i,e){
+        $('[data-product-title="'+e.title+'"] .quantity-number').val(e.quantity);
+      });
+      $('#add-ons .bkg-line, #bioraw-donation').addClass('active');
+      $('[data-addtocart-donations]').text(`${window.sectionSettingsText.updateCartText}`);
+    } else{
+      $('[data-product-title] .quantity-number').val(0);
+      $('#meals .bkg-line, #add-ons').addClass('active');
+    }
+
+    $('#add-ons .custom-slider').flickity({
+        cellAlign: "center", 
+        contain: true, 
+        groupCells: true,      
+        pageDots: false, 
+        prevNextButtons: true, 
+        arrowShape: "M 0,50 L 60,00 L 50,30 L 80,30 L 80,70 L 50,70 L 60,100 Z"
+    });
+    $('#bioraw-donation .custom-slider').flickity({
+      cellAlign: "center", 
+      contain: true, 
+      groupCells: true, 
+      pageDots: false, 
+      prevNextButtons: true, 
+      arrowShape: "M 0,50 L 60,00 L 50,30 L 80,30 L 80,70 L 50,70 L 60,100 Z"
+    });
+    
+    if ($level == '2') {
+      //console.log("inside level 2",$('#plan'+localStorage.getItem("hulk-plan-meals-total")));
+      $('#plan'+localStorage.getItem("hulk-plan-meals-total")).trigger('change');
+      $('[data-check_selectedplan]').trigger('click');
+      setTimeout(function() {
+        $('[data-'+localStorage.getItem("hulk-plan-step-2")+']').trigger('change');
+        $('[data-check_selectedfrq]').trigger('click');
+        //$('[data-addtocart]').trigger('click');
+        
+      }, 200);
+    } else {
+      $('html, body').animate({
+        scrollTop: $('[data-plan-step-edit="'+$level+'"]').offset().top
+      }, 200);
+    }
+  }
+
+  // function for remove variant...
+  function RemoveAddOne(event,variantId){
+    event.preventDefault();
+    if(localStorage.getItem('hulk-step-product-addons')){
+        var addOnsItems = JSON.parse(localStorage.getItem('hulk-step-product-addons'));
+        var addOnProds = [];
+        totalPriceAddons = localStorage.getItem('hulk-step-product-addons-price');
+        $.each(addOnsItems, function(i,e){
+          if(e.variantId == variantId){
+            totalPriceAddons -= parseFloat(e.price) * parseInt(e.quantity);
+          }
+          else{
+            addOnProds.push({
+              quantity: e.quantity,
+              variantId: e.variantId,
+              properties: e.properties,
+              title: e.title,
+              price: e.price,
+            });
+            // totalPriceAddons += parseFloat(e.price) * parseInt(e.quantity);
+            // localStorage.setItem('hulk-step-product-addons',JSON.stringify(addOnProds));
+            // localStorage.setItem('hulk-step-product-addons-price',totalPriceAddons);
+          }
+          // addOnsAdd += '<li>'+e.quantity+' X '+e.title+'<a onClick="RemoveAddOne('+e.variantId+')" class="remove-btn">X</a></li>';
+        });
+        localStorage.setItem('hulk-step-product-addons-price',totalPriceAddons);
+        localStorage.setItem('hulk-step-product-addons',JSON.stringify(addOnProds));
+        productOrderSummary();
+    }
+  }
+
+  function RemoveDonation(event,variantId){
+      event.preventDefault();
+      var variantId = parseInt(variantId);
+    if(localStorage.getItem('hulk-step-product-donations')){
+        var donationItems = JSON.parse(localStorage.getItem('hulk-step-product-donations'));
+        var donationProd = [];
+        var totalPricedonations = localStorage.getItem('hulk-step-product-donations-price');
+        $.each(donationItems, function(i,e){
+          var varId = parseInt(e.variantId);
+          if(e.variantId == variantId){
+            totalPricedonations -=  parseFloat(e.price) * parseInt(e.quantity);
+          }
+          else{
+              donationProd.push({
+              quantity: e.quantity,
+              variantId: e.variantId,
+              properties: e.properties,
+              title: e.title,
+              price: e.price,
+            });
+            // totalPricedonations += parseFloat(e.price) * parseInt(e.quantity);
+            // localStorage.setItem('hulk-step-product-donations',JSON.stringify(donationProd));
+            // localStorage.setItem('hulk-step-product-donations-price',totalPricedonations);
+          }
+          // addOnsAdd += '<li>'+e.quantity+' X '+e.title+'<a onClick="RemoveAddOne('+e.variantId+')" class="remove-btn">X</a></li>';
+        });
+         localStorage.setItem('hulk-step-product-donations',JSON.stringify(donationProd));
+         localStorage.setItem('hulk-step-product-donations-price',totalPricedonations);
+        productOrderSummary();
+    }
+  }
+
+  function productOrderSummary(){
+    //console.log("order summary");
+  //  if(localStorage.getItem('hulk-plan-step-2') == 'one_time'){
+  //      $('[data-delivery-msg]').hide(); 
+  //      console.log('if');
+  //   } else {
+  //     $('[data-delivery-msg]').show(); 
+  //     console.log('else');
+  //   } 
+    
+    if(localStorage.getItem('hulk-step-product')){
+      var mealPlan = '';
+      var price = JSON.parse(localStorage.getItem('hulk-step-product'))[0].price
+      var editButton = "editPlan(event,'level-1')";
+      mealPlan += '<div class="d-flex align-items-center"><div><h5 class="text-capitalize">'+localStorage.getItem("hulk-plan-step-1")+' Meal plan <a href="#" data-select-main-plan onclick="'+editButton+'">Edit</a></h5><h5>('+localStorage.getItem("hulk-plan-step-2")+')</h5><span>'+localStorage.getItem("hulk-plan-meals-total")+' Meals per week</span></div><p class="font-weight-500">$'+price/100+'</p></div>';
+      $('[data-summary-plan]').html(mealPlan);
+    }
+    if(localStorage.getItem('hulk-plan-selected-products')){
+      var mealProd = JSON.parse(localStorage.getItem('hulk-plan-selected-products'));
+      var combinedItems = mealProd.reduce(function(arr, item) {
+        var found = false;
+        for (var i = 0; i < arr.length; i++) {
+          if (arr[i].title === item.title) {
+            found = true;
+            arr[i].count++;
+          }
+        }    
+        if (!found) {
+          item.count = 1;
+          arr.push(item);
+        }    
+        return arr;
+      }, []);
+      var mealAdd = '';
+      $.each(combinedItems, function(i,e){
+        mealAdd += '<li>'+e.count+' X '+e.title+'</li>';
+      });
+      $('[data-summary-plan-meal] ul').html(mealAdd);
+    }
+    if($('[data-summary-plan-addons]').length > 0){
+      if(localStorage.getItem('hulk-step-product-addons')){
+        var addOnsItems = JSON.parse(localStorage.getItem('hulk-step-product-addons'));
+        var addOnsAdd = '';
+        $.each(addOnsItems, function(i,e){
+          addOnsAdd += '<li>'+e.quantity+' X '+e.title+'<a href="#" onClick="RemoveAddOne(event,'+e.variantId+')" class="remove-btn">X</a></li>';
+        });
+        $('[data-summary-plan-addons]').show();
+        $('[data-summary-plan-addons] ul').html(addOnsAdd);
+        $('[data-summary-plan-addons] p').text('$'+localStorage.getItem('hulk-step-product-addons-price'));
+      }else{
+        $('[data-summary-plan-addons]').hide();
+      }
+    }
+    if($('[data-summary-plan-donations]').length > 0){
+      if(localStorage.getItem('hulk-step-product-donations')){
+        var donationsItems = JSON.parse(localStorage.getItem('hulk-step-product-donations'));
+        var donationsAdd = '';
+        $.each(donationsItems, function(i,e){
+          donationsAdd += '<li>'+e.quantity+' X '+e.title+'<a href="#" onClick="RemoveDonation(event,'+e.variantId+')" class="remove-btn">X</a></li>';
+        });
+        $('[data-summary-plan-donations]').show();
+        $('[data-summary-plan-donations] ul').html(donationsAdd);
+        $('[data-summary-plan-donations] p').text('$'+localStorage.getItem('hulk-step-product-donations-price'));
+      }else{
+        $('[data-summary-plan-donations]').hide();
+      }
+    }
+    var addon = localStorage.getItem('hulk-step-product-addons-price') ? parseFloat(localStorage.getItem('hulk-step-product-addons-price')) : 0;
+    var donation = localStorage.getItem('hulk-step-product-donations-price') ? parseFloat(localStorage.getItem('hulk-step-product-donations-price')) : 0;
+    if(localStorage.getItem('hulk-step-product')){
+      var price = (JSON.parse(localStorage.getItem('hulk-step-product'))[0].price) / 100
+      var total = parseFloat(price) + addon + donation;
+      $('[data-total-price]').text('$'+total.toFixed(2));
+    }
+
+    $(".remove-btn").hover(function() {
+        $(this).css("color", "black");
+    });
+  }
+
+  function redirectToLogin(event){
+    localStorage.setItem('hulk-redirect',true);
+    window.location.href=$(event.currentTarget).attr('href');
+
+  }
+
+  function checkforActiveUser(event){
+    event.preventDefault();
+
+    var $button = $(event.currentTarget); 
+    $button.addClass('btn--loading');
+    const shop_domain = '{{ shop.permanent_domain }}'; 
+    var email = $('[data-email]').val();
+    var postalCode  = $('[data-postal-code]').val();
+    localStorage.setItem('hulk-postal-code', postalCode);
+    localStorage.setItem('hulk-email', $('[data-email]').val())
+
+    localStorage.setItem('hulk-drip-page', false);
+    var data = {
+      "postal_code": postalCode, 
+      "email": email
+    }
+
+    // https://app.bioraw.ca/api/validate/zip?shop=demo-2024.myshopify.com
+    $.ajax({
+      url: '/apps/manage-subscription/zip/validate',
+      method: 'POST',
+      dataType: 'json',
+      headers:{ "content-type": "application/json", "accept": "application/json"},
+      data: JSON.stringify(data),
+      async:false,
+      success: function(response){
+        var custData = response;
+        if(custData.customer_exist == true){   
+          if($('[data-customer-email]').data('customer-email') != ''){
+            $('#register-form #addresspage-lnk').addClass('d-none'); 
+            if($('[data-customer-email]').data('customer-email') != localStorage.getItem('hulk-email')){
+              toastr.error('Please logout from old email to Place the order with new email','error' );
+              $('#register-form .error-msg').addClass('success').html('');
+              $button.removeClass('btn--loading');  
+              return false;
+            }
+          }
+          if($('#register-form').attr('data-customer-exists') == "true"){
+            if($('[data-customer-email]').data('customer-email') != localStorage.getItem('hulk-email')){
+            $('#register-form .error-msg').addClass('success').html('');
+            } else {
+             $('#register-form .error-msg').addClass('success').html('Click continue to next step.'); 
+            }
+            $('#register-form #addresspage-lnk').removeClass('d-none').click();
+            $('#register-form button').hide();
+            deliverySettings = custData.delivery_days;
+            localStorage.setItem('hulk-delivery-details',JSON.stringify(deliverySettings));
+            localStorage.setItem('hulk-delivery-all-details',JSON.stringify(custData));
+            $('[data-address-postal-code]').val(localStorage.getItem('hulk-postal-code'));
+            $('[data-address-search]').click();
+            $('[data-delivery-msg]').text('Great! You are eligible for the delivery.').removeClass('text-red').show();
+            localStorage.setItem('hulk-plan-step',3);
+            addressFunctionality();
+            searchthoughPostal(event);
+            productOrderSummary();
+           $('[data-section-type="header-section"]').hide();
+
+        // display address
+          }else{ 
+            $('#register-form .error-msg').html('Customer email already exists. <a href="/account/login" onclick="redirectToLogin(event)">Please login</a> or <a href="/account/register"  onclick="redirectToLogin(event)" >create an account </a> to continue.');
+            $('#register-form button').hide();
+            localStorage.setItem('hulk-delivery-postal_code',postalCode);  
+          }
+          $button.removeClass('btn--loading');
+        }
+
+      },
+      error: function (jqXHR, exception) {
+        var error = JSON.parse(jqXHR.responseText).errors;
+        if(error.postal_code){
+          $('#register-form .error-msg').html('Sorry, your postal code is not eligible for delivery. Please enter a valid postal code.');
+          $button.removeClass('btn--loading');
+          if(!error.customer_exist){
+            $('[data-drip-form] #drip-email').val($('[data-email]').val());
+            $('[data-drip-form] #drip-zip').val($('[data-postal-code]').val());
+            localStorage.setItem('hulk-drip-page',true);
+            localStorage.setItem('hulk-dripFlag',true);
+            $('[data-drip-attribute]').click();
+          }
+          return false;
+        }
+          if(error.customer_exist){
+             $button.removeClass('btn--loading');
+           // var redirectLink = 'redirectToLogin(event)';
+            $('#register-form .error-msg').html(error.customer_exist+' <a href="/account/register" onclick="redirectToLogin(event)">Please register</a> to continue.');
+            if($('[data-customer-email]').data('customer-email') != localStorage.getItem('hulk-email')){
+             $('#register-form button').show();
+            } else {
+              $('#register-form button').hide(); 
+            }
+          }else if(!error.customer_exist){          
+          } 
+      }
+    });
+  }
+
+  function redirectTolink(event, redirectLink){  
+    event.preventDefault();
+    if(redirectLink == '#bioraw-donation' && $('#bioraw-donation').length <= 0)  {
+      goToRegister();      
+    }else{
+      if(localStorage.getItem('hulk-step-product-addons') == null ){
+        $('[data-addons-products]').each(function(){
+          var $this = $(this);
+          $this.find('.quantity-number').val('0');
+        });
+      }
+      $(event.currentTarget).closest('#add-ons').find('.bkg-line').addClass('active');
+       $(event.currentTarget).closest('#add-ons').find('.bkg-line').css('height','100%');
+       $(redirectLink).addClass('active');
+      $('html, body').animate({
+        scrollTop: $(redirectLink).offset().top
+      }, 200);
+     
+    }
+    if($('#bioraw-donation').length > 0){
+      gotoDonation();
+    }else{
+      goToRegister();
+    }
+  }
+  function _getCookie(name) {
+
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+
+    if (parts.length === 2) {
+      name = parts.pop().split(';').shift();
+    }
+    return name;
+  };
+ 
+  function addAllProducts(event) {
+    event.preventDefault();
+    if($('[data-address-delivery-date]').val() != '' && $('[data-address-delivery-time]').val() != ''){
+      var $button = $(event.currentTarget);
+      $button.addClass('btn--loading');
+
+      const ShopifyQueue = [];
+      var data = [];
+      var checkForRemove = false;
+      var checkType = '';
+      $.ajax({
+        type: 'POST',
+        url: '/cart/clear.js',
+        data: '',
+        dataType: 'json',
+        async:false,
+        success: function() {
+          $.ajax({
+            type: 'GET',
+            url: '/cart.js',
+            dataType: 'json',
+            async:false,
+            success: function(response) {
+              console.log();
+              $(response.items).each(function( index,item ) {   
+                var data_sub = {};     
+                if ('subscription_id' in  item.properties){
+                  checkType = 'subscription';
+                }else{
+                  checkType = 'one-time';
+                }
+
+                if ('random_number' in  item.properties){
+                  data_sub = 0;
+                  checkForRemove = true;
+                }else{
+                  data_sub = qty;
+                }
+                data.push(data_sub);
+              });
+              var updatedCart = {};
+              updatedCart['updates'] = data;
+              if(checkForRemove){        
+                var params = {
+                  type: 'POST',
+                  url: '/cart/update.js',
+                  data: updatedCart,
+                  dataType: 'json',
+                  async:false,
+                  success: function(cart) {
+
+                  }
+                }
+                $.ajax(params);   
+              }
+            }
+          });
+        }
+      });
+//console.log('dsdsdsd',localStorage.getItem('hulk-delivery-instruction'));
+      localStorage.setItem('hulk-delivery-date',$('[data-address-delivery-date]').val());
+      localStorage.setItem('hulk-delivery-time',$('[data-address-delivery-time]').val());
+      localStorage.setItem('hulk-unit-number',$('[data-unit-number]').val());
+      localStorage.setItem('hulk-buzzer-code',$('[data-buzzer-code]').val());
+      localStorage.setItem('hulk-delivery-instruction',localStorage.getItem('hulk-delivery-instruction'));
+      $.trim(localStorage.getItem('hulk-delivery-instruction')) != '' ? localStorage.setItem('hulk-delivery-instruction-other',$('[data-address-delivery-instructions-other]').val()) : localStorage.removeItem('hulk-delivery-instruction-other');
+      // if(localStorage.setItem('hulk-delivery-date',$('[data-address-delivery-date]') && localStorage.setItem('hulk-delivery-time',$('[data-address-delivery-time]').val())){}
+      var mainProds = JSON.parse(localStorage.getItem('hulk-step-product')); 
+      //console.log("mainProds",mainProds);
+      for(var item in mainProds){
+        const properties = {};
+        var itemPro = mainProds[item];
+        for (const i in itemPro.properties) {
+          properties[i] = itemPro.properties[i];
+        }
+          properties.parent_subr_id = localStorage.getItem('hulk-parent_subr_id'); 
+        const data_ajax = {
+          quantity: itemPro.quantity,
+          variantId: itemPro.variantId,
+          properties,
+        };
+        ShopifyQueue.push(data_ajax);
+      }  
+      var addons = JSON.parse(localStorage.getItem('hulk-step-product-addons'));
+      for(var item in addons){
+        const properties = {};
+        var itemPro = addons[item];
+        for (const i in itemPro.properties) {
+          properties[i] = itemPro.properties[i];
+        }
+        properties.parent_subr_id = localStorage.getItem('hulk-parent_subr_id');  
+		const data_ajax = {
+          quantity: parseInt(itemPro.quantity),
+          variantId: parseInt(itemPro.variantId),
+          properties,
+        };
+        ShopifyQueue.push(data_ajax);
+      }
+      var donations = JSON.parse(localStorage.getItem('hulk-step-product-donations'));
+      for(var item in donations){
+        const properties = {};
+        var itemPro = donations[item];
+        for (const i in itemPro.properties) {
+          properties[i] = itemPro.properties[i];
+        }
+        properties.parent_subr_id = localStorage.getItem('hulk-parent_subr_id'); 
+        const data_ajax = {
+          quantity: parseInt(itemPro.quantity),
+          variantId: parseInt(itemPro.variantId),
+          properties,
+        };
+        ShopifyQueue.push(data_ajax);
+      }
+      moveAlongCart(ShopifyQueue);  
+      
+      var delivery_date, delivery_time, unit_number, buzzer_code, delivery_instruction;
+      if(localStorage.getItem('hulk-delivery-date')) {
+        delivery_date = localStorage.getItem('hulk-delivery-date');
+      } else {
+        delivery_date = $('[data-address-delivery-date]').val();
+      }
+      if(localStorage.getItem('hulk-delivery-time')) {
+        delivery_time = localStorage.getItem('hulk-delivery-time');
+      } else {
+        delivery_time = $('[data-address-delivery-time]').val();
+      }
+      
+      if(localStorage.getItem('hulk-unit-number')) {
+        unit_number = localStorage.getItem('hulk-unit-number');
+      } else {
+        unit_number = $('[data-unit-number]').val();
+      }
+      if(localStorage.getItem('hulk-buzzer-code')) {
+        buzzer_code = localStorage.getItem('hulk-buzzer-code');
+      } else {
+        buzzer_code = $('[data-buzzer-code]').val();
+      }
+       //console.log('delivery_instruction storage',localStorage.getItem('hulk-delivery-instruction'));
+      if(localStorage.getItem('hulk-delivery-instruction')) {
+        delivery_instruction = localStorage.getItem('hulk-delivery-instruction');
+      } else {
+        delivery_instruction = $('[data-address-delivery-instructions] option:selected').val();
+      }
+      //console.log('delivery_instruction',delivery_instruction);
+     
+      if(delivery_instruction == 'Other'){
+        delivery_instruction = localStorage.getItem('hulk-delivery-instruction-other') ? localStorage.getItem('hulk-delivery-instruction-other') : '';
+      }
+      // var delivery_instruction_other_t = localStorage.getItem('hulk-delivery-instruction-other') ? localStorage.getItem('hulk-delivery-instruction-other') : '';  
+      var datAttr = {
+        'first_delivery_date':delivery_date,
+        'delivery_date': delivery_date,
+        'delivery_time': delivery_time,
+        'display_delivery_date': delivery_date,
+        'display_delivery_time': delivery_time,
+        'unit_number': unit_number,
+        'buzzer_code': buzzer_code,
+        'delivery_instruction': delivery_instruction,
+        "delivery_option": null
+      }    
+
+
+
+      var arr = []; // Array to hold the keys
+      // Iterate over localStorage and insert the keys that meet the condition into arr    
+      // Iterate over arr and remove the items by key   
+      var isRechargeProduct = false;  
+      //       axios.get('/cart.js').then((response) => {
+
+      var params = {
+        type: 'POST',
+        url: '/cart/update.js',
+        data: { attributes: datAttr },
+        dataType: 'json',
+        async:false,
+        success: function(cart) {
+          if(localStorage.getItem('hulk-plan-step-2') == 'subscription'){
+            const getCartCookie = _getCookie('cart');
+            try {
+              var ga_linker = ga.getAll()[0].get('linkerParam');
+            } catch (e) {
+              var ga_linker = '';
+            }
+            if (theme.settings.customersID) { customer_param = `customer_id=${theme.settings.customersID}&customer_email=${theme.settings.customerEmail}`; }
+            var customer_param = '';
+
+            var checkout_url = localStorage.getItem('hulk-discount-add') ? `https://checkout.rechargeapps.com/r/checkout?myshopify_domain=${theme.settings.myshopify_domain}&cart_token=${getCartCookie}&${ga_linker}&${customer_param}&discount=${localStorage.getItem('hulk-discount-add')}` : `https://checkout.rechargeapps.com/r/checkout?myshopify_domain=${theme.settings.myshopify_domain}&cart_token=${getCartCookie}&${ga_linker}&${customer_param}`;  
+
+            window.location.href = checkout_url;
+            for (var i = 0; i < localStorage.length; i++){
+              if (localStorage.key(i).substring(0,5) == 'hulk-') {
+                arr.push(localStorage.key(i));
+              }
+            }
+            for (var i = 0; i < arr.length; i++) {
+              localStorage.removeItem(arr[i]);
+            }
+          }else {
+//             window.location.href = localStorage.getItem('hulk-discount-add') ? `/checkout?discount=${localStorage.getItem('hulk-discount-add')}` : `/checkout`;  
+            window.location.href = '/cart';
+            for (var i = 0; i < localStorage.length; i++){
+              if (localStorage.key(i).substring(0,5) == 'hulk-') {
+                arr.push(localStorage.key(i));
+              }
+            }
+            for (var i = 0; i < arr.length; i++) {
+              localStorage.removeItem(arr[i]);
+            } 
+          }
+          $button.removeClass('btn--loading');
+        }
+      }
+
+      $.ajax(params);
+      //       });
+
+    }
+    else{
+      toastr.error('Please select required fields (Delivery Date & time).','error' );
+      return false;
+    }
+  };
+  
+  function goToRegister(){
+    if(!localStorage.getItem('hulk-plan-step') || localStorage.getItem('hulk-plan-step') == '2'){
+      localStorage.setItem('hulk-plan-step',2);
+      $('[data-account-register]').show(); 
+      $('[data-plan-meal-page]').hide();
+      $('[data-section-type="header-section"]').hide();
+      $('html, body').animate({
+          scrollTop: $('[data-account-register]').offset().top
+      }, 200);
+    } else{
+      if(localStorage.getItem('hulk-delivery-details')){
+        localStorage.setItem('hulk-plan-step',2);
+        $('[data-account-register]').show(); 
+        $('[data-plan-meal-page]').hide();
+        $('[data-section-type="header-section"]').hide();
+        $('html, body').animate({
+            scrollTop: $('[data-account-register]').offset().top
+        }, 200);
+      }else{
+        $('[data-adress]').show();
+        localStorage.setItem('hulk-plan-step',3);
+        $('[data-account-register]').hide();
+        $('[data-plan-meal-page]').hide();
+        $('[data-section-type="header-section"]').hide();
+        $('html, body').animate({
+            scrollTop: $('[data-adress]').offset().top
+        }, 200);
+        addressFunctionality();
+        productOrderSummary();
+      }
+    }
+  }
+
+  function gotoDonation(){
+    var href = '#bioraw-donation';
+    $('html, body').animate({
+        scrollTop: $(href).offset().top
+    }, 200);     
+    var elem = document.querySelector('#bioraw-donation .custom-slider');
+    var flkty = new Flickity( elem, {
+      cellAlign: "center", 
+      contain: true, 
+      groupCells: true, 
+      pageDots: false, 
+      prevNextButtons: true, 
+      arrowShape: "M 0,50 L 60,00 L 50,30 L 80,30 L 80,70 L 50,70 L 60,100 Z"
+    });
+    $('#bioraw-donation').addClass('active'); 
+  }
+
+  function addToCart(event){
+   //console.log("subscription",subscription)
+    event.preventDefault();
+    subscription.selectedMeals=[];
+    subscription.totalSelectedMeals=[];
+    selectedMeals={};
+    var selected_meals=[];
+    var meal_prd = null;
+    const properties = {};
+    const ShopifyQueue = [];
+    
+    var qtyval = 1;
+    if (purchase_type ==  null){
+      toastr.error('Please select One-time or subscription Plan.','error' );
+      return false;
+    }
+    if (mealArray.length < meals){
+      toastr.error('Please select Meals.','error' );
+      return false;
+    } else{
+      // $('[data-addToCart]').addClass('btn--loading');
+      $( ".selected-items .items" ).each(function( index,item ) {
+        var prd_id = $('div img',item ).attr('data-product-id');
+        $.each(subscription.totalMealProducts,function(index,x){
+          if(x.id == prd_id){
+            selected_meals.push(x);
+            subscription.totalSelectedMeals.push(x);
+          }
+        });
+      });
+      localStorage.setItem('hulk-plan-selected-products',JSON.stringify(selected_meals));
+      $( ".selected-items .items" ).each(function( index,item ) {
+        var qty=0;
+        var prd_id = $('div img',item ).attr('data-product-id');
+        $( subscription.totalSelectedMeals ).each(function( index,inner_item ) {
+          if(prd_id == inner_item.id){
+            qty++;
+          }          
+        });
+       
+        // add selcted meals with their quantity 
+        if( meal_prd == null || prd_id != meal_prd.id ){
+          $.each(subscription.totalMealProducts, function(index,item){
+            if(item.id == prd_id){
+              meal_prd=item;
+              meal_prd.quantity = qty;
+              subscription.selectedMeals.push(meal_prd);
+            };
+          });
+        };
+      });
+
+      //add original properties according to live site.
+      $(subscription.totalSelectedMeals).each(function(index,item){
+        //console.log("subscription.totalSelectedMeals",subscription.totalSelectedMeals)
+        index += 1;
+        const itemTwo = 'Meal '+index;
+        properties[itemTwo] = item.title;
+      });   
+
+      //add subscription property 
+      //console.log(subscription.selectedPrdVariant,'subscription.selectedPrdVariant');
+      if( subscription.selectedPrdVariant != null && purchase_type == 'subscription'){
+        properties.shipping_interval_frequency = subscription.selectedPrdVariant.metafields.shipping_interval_frequency;
+        properties.shipping_interval_unit_type = subscription.selectedPrdVariant.metafields.shipping_interval_unit_type;
+        properties.charge_interval_frequency = subscription.selectedPrdVariant.metafields.charge_internal_frequency;
+        properties.subscription_id = subscription.selectedPrdVariant.metafields.subscription_id;
+        properties._recurring_shipping_interval_frequency = subscription.selectedPrdVariant.metafields.shipping_interval_frequency;
+        properties._recurring_shipping_interval_unit_type = subscription.selectedPrdVariant.metafields.shipping_interval_unit_type;
+        properties._recurring_charge_interval_frequency = subscription.selectedPrdVariant.metafields.charge_internal_frequency;
+        properties._recurring_subscription_id = subscription.selectedPrdVariant.metafields.subscription_id;
+
+        localStorage.setItem('hulk-parent_subr_id',subscription.selectedPrdVariant.metafields.subscription_id);
+      }else{
+        
+      }
+      subscription.selectedMeals = unique(subscription.selectedMeals);
+      
+      //add property of selcted Meals in the form [product_id]-[variant_id]X[qty] in main subscription product
+      $(subscription.selectedMeals).each(function(index,item){
+        index += 1;
+        const itemOne = '_manage_qty_'+index;
+        properties[itemOne] = item.id+'-'+item.variants[0].id+'-'+item.quantity;
+      });
+    
+      properties.random_number = $('[data-random-number]').attr('data-random-number');
+      properties.product_type="Main Product";
+      properties.changed=false;
+      ShopifyQueue.push({
+        quantity: qtyval,
+        price: subscription.selectedPrdVariant.variant.price,
+        variantId: parseInt(subscription.selectedPrdVariant.variant.id),
+        properties: properties
+      });  
+      //console.log("ShopifyQueue",ShopifyQueue);
+      localStorage.setItem('hulk-step-product',JSON.stringify(ShopifyQueue));
+      flagAddToCart = true;
+      if($('#add-ons').length > 0){
+        var href = '#add-ons';
+        $('html, body').animate({
+            scrollTop: $(href).offset().top
+        }, 200);
+        $('#add-ons').addClass('active');
+        var elem = document.querySelector('#add-ons .custom-slider');
+        var flkty = new Flickity( elem, {
+          cellAlign: "center", 
+          contain: true, 
+          groupCells: true, 
+          pageDots: false, 
+          prevNextButtons: true, 
+          arrowShape: "M 0,50 L 60,00 L 50,30 L 80,30 L 80,70 L 50,70 L 60,100 Z"
+        });
+      }else {
+        if($('#bioraw-donation').length > 0){
+          // var href = '#bioraw-donation';
+          // $('html, body').animate({
+          //     scrollTop: $(href).offset().top
+          // }, 200);        
+          // $('#bioraw-donation .custom-slider').flickity({
+          //   cellAlign: "center", 
+          //   contain: true, 
+          //   groupCells: true, 
+          //   pageDots: false, 
+          //   prevNextButtons: true, 
+          //   arrowShape: "M 0,50 L 60,00 L 50,30 L 80,30 L 80,70 L 50,70 L 60,100 Z"
+          // });
+          // $('#bioraw-donation').addClass('active');
+          gotoDonation();
+        }else{
+          // if(!localStorage.getItem('hulk-plan-step')){          
+          //   localStorage.setItem('hulk-plan-step',2);
+          //   $('[data-account-register]').show(); 
+          //   $('[data-plan-meal-page]').hide();
+          //   $('[data-section-type="header-section"]').hide();
+          //   $('html, body').animate({
+          //       scrollTop: $('[data-account-register]').offset().top
+          //   }, 200);
+          // }else{
+          //   $('[data-adress]').show();
+          //   $('[data-account-register]').hide();
+          //   $('[data-plan-meal-page]').hide();
+          //   $('[data-section-type="header-section"]').hide();
+          //   $('html, body').animate({
+          //       scrollTop: $('[data-adress]').offset().top
+          //   }, 200);
+          //   addressFunctionality();
+          //   productOrderSummary();
+          // }
+          goToRegister();
+        }
+      }
+      
+    }
+   };
+  
+  function unique(list) {
+    var result = [];
+    $.each(list, function(i, e) {
+        if ($.inArray(e, result) == -1) result.push(e);
+    });
+    return result;
+  }
+  
+  function moveAlongCart(ShopifyQueue){
+    Shopify.moveAlong = function() {
+        // If we still have requests in the queue, let's process the next one.
+        if (ShopifyQueue.length) {
+          const request = ShopifyQueue.shift();
+          var config = {
+            quantity: request.quantity,
+            id: request.variantId,
+            properties: request.properties
+           };
+          $.ajax({ 
+          url: '/cart/add.js', 
+          type: 'POST', 
+          data: config, 
+          async:false,
+          success: function(getdata){
+            Shopify.moveAlong();
+              return getdata;
+           },
+           error: function (error) {
+            // toastr.error(error,'error');
+            $('[data-addToCart]').removeClass('btn--loading');
+            if (ShopifyQueue.length) {
+                Shopify.moveAlong();
+            };
+           },
+          });
+        } else {
+          location.href='/cart';
+        };
+      };
+      Shopify.moveAlong();
+   }
+  
+  function show_description(prd_id){
+    $('[data-meal-description]').show();
+    var meal_product;
+    $.each(subscription.totalMealProducts, function(index, x){
+      if(x.id == prd_id){
+        meal_product=x;
+        $('.meal_image img').attr('src',meal_product.featured_image);
+        $('.meal_description').html(meal_product.description);
+      }
+    })
+  };
+
+  function close_modal(event,event_type){
+    event.preventDefault();
+    if(event_type == 'meal_description'){
+      $('[data-meal-description]').hide();
+    }
+  }
+
+  $(document).ready(function () {
+    if($('[data-customer-email]').data('customer-email') == '' ){
+      for (var key in localStorage){
+        if(key.startsWith('hulk')){
+          localStorage.removeItem(key); 
+        }
+      }
+    }
+     {% if customer %}
+       $('.logoutBtn').removeClass('d-none');
+    {% endif %}
+    init();
+  });
+</script>
+{% endif %} 

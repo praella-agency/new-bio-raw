@@ -1,0 +1,802 @@
+<div class="popup-wrapper d-none " data-modal >
+    <!-- Main -->
+    <div class=" dashboard-modal modal-popup d-none" data-edit-subscription data-step="1" >
+        <div class="modal-header">
+            <h1 data-hide-for-addon>Edit my Subscription</h1>
+            <h1 data-div-changeAddons>Edit my Addons</h1>
+            <a href="#" onclick="closeModal(event)">
+                <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	                viewBox="0 0 512.001 512.001" style="enable-background:new 0 0 512.001 512.001;" xml:space="preserve">
+                    <g>
+                        <g>
+                            <path d="M284.286,256.002L506.143,34.144c7.811-7.811,7.811-20.475,0-28.285c-7.811-7.81-20.475-7.811-28.285,0L256,227.717
+                                L34.143,5.859c-7.811-7.811-20.475-7.811-28.285,0c-7.81,7.811-7.811,20.475,0,28.285l221.857,221.857L5.858,477.859
+                                c-7.811,7.811-7.811,20.475,0,28.285c3.905,3.905,9.024,5.857,14.143,5.857c5.119,0,10.237-1.952,14.143-5.857L256,284.287
+                                l221.857,221.857c3.905,3.905,9.024,5.857,14.143,5.857s10.237-1.952,14.143-5.857c7.811-7.811,7.811-20.475,0-28.285
+                                L284.286,256.002z"/>
+                        </g>
+                    </g>
+                </svg>
+            </a>
+        </div>
+        <div class="modal-body">
+            <div class="item-listing grid">
+                <div class="grid__item item medium-up--three-twelfths padding-left-0" data-div-changeSub>
+                    <div class="individual-option text-center " data-changeSub onclick="moveInPopup(event,null,1,11)">
+                        <img src="//cdn.shopify.com/s/files/1/1762/2215/files/change-sub.svg" alt="" />
+                        <p>Change Subscription</p>
+                    </div>
+                </div>
+                <div class="grid__item item medium-up--three-twelfths padding-left-0" data-div-changeAddons>
+                    <div class="individual-option text-center " data-changeAddons onclick="moveInPopup(event,null,1,16)">
+                        <img src="//cdn.shopify.com/s/files/1/1762/2215/files/change-sub.svg" alt="" />
+                        <p>Change Add-ons</p>
+                    </div>
+                </div>
+                <div class="grid__item item medium-up--three-twelfths padding-left-0" data-div-changeDeliveryDate>
+                    <div class="individual-option text-center " data-changeDeliveryDate onclick="moveInPopup(event,'changeDeliveryDate',1,15)">
+                        <img src="//cdn.shopify.com/s/files/1/1762/2215/files/change-sub.svg" alt="" />
+                        <p>Edit Delivery Date & Time</p> 
+                    </div>
+                </div>
+                <div class="grid__item item medium-up--three-twelfths padding-left-0" data-div-changeMeals>
+                    <div class="individual-option text-center" data-changeMeals onclick="moveInPopup(event,null,1,14)">
+                        <img src="//cdn.shopify.com/s/files/1/0406/9290/8193/files/dinner.svg" alt="" />
+                        <p>Edit Meals</p>
+                    </div>
+                </div>
+                <div class="grid__item item medium-up--three-twelfths padding-left-0" data-div-skipShipment>
+                    <div class="individual-option text-center" data-skipShipment onclick="moveInPopup(event,'nextChargeDate',1,12); get_nextdate();">
+                        <img src="//cdn.shopify.com/s/files/1/1762/2215/files/shipment.svg" alt="" />
+                        <p>Skip a Charge</p>
+                    </div>
+                </div>
+                <div class="grid__item item medium-up--three-twelfths padding-left-0" data-div-showAddress>
+                    <div class="individual-option text-center" data-showAddress onclick="moveInPopup(event,'showAdd',1,13)">
+                        <img src="//cdn.shopify.com/s/files/1/1762/2215/files/shipping-address.svg" alt="" />
+                        <p>Edit Address</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="d-md-flex align-items-center justify-content-between mb-2">
+                <p><span>Need Help? </span> Email us at: <a href="mailto:info@bioraw.ca">info@bioraw.ca</a></p>
+                <a href="#" class="btn" data-hide-for-addon onclick="moveInPopup(event,'cancel',1,2)">Cancel Subscription</a>
+                <a href="#" class="btn" data-div-changeAddons onclick="moveInPopup(event,'cancel',1,2,'addon')">Cancel Addons</a>
+            </div>
+            <p class="note-footer font-small">{{ settings.modal_footer_text }}</p>
+        </div>
+    </div> 
+
+    <!-- Change subscription -->
+    <div class="dashboard-modal modal-popup d-none" data-change-subscription data-step="11">
+        <div class="modal-header">
+            <a href="#" class="back-btn" onclick="moveInPopup(event,'removePrd',11,1)">Go Back</a>
+            <h1>Change Subscription</h1>
+        </div>
+        <div class="modal-body">
+            <div class="subscription-listing grid">
+                {% assign collection = collections[settings.plan_single] %}
+                    <div class="item grid__item medium-up--one-third padding-left-0">
+                        <input type="radio" name="plan" class="plan"  data-the-single id="plan_{{collection.handle}}" onclick="getSelectedPrd(event,'single', '5')">
+                        <label class="plan_label" for="plan_{{collection.handle}}">
+                        <div class="individual-option text-center "  >
+                            <h5>{{collection.title}}</h5>
+                            {%- for product in collection.products -%}
+                                <div>{{- product.price | money -}}</div>
+                                <div data-individual-product data-product-id="{{product.id}}"></div>
+                                {% break %}                                
+                            {%- endfor -%}
+                            <div class="subscription-img">
+                                <img src="{{ collection.image | img_url: 'medium'}}">
+                            </div>
+                            <div class="d-none" style="display:none;">
+                                <label>Plan:</label>
+                                <select class="selectFrq" onchange="getChangedPrd(event)">
+                                    <option value='Please select plan'>Please select</option>
+                                    {% for product in collection.products %}
+                                    {% assign productName = product.title  | remove:'The Single' | remove: '(' | remove: ')'%}
+                                        <option value="{{product.id}}" data-product-id="{{product.id}}" >{{productName}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>  
+                        </label>
+                    </div>
+              
+                    <div class="item grid__item medium-up--one-third padding-left-0">
+                        {% assign collection = collections[settings.plan_weekly] %}
+                        <input type="radio" name="plan" class="plan"  id="plan_{{collection.handle}}" onclick="getSelectedPrd(event,'weekly', '7')">
+                        <label class="plan_label" for="plan_{{collection.handle}}">
+                        <div class="individual-option text-center" data-the-weekly >
+                           
+                            <h5>{{collection.title}}</h5>
+                            {%- for product in collection.products -%}
+                               
+                                <div>{{- product.price | money -}}</div>
+                                <div data-individual-product data-product-id="{{product.id}}"></div>
+                                {% break %}                                
+                            {%- endfor -%}
+                            <div class="subscription-img">
+                                <img src="{{ collection.image | img_url: 'medium'}}">
+                            </div>
+                            <div class="d-none" style="display:none;">
+                                <label>Plan:</label>
+                                <select class="selectFrq" onchange="getChangedPrd(event)">
+                                    <option value='Please select plan'>Please select</option>
+                                    {% for product in collection.products %}
+                                    {% assign productName = product.title  | remove:'The Weekly' | remove: '(' | remove: ')'%}
+                                        <option value="{{product.id}}" data-product-id="{{product.id}}" >{{productName}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        </label>
+                    </div>
+              
+                    <div class="item grid__item medium-up--one-third padding-left-0">
+                        {% assign collection = collections[settings.plan_double] %}
+                        <input type="radio" name="plan" class="plan"  id="plan_{{collection.handle}}" onclick="getSelectedPrd(event,'double', '10')">
+                        <label class="plan_label" for="plan_{{collection.handle}}">
+                        <div class="individual-option text-center" data-the-double >
+                        
+                            <h5>{{collection.title}}</h5>
+                            {%- for product in collection.products -%}
+                               
+                                <div>{{- product.price | money -}}</div>
+                                <div data-individual-product data-product-id="{{product.id}}"></div>
+                          {%break%}                     
+                            {%- endfor -%}
+                            <div class="subscription-img">
+                                <img src="{{ collection.image | img_url: 'medium'}}">
+                            </div>
+                            <div class="d-none" style="display:none;">
+                                <label>Plan:</label>
+                                <select class="selectFrq" onchange="getChangedPrd(event)">
+                                    <option value='Please select plan'>Please select</option>
+                                    {% for product in collection.products %}
+                                    {% assign productName = product.title  | remove:'The Double' | remove: '(' | remove: ')'%}
+                                        <option value="{{product.id}}" data-product-id="{{product.id}}" >{{productName}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        </label>
+                    </div>
+                
+                    <div class="item grid__item medium-up--one-third padding-left-0">
+                        {% assign collection = collections[settings.plan_clubpack] %}
+                        <input type="radio" name="plan" class="plan"  id="plan_{{collection.handle}}" onclick="getSelectedPrd(event,'clubpack', '20')">
+                        <label class="plan_label" for="plan_{{collection.handle}}">
+                        <div class="individual-option text-center" data-the-club-pack >
+                            
+                            <h5>{{collection.title}}</h5>
+                            {%- for product in collection.products -%}
+                                
+                                    <div>{{- product.price | money -}}</div>
+                                    <div data-individual-product data-product-id="{{product.id}}"></div>
+                                   {%break%}                                
+                            {%- endfor -%}
+                            
+                            <div class="subscription-img">
+                                <img src="{{ collection.image | img_url: 'medium'}}">
+                            </div>
+                          
+                          	<div class="d-none" style="display:none;">
+                                <label>Plan:</label>
+                                <select class="selectFrq" onchange="getChangedPrd(event)">
+                                    <option value='Please select plan'>Please select</option>
+                                    {% for product in collection.products %}
+                                    {% assign productName = product.title  | remove:'The Club Pack' | remove: '(' | remove: ')'%}
+                                        <option value="{{product.id}}" data-product-id="{{product.id}}" >{{productName}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        </label>
+                    </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="d-md-flex align-items-center justify-content-between mb-2">
+                <p><span>Need Help? </span> Email us at: <a href="mailto:info@bioraw.ca"> info@bioraw.ca</a></p>
+                <a href="#" class="btn btn--green" data-changeMealBtn onclick="moveInPopup(event,'checkVariant',11,14)">Change Meals</a>
+            </div>
+            <p class="note-footer font-small">{{ settings.modal_footer_text }}</p>
+            
+        </div>
+    </div>
+
+    <!-- Change Addons -->
+    <div class="modal-popup d-none" data-change-addons data-step="16">
+        <div class="modal-header">
+            <a href="#" class="back-btn" onclick="moveInPopup(event,'removePrd',16,1)">Go Back</a>
+            <h1>Change Addons</h1>
+        </div>
+        <div class="modal-body">
+            <div class="subscription-listing subscription-addons-listing grid">
+                {% for product in collections['our-meals-addons'].products %}
+                    <div class="item grid__item medium-up--one-third" style="display:none; width: auto;"
+                    data-product-title="{{product.title}}"
+                    data-variant-id="{{product.selected_or_first_available_variant.id}}"
+                    data-shipping_interval_frequency="{{ product.metafields.subscriptions.shipping_interval_frequency }}"
+                    data-shipping_interval_unit_type="{{ product.metafields.subscriptions.shipping_interval_unit_type }}"
+                    data-charge_interval_frequency="{{product.selected_or_first_available_variant.metafields.subscriptions.charge_internal_frequency }}"
+                    data-subscription_id="{{ product.metafields.subscriptions.subscription_id }}" data-price="{{product.price | money_without_currency }}"
+                    data-product-id={{product.id}}>
+                        <div class="individual-option text-center">
+                            <h5>{{product.title}}</h5>
+                          	<div style="margin: 10px 0;">{{product.selected_or_first_available_variant.price | money }}</div>
+                            <div class="subscription-img">
+                                <img src="{{ product.featured_image | img_url: 'medium'}}">
+                            </div>  
+                            <div class="product-quantity">
+                                <button class="btn-qty btn-decrease" onclick="updateQty(event,'updateAddon')">-</button>
+                                <input class="quantity-number qty-text" type="text" value="0" readonly />
+                                <button class="btn-qty btn-increase" onclick="updateQty(event,'updateAddon')">+</button>
+                            </div>
+                        </div>  
+                        </label>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="d-md-flex align-items-center justify-content-between mb-2">
+                <p><span>Need Help? </span> Email us at: <a href="mailto:info@bioraw.ca"> info@bioraw.ca</a></p>
+                <a href="#" class="btn btn--green" data-updateAddons onclick="moveInPopup(event,'checkAddons',11,16)">Update Addons</a>
+            </div>
+            <p class="note-footer font-small">{{ settings.modal_footer_text }}</p>
+        </div>
+    </div>
+
+ <!-- Add Addons -->
+    <div class="dashboard-modal modal-popup d-none" data-add-addons data-step="">
+        <div class="modal-header">
+            <h1>Add Addons</h1>
+            <a href="#" onclick="closeModal(event)">
+                <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	                viewBox="0 0 512.001 512.001" style="enable-background:new 0 0 512.001 512.001;" xml:space="preserve">
+                    <g>
+                        <g>
+                            <path d="M284.286,256.002L506.143,34.144c7.811-7.811,7.811-20.475,0-28.285c-7.811-7.81-20.475-7.811-28.285,0L256,227.717
+                                L34.143,5.859c-7.811-7.811-20.475-7.811-28.285,0c-7.81,7.811-7.811,20.475,0,28.285l221.857,221.857L5.858,477.859
+                                c-7.811,7.811-7.811,20.475,0,28.285c3.905,3.905,9.024,5.857,14.143,5.857c5.119,0,10.237-1.952,14.143-5.857L256,284.287
+                                l221.857,221.857c3.905,3.905,9.024,5.857,14.143,5.857s10.237-1.952,14.143-5.857c7.811-7.811,7.811-20.475,0-28.285
+                                L284.286,256.002z"/>
+                        </g>
+                    </g>
+                </svg>
+            </a>
+        </div>
+        <div class="modal-body" style="height: 400px;overflow: auto;">
+            <div class="subscription-listing subscription-addons-listing-forAdd grid" style="height: 100%;" data-collection-count="{{ collections['our-meals-addons'].products_count | plus:1 }}">
+                {% for product in collections['our-meals-addons'].products %}
+                    <div class="item grid__item medium-up--one-third padding-left-0" 
+                    data-product-title="{{product.title}}"
+                    data-variant-id="{{product.selected_or_first_available_variant.id}}"
+                    data-shipping_interval_frequency="{{ product.metafields.subscriptions.shipping_interval_frequency }}"
+                    data-shipping_interval_unit_type="{{ product.metafields.subscriptions.shipping_interval_unit_type }}"
+                    data-charge_interval_frequency="{{product.selected_or_first_available_variant.metafields.subscriptions.charge_internal_frequency }}"
+                    data-subscription_id="{{ product.metafields.subscriptions.subscription_id }}" data-price="{{product.price | money_without_currency }}"
+                    data-product-id={{product.id}}>
+                        <div class="individual-option text-center "  >
+                            <h5>{{product.title}}</h5>
+                          	<div style="margin: 10px 0;">{{product.selected_or_first_available_variant.price | money }}</div>
+                            <div class="subscription-img">
+                                <img src="{{ product.featured_image | img_url: 'medium'}}">
+                            </div>
+                            <div class="product-quantity">
+                                <button class="btn-qty btn-decrease" onclick="updateQty(event,'addAddon')">-</button>
+                                <input class="quantity-number qty-text" type="text" value="0" readonly />
+                                <button class="btn-qty btn-increase" onclick="updateQty(event,'addAddon')">+</button>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="d-md-flex align-items-center justify-content-between mb-2">
+                <p><span>Need Help? </span> Email us at: <a href="mailto:info@bioraw.ca"> info@bioraw.ca</a></p>
+                <a href="#" class="btn btn--green" data-Add_Addons onclick="createBulkAddons(event)">Add Addons</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skip Shipment -->
+    <div class="dashboard-modal modal-popup d-none" data-skip-shipment  data-step="12">
+        <div class="modal-header">
+            <a href="#" class="back-btn" onclick="moveInPopup(event,'removeSkip',12,1)">Go Back</a>
+            <h1>Skip Next Charge</h1>
+        </div>
+        <div class="modal-body">
+            <div class="shipment-listing grid">
+
+                <div class="item grid__item medium-up--one-half custom-radio padding-left-0">
+                    <input type="radio" value="skip" id="skip" name="shipment" data-skip onchange="updateDate()"/>
+                    <label for="skip" class="individual-option">
+                        <h5>Skip Next Charge</h5>
+                        <p data-skip-date style="font-weight: normal;"></p> 
+                      	<p data-skip-date-new style="font-weight: normal;"></p>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="d-md-flex align-items-center justify-content-between mb-2">
+                <p><span>Need Help? </span> Email us at: <a href="mailto:info@bioraw.ca">info@bioraw.ca</a></p>
+                <a href="#" class="btn btn--green update_chrageDate d-none" data-skipBtn data-updateDate onclick="updateNextChargeDate(event)">Skip Charge</a>
+            </div>
+            <p class="note-footer font-small">{{ settings.modal_footer_text }}</p>
+        </div>
+    </div> 
+
+    <!-- Edit Address -->
+    <div class="modal-popup d-none" data-edit-address data-step="13">
+        <div class="modal-header">
+            <a href="#" class="back-btn" onclick="moveInPopup(event,null,13,1);">Go Back</a>
+            <h1>Edit Shipping Address </h1>
+        </div>
+        <div class="modal-body">
+                <div class="address-item">
+                    <form data-address-box>
+                        <div class="grid" >
+
+                            <div class="grid__item medium-up--one-half">
+                                <label>First Name</label>
+                                <input type="text" placeholder="First name" required data-first-name>
+                            </div>
+
+                            <div class="grid__item medium-up--one-half">
+                                <label>Last Name</label>
+                                <input type="text" placeholder="Last name" required  data-last-name>
+                            </div>
+
+                            <div class="grid__item medium-up--one-half">
+                                <label>Address line 1</label>
+                                <input type="text" placeholder="Address" required data-address1>
+                            </div>
+
+                            <div class="grid__item medium-up--one-half">
+                                <label>Address line 2</label>
+                                <input type="text" placeholder="Address" data-address2>
+                            </div>
+
+                            <div class="grid__item medium-up--four-twelfths">
+                                <label>City</label>
+                                <input type="text" placeholder="City" required data-city>
+                            </div>
+
+                            <div class="grid__item medium-up--four-twelfths" id="AddressProvinceContainer" >
+                                <label for="AddressProvince">State</label>
+                                <select id="AddressProvince" data-province  required></select>
+                            </div>
+
+                            <div class="grid__item medium-up--four-twelfths" class="grid__item medium-up--four-twelfths">
+                                <label>Postal Code</label> 
+                                <input type="text" placeholder="Zipcode" onkeyup="this.value = this.value.toUpperCase();" required data-zip data-zip-from-app>
+                            </div>
+                            <div class="grid__item medium-up--one-half " >
+                                <label>Unit#/Apt#</label> 
+                                <input type="text" placeholder="Unit#/Apt#" required data-unit-number>
+                            </div>
+
+                            <div class="grid__item medium-up--one-half " >
+                                <label>Buzzer Code</label> 
+                                <input type="text" placeholder="Buzzer Code" required data-buzzer-code>
+                            </div>
+
+                            <div class="grid__item medium-up--one-half " >
+
+                                <label>Country</label>
+                                <select id="AddressCountry" data-country required  name="address[country]"> 
+                                    {{ all_country_option_tags }}
+                                </select>
+                               
+                            </div>
+
+                            <div class="grid__item medium-up--one-half">
+                                <span>Additional shipping charges may apply.</span>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            
+        </div>
+        <div class="modal-footer">
+            <div class="d-md-flex align-items-center justify-content-between mb-2">
+                <p><span>Need Help? </span> Email us at: <a href="mailto:info@bioraw.ca">info@bioraw.ca</a></p>
+                <a href="#" class="btn btn--green update_address d-none" data-editAddBtn onclick="updateSubscriptionAddress();">Update shipping address</a>
+            </div>
+            <p class="note-footer font-small">{{ settings.modal_footer_text }}</p>
+        </div>
+    </div> 
+
+    <!-- Edit Delivery Date and Time -->
+    <div class="dashboard-modal modal-popup d-none" data-edit-deliveryDateTime data-step="15">
+        <div class="modal-header">
+            <a href="#" class="back-btn" onclick="moveInPopup(event,null,15,1);">Go Back</a>
+            <h1>Edit Delivery Date and Time </h1>
+        </div>
+        <div class="modal-body">
+                <div class="address-item">
+                    <form data-delivery-address-box>
+<!--                         <div class="alert warning-alert d-none">
+                          <h4 class="note-footer font-small">Change of date will be effective from your next order.</h4>
+                          <a class="close" href="javascript:void(0);" data-close-alert>&times;</a>
+                        </div> -->
+                        <div class="grid" >
+
+                            <form class="search-form" data-update-delivery address>
+                                <!-- <input type="text" data-address-postal-code> -->
+                                <!-- <button data-address-search onclick="searchthoughPostal(event)"><img src="//cdn.shopify.com/s/files/1/1762/2215/files/search-icon.svg" style="width: 22px;"></button>
+                            <p data-delivery-msg>Great! You are eligible for the delivery.</p> -->
+            
+                            <div class="grid__item medium-up--one-half padding-left-0">
+                                <label>Delivery Date</label>
+                                <input data-address-delivery-date min="2023-05-12" type="text" id="datepicker" autocomplete="off">
+                            </div>
+                            <div class="grid__item medium-up--one-half padding-left-0">
+                                <label>Delivery Time</label>
+                                <select data-address-delivery-time></select>                              
+                            </div>
+                            <div class="grid__item medium-up--one-half padding-left-0">
+<!--                                 <div class="for-custom-radio" style="margin-top: 15px;">
+                                    <label>Delivery Option</label>
+                                    <div>
+                                        <div>
+                                            <input checked id="onetime" type="radio" name="delivery-option" data-delivery-option value="onetime">
+                                            <label for="onetime">Onetime</label>
+                                        </div>
+                                        <div>
+                                            <input id="all" type="radio" name="delivery-option" data-delivery-option value="all"> 
+                                            <label for="all">all</label>
+                                        </div>                    
+                                    </div>
+                                </div> -->
+                            </div>
+
+                            
+
+                            
+
+                        </div>
+                    </form>
+                </div>
+            
+        </div>
+        <div class="modal-footer">
+            <div class="d-md-flex align-items-center justify-content-between mb-2">
+                <p><span>Need Help? </span> Email us at: <a href="mailto:info@bioraw.ca">info@bioraw.ca</a></p>
+                <a href="#" class="btn btn--green update_address " data-editAddBtn onclick="updateDeliveryDateandTime();">Update Delivery Date & Time</a>
+            </div>
+            <p class="note-footer font-small">{{ settings.modal_footer_text }}</p>
+        </div>
+    </div> 
+
+    <!-- change meals -->
+    <div class="dashboard-modal modal-popup d-none" data-cancle-subscription data-step="14" data-meal-products>
+        <div class="modal-header">
+            <a href="#" class="back-btn" onclick="moveInPopup(event,'removeMeal',14,1)">Go Back</a>
+            <h1 data-display_total_meals></h1>
+        </div>
+        <div class="modal-body">
+            <div class="meals-item meal-list grid">
+                {% assign collection = collections[settings.MealProduct_Collection] %}
+                {% unless collection1.empty? %}
+                {% for product in collection.products %}
+                    <div class="items grid__item medium-up--four-twelfths text-center padding-left-0">
+                        <img class="cursor-pointer" src="{{ product.featured_image  | img_url: 'master'}}" data-product-id="{{product.id}}" onclick="moveInPopup(event,'showDesc',14,17)">
+                        <p style="text-align: center;">{{product.title}}</p>
+                        <div>
+                              <label for="updates_{{product.variants[0].id}}" class="visually-hidden"></label>
+                              <div class="js-qty__wrapper">
+                                <button class="qty-minus" data-decrease onclick="updatedMealsQty(event,'{{product.variants[0].id}}')">-</button>
+                                <input type="text" id="updates_{{product.variants[0].id}}"
+                                  class="cart__product-qty_{{product.variants[0].id}}"
+                                  value="0"
+                                  data-id="{{product.variants[0].id}}"
+                                  min="0"
+                                  max="20"
+                                  name="updates[]"
+                                  aria-label="quantity"
+                                  inputmode="numeric" >
+                                <button class="qty-plus" data-increase onclick="updatedMealsQty(event,'{{product.variants[0].id}}')">+</button>
+                               </div>
+                        </div>
+                    </div>
+                {% endfor %}
+                {% endunless %}
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="d-md-flex align-items-center justify-content-between mb-2">
+                <p><span>Need Help? </span>Email us at: <a href="mailto:info@bioraw.ca">info@bioraw.ca</a></p>
+                <a href="#" class="btn btn--green cancel_subs d-none"  data-updateMealBtn data-updateSub onclick="getSelectedMeals()">Confirm</a>
+            </div>
+            <p class="note-footer font-small">{{ settings.modal_footer_text }}</p>
+        </div>
+    </div> 
+
+
+    <div class="modal-popup d-none" data-meal-description data-step="17" data-meal-description>
+        <div class="modal-header">
+            <a href="#" class="back-btn" onclick="moveInPopup(event,'removeMeal',17,14)">Go Back</a>
+            <h1 data-display_total_meals></h1>
+        </div>
+        <div class="modal-body">
+            <div class="meal_image medium-up--one-half" style="text-align: center;">
+                <img src="" alt="meal_image">
+            </div>
+            <div class="meal_description medium-up--one-half">
+
+            </div>
+            </div>
+        <div class="modal-footer">
+            <div class="d-md-flex align-items-center justify-content-between mb-2">
+                <p><span>Need Help? </span>Email us at: <a href="mailto:info@bioraw.ca">info@bioraw.ca</a></p>
+            </div>
+            <p class="note-footer font-small">{{ settings.modal_footer_text }}</p>
+            <!-- <div>
+                <a href="#" class="btn btn--green cancel_subs d-none"  data-updateMealBtn data-updateSub onclick="getSelectedMeals()">Confirm</a>
+            </div> -->
+        </div>
+    </div> 
+
+    <!-- Edit default Address -->
+    <div class="modal-popup d-none" data-edit-default-address data-step="18">
+        <div class="modal-header">
+            <!-- <a href="#" class="back-btn" onclick="moveInPopup(event,null,18,1);">Go Back</a> -->
+            <h1>Edit Default Address </h1>
+            <a href="#" onclick="closeModal(event); " class="js-no-transition">
+                <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512.001 512.001" style="enable-background:new 0 0 512.001 512.001;" xml:space="preserve">
+                    <g>
+                        <g>
+                            <path d="M284.286,256.002L506.143,34.144c7.811-7.811,7.811-20.475,0-28.285c-7.811-7.81-20.475-7.811-28.285,0L256,227.717
+                                L34.143,5.859c-7.811-7.811-20.475-7.811-28.285,0c-7.81,7.811-7.811,20.475,0,28.285l221.857,221.857L5.858,477.859
+                                c-7.811,7.811-7.811,20.475,0,28.285c3.905,3.905,9.024,5.857,14.143,5.857c5.119,0,10.237-1.952,14.143-5.857L256,284.287
+                                l221.857,221.857c3.905,3.905,9.024,5.857,14.143,5.857s10.237-1.952,14.143-5.857c7.811-7.811,7.811-20.475,0-28.285
+                                L284.286,256.002z"></path>
+                        </g>
+                    </g>
+                </svg>
+            </a>
+        </div>
+        <div class="modal-body">
+                <div  id="EditAddress_{{ customer.default_address.id }}" class="form-vertical js-address-form address-item""">
+                    {% form 'customer_address', customer.default_address %}
+                        <div class="grid" >
+
+                            <div class="grid__item medium-up--one-half">
+                                <label>First Name</label>
+                                <input type="text" id="AddressFirstName_{{form.id}}" name="address[first_name]" value="{{form.first_name}}" autocapitalize="words" required placeholder="First name">
+                            </div>
+
+                            <div class="grid__item medium-up--one-half">
+                                <label>Last Name</label>
+                                <input type="text" placeholder="Last name" required  id="AddressLastName_{{form.id}}"  name="address[last_name]" value="{{form.last_name}}" autocapitalize="words">
+                            </div>
+
+                            <div class="grid__item medium-up--one-half">
+                                <label>Address line 1</label>
+                                <input type="text" placeholder="Address" required id="AddressAddress1_{{form.id}}"  name="address[address1]" value="{{form.address1}}" autocapitalize="words">
+                            </div>
+
+                            <div class="grid__item medium-up--one-half">
+                                <label>Address line 2</label>
+                                <input type="text" placeholder="Address" id="AddressAddress2_{{form.id}}" name="address[address2]" value="{{form.address2}}" autocapitalize="words">
+                            </div>
+
+                            <div class="grid__item medium-up--four-twelfths">
+                                <label>City</label>
+                                <input type="text" placeholder="City" required id="AddressCity_{{form.id}}" name="address[city]" value="{{form.city}}" autocapitalize="words">
+                            </div>
+
+                            <div class="grid__item medium-up--four-twelfths" id="AddressProvinceContainer1" >
+                                <label for="AddressProvince1">State</label>
+                                <select id="AddressProvince1" name="address[province]"  required data-default="{{form.province}}"></select>
+                            </div>
+                            
+                            
+
+                            <div class="grid__item medium-up--four-twelfths" class="grid__item medium-up--four-twelfths">
+                                <label>Postal Code</label> 
+                                <input type="text" placeholder="Zipcode" required id="AddressZip_{{form.id}}" class="input-full" name="address[zip]" value="{{form.zip}}" autocapitalize="characters">
+                            </div>
+
+                            <div class="grid__item medium-up--one-half " >
+                                <label>Country</label>
+                                <select id="AddressCountry1" name="address[country]" data-default="{{form.country}}"> 
+                                    {{ all_country_option_tags }}
+                                </select>
+                            
+                            </div>
+
+                            <div class="grid__item medium-up--one-half">
+                                <span>Additional shipping charges may apply.</span>
+                            </div>
+                            <input type="submit" class="btn" value="{{ 'customer.addresses.update' | t }}">
+                        </div>
+                    {% endform %}
+                </div>
+            
+        </div>
+        <div class="modal-footer">
+            <div class="d-md-flex align-items-center justify-content-between mb-2">
+                <p><span>Need Help? </span>Email us at: <a href="mailto:info@bioraw.ca">info@bioraw.ca</a></p>
+            </div>
+            <p class="note-footer font-small">{{ settings.modal_footer_text }}</p>
+            <!-- <a href="#" class="btn btn--green update_address d-none" data-editAddBtn onclick="updateSubscriptionAddress();">Update shipping address</a> -->
+        </div>
+    </div> 
+
+    <!-- Edit payment -->
+    <div class="modal-popup d-none" data-edit-payment data-step="19">
+        <div class="modal-header">
+            <!-- <a href="#" class="back-btn" onclick="moveInPopup(event,null,18,1);">Go Back</a> -->
+            <h1>Edit Payment Information </h1>
+            <a href="#" onclick="closeModal(event)" class="js-no-transition">
+                <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 512.001 512.001" style="enable-background:new 0 0 512.001 512.001;" xml:space="preserve">
+                    <g>
+                        <g>
+                            <path d="M284.286,256.002L506.143,34.144c7.811-7.811,7.811-20.475,0-28.285c-7.811-7.81-20.475-7.811-28.285,0L256,227.717
+                                L34.143,5.859c-7.811-7.811-20.475-7.811-28.285,0c-7.81,7.811-7.811,20.475,0,28.285l221.857,221.857L5.858,477.859
+                                c-7.811,7.811-7.811,20.475,0,28.285c3.905,3.905,9.024,5.857,14.143,5.857c5.119,0,10.237-1.952,14.143-5.857L256,284.287
+                                l221.857,221.857c3.905,3.905,9.024,5.857,14.143,5.857s10.237-1.952,14.143-5.857c7.811-7.811,7.811-20.475,0-28.285
+                                L284.286,256.002z"></path>
+                        </g>
+                    </g>
+                </svg>
+            </a>
+        </div>
+        <div class="modal-body">
+          <div class="payment-form" data-recharge-payment-form> 
+            <iframe width="100%"class="payment-iframe" height="100%" src="https://shopifysubscriptions.com/customer_portal_forms/{{customer.metafields.subscriptions.customer_string}}/customer_card" name="payment-form" id="payment-form"></iframe>
+          </div>
+        </div>
+        <div class="modal-footer">
+            <div class="d-md-flex align-items-center justify-content-between mb-2">
+                <p><span>Need Help? </span>Email us at: <a href="mailto:info@bioraw.ca">info@bioraw.ca</a></p>
+            </div>
+            <p class="note-footer font-small">{{ settings.modal_footer_text }}</p>
+        </div>
+    </div> 
+
+    <!-- Cancel subscription -->
+    <div class="dashboard-modal modal-popup d-none" data-cancle-subscription data-step="2">
+        <div class="modal-header">
+            <a href="#" class="back-btn" onclick="moveInPopup(event,'removeCancelData',2,1)">Go Back</a>
+            <h1 data-cancel-change>cancel my Subscription</h1>
+        </div>
+        <div class="modal-body">
+                <div class="cancel-form">
+                    <form>
+                        <h5>Want to cancel?</h5>
+                        <label>Please help us process your request by telling us why you're cancelling.</label>
+                        <div class="grid">
+                            <div class="grid__item medium-up--one-half padding-left-0" >
+                                <select data-cancellationValue onchange="disable_data(event)">
+                                    <option value="Please Select" selected="selected">Please Select</option>
+                                    <option value="I no longer use this product" >I no longer use this product</option>  
+                                    <option value="Shipping issues">Shipping issues</option>
+                                    <option value="Planning on re-subscribing later">Planning on re-subscribing later</option>
+                                    <option value="Did not like the product">Did not like the product</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="grid__item medium-up--one-whole padding-left-0">
+                                <label>Have some feedback for us? We love hearing from you.</label>
+                                <textarea placeholder="This is my comment." data-cancellationComment></textarea>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+<!--           <b>Note:</b>Please aware of the flow. If you want to cancel the subscription then we will cancel it but your first shipment is already placed. So you will get that product once. -->
+        </div>
+        <div class="modal-footer">
+            <div class="d-md-flex align-items-center justify-content-between mb-2">
+                <p><span>Need Help? </span>Email us at: <a href="mailto:info@bioraw.ca">info@bioraw.ca</a></p>
+                <a href="#" class="btn btn--green cancel_subs d-none" data-cancelBtn onclick="cancelSubscription()">Confirm</a>
+                <a href="#" class="btn--tertiary" onclick="moveInPopup(event,'removeCancelData',2,1)" style="margin-left: 10px;">Nevermind</a>
+            </div>
+            <p class="note-footer font-small">{{ settings.modal_footer_text }}</p>
+        </div>
+    </div> 
+
+</div>
+
+
+{% assign collection = collections[settings.plan_single] %}
+{% for product in collection.products %}
+<script type="application/json" data-{{product.id}}-json>
+    {
+        "product": {{ product | json }},
+        "variant": {% for variant in product.variants%}{% if variant.title == 'subscription' %}{{ variant | json}},{% endif %}{% endfor %}
+        "metafields":{% for variant in product.variants%}{% if variant.title == 'subscription' %}{
+        "subscription_id": {{ product.metafields.subscriptions.subscription_id }},
+        "shipping_interval_unit_type": "{{ product.metafields.subscriptions.shipping_interval_unit_type }}",
+        "charge_internal_frequency": {{variant.metafields.subscriptions.charge_internal_frequency }},
+        "shipping_interval_frequency": {{ product.metafields.subscriptions.shipping_interval_frequency }},
+        "discount_variant_id": {{ variant.metafields.subscriptions.discount_variant_id }}                        
+         }{% endif %}{% endfor %} 
+      }
+</script>
+{% endfor %}
+{% assign collection = collections[settings.plan_double] %}
+{% for product in collection.products %}
+<script type="application/json" data-{{product.id}}-json>
+    {
+        "product": {{ product | json }},
+        "variant": {% for variant in product.variants%}{% if variant.title == 'subscription' %}{{ variant | json}},{% endif %}{% endfor %}
+        "metafields":{% for variant in product.variants%}{% if variant.title == 'subscription' %}{
+        "subscription_id": {{ product.metafields.subscriptions.subscription_id }},
+        "shipping_interval_unit_type": "{{ product.metafields.subscriptions.shipping_interval_unit_type }}",
+        "charge_internal_frequency": {{variant.metafields.subscriptions.charge_internal_frequency }},
+        "shipping_interval_frequency": {{ product.metafields.subscriptions.shipping_interval_frequency }},
+        "discount_variant_id": {{ variant.metafields.subscriptions.discount_variant_id }}                        
+         }{% endif %}{% endfor %} 
+      }
+</script>
+{% endfor %}
+{% assign collection = collections[settings.plan_weekly] %}
+{% for product in collection.products %}
+<script type="application/json" data-{{product.id}}-json>
+    {
+        "product": {{ product | json }},
+        "variant": {% for variant in product.variants%}{% if variant.title == 'subscription' %}{{ variant | json}},{% endif %}{% endfor %}
+        "metafields":{% for variant in product.variants%}{% if variant.title == 'subscription' %}{
+        "subscription_id": {{ product.metafields.subscriptions.subscription_id }},
+        "shipping_interval_unit_type": "{{ product.metafields.subscriptions.shipping_interval_unit_type }}",
+        "charge_internal_frequency": {{variant.metafields.subscriptions.charge_internal_frequency }},
+        "shipping_interval_frequency": {{ product.metafields.subscriptions.shipping_interval_frequency }},
+        "discount_variant_id": {{ variant.metafields.subscriptions.discount_variant_id }}                        
+         }{% endif %}{% endfor %} 
+      }
+</script>
+{% endfor %}
+{% assign collection = collections[settings.plan_clubpack] %}
+{% for product in collection.products %}
+<script type="application/json" data-{{product.id}}-json>
+    {
+        "product": {{ product | json }},
+        "variant": {% for variant in product.variants%}{% if variant.title == 'subscription' %}{{ variant | json}},{% endif %}{% endfor %}
+        "metafields":{% for variant in product.variants%}{% if variant.title == 'subscription' %}{
+        "subscription_id": {{ product.metafields.subscriptions.subscription_id }},
+        "shipping_interval_unit_type": "{{ product.metafields.subscriptions.shipping_interval_unit_type }}",
+        "charge_internal_frequency": {{variant.metafields.subscriptions.charge_internal_frequency }},
+        "shipping_interval_frequency": {{ product.metafields.subscriptions.shipping_interval_frequency }},
+        "discount_variant_id": {{ variant.metafields.subscriptions.discount_variant_id }}                        
+         }{% endif %}{% endfor %} 
+      }
+</script>
+{% endfor %}
+
+{% assign collection = collections[settings.MealProduct_Collection] %}
+<script type="application/json" data-mealProducts-json>
+    [
+        {%- for product in collection.products -%}
+            {
+                "product": {{ product | json }},      
+                "variant_ids": "{%- for variant in product.variants -%}{{ variant.id }}{%- unless forloop.last -%},{%- endunless -%}{%- endfor -%}"
+            }{%- unless forloop.last -%},{%- endunless -%} 
+        {%- endfor -%}
+    ]
+</script>
+
+{% for product in collections[settings.MealProduct_Collection].products %}
+    {% if product.title != blank %}          
+    <script type="application/json" data-{{product.id}}-json data-meals-json>
+    {
+        "product": {{ product | json }},
+        "variant": {{ product.variants[0] | json }}
+    }
+    </script>
+    {% endif %}
+{% endfor %}
+
+

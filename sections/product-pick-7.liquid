@@ -1,0 +1,200 @@
+
+<div class="gridlock ">
+<form action="/cart/add" data-productid="{{ product.id }}" method="post">
+
+{% comment %} 
+<!-- Begin ReCharge code -->
+{% if product.available %}{% include 'subscription-product' %}{% endif %}
+<!-- End ReCharge code -->
+{% endcomment %}
+
+  <div class="instructions-picker">
+    <br>
+    <center><h1>THE WEEKLY</h1>
+    <p>Pick 7 of our nutritionist designed meals and have them delivered to your home or office in the GTA. 
+    </p></div></center>
+    <br>
+<div class="ProductGrid clearfix row select_pro_wrapper">
+    
+  
+  
+  <div class="desktop-10 tablet-4 select_pro" id="box">
+
+    <div class="left_productListing SelectedItems row">
+      {% for i in (1..7) %}
+      <div class="desktop-bundle tablet-2 mobile-half">
+        <div class="Product-Item prod-image">
+          <span class="hide_icon">+</span>
+			{% capture place_img %}Placeholder_{{i}}.png{% endcapture %}
+          	<img src="{{ place_img | asset_url }}">
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    
+  </div>
+  {% comment %}
+  <input type="hidden" name="id" data-productid="{{ product.id }}" value="{{ product.variants.first.id }}">
+  {% endcomment %}
+  <input type="hidden" name="quantity" id="quantity" value="1">
+  <div class="desktop-2 tablet-2 mobile-full">
+    <div class="sidebar_PriceSection">
+      <div class="PriceContent">
+       
+        <select id="product-select-{{ product.id }}" name='id' data-productid='{{ product.id }}' class="week_pick">
+           {% for variant in product.variants %}
+            <option  value="{{ variant.id }}">{{ variant.title }} week(s): {{ variant.price | money }}</option>
+           {% endfor %}
+          
+       </select>
+   
+         
+        <input type="submit" value="Next" id="box_add"  disabled="disabled">
+	</div>
+    </div>
+  </div>
+  
+</div>
+</form>
+
+<div class="desktop-12" id="product_selection">
+
+    <div class="left_productListing ProductSelection row">
+      {% for block in section.blocks %}
+      <div class="desktop-3 mobile-half">
+        <div class="Product-Item prod-image">
+          <span class="plus_icon" data-title="{{ block.settings.title }}">+</span>
+			<img src="{{ block.settings.image | img_url:'large' }}">
+          <p style="color:{{ block.settings.title_color }};">{{ block.settings.title }}</p>
+          <div class="pro_description">{{ block.settings.description }}</div>
+        </div>
+      </div>
+      {% endfor %}
+      
+      </div>
+    </div>
+
+</div>
+<script>
+$(window).load(function(){
+  /*$('#product_selection .plus_icon').click(function(e) {
+      var title = $(this).data('title');
+      var img_src = $(this).siblings('img').attr('src');
+      
+  });*/
+  
+  $('body').on('click','.plus_icon',function(){
+    var get_title = $(this).data('title');
+    var img_src = $(this).siblings('img').attr('src');
+    var get_index = $(this).parents('.desktop-3').index();
+    set_img(img_src,get_title);
+  });
+  
+  function set_img(img_src,title){
+      $('#box .SelectedItems .desktop-bundle').each(function(index,e){
+        var img_src1 = $('img',this).attr('src');
+        var placeholder_img = "Placeholder_";
+        
+        if(img_src1.indexOf(placeholder_img) >= 0){
+          $('img',this).attr('src',img_src); 
+          $('.hide_icon',this).show();
+          ++index;
+          $('img',this).after('<input class="pro_count" type="hidden" name="properties[Meal '+index+']" value="'+ title +'"/>');
+
+          return false; 
+        }
+      });
+    };
+  
+//   $('body').on('click','.hide_icon',function(){
+//     $(this).closest('.desktop-bundle').remove();
+//     $('#box .SelectedItems').append('<div class="desktop-bundle tablet-2 mobile-half"><div class="Product-Item prod-image"><span class="hide_icon">+</span><img src="//cdn.shopify.com/s/files/1/1762/2215/t/8/assets/placeholder.jpg?2911838332823690569"></div></div>');
+//     $('#box_add').prop('disabled',true);
+//   });
+  
+  $('.hide_icon').each(function(index,e){ 
+
+    $(this).on('click',function(){
+      var place_img= "//cdn.shopify.com/s/files/1/1762/2215/t/40/assets/Placeholder_"+(index+1)+".png";
+      $(this).siblings('img').attr('src',place_img);
+      $(this).hide();
+      $('#box_add').prop('disabled',true);
+      $(this).siblings(".pro_count").remove();
+    });
+
+  });
+  
+  $('#product_selection .Product-Item img').click(function(){
+    var img_src = $(this).attr('src');
+  	var des_html = $(this).siblings('.pro_description').html();
+    $('#popup_snap #product-description').html(des_html);
+    $('#popup_snap #product-photo img').attr('src',img_src);
+    $('#popup_snap').fadeIn();
+  });
+  
+  $('.popup_close').click(function(){
+  	$('#popup_snap').fadeOut();
+  });
+  
+  $('.plus_icon').each(function(index,e){ 
+
+    $(this).on('click',function(){
+      if (($('.pro_count').length + 1) >= 7){
+        $('#box_add').prop('disabled',false);
+      }
+    });
+  });
+});
+  
+   $('#weeks').on('change', function(){
+  	$('#quantity').val($("#weeks").val());
+  });
+
+</script>
+
+
+
+
+{% schema %}
+  {
+    "name": "Products Bundles",
+    "settings": [
+		
+
+     ],
+	 "blocks": [
+      {
+        "type": "image",
+        "name": "Product",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Image"
+          },
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Title"
+          },
+		  {
+			"type": "color",
+			"id":"title_color",
+			"label":"Title Color"
+		  },
+		  {
+			"type":"textarea",
+			"id":"description",
+			"label":"Description"
+		  }
+        ]
+      }
+    ]
+  }
+{% endschema %}
+
+{% stylesheet %}
+{% endstylesheet %}
+
+{% javascript %}
+{% endjavascript %}

@@ -1,0 +1,252 @@
+{% paginate customer.orders by 20 %}
+
+<div class="page-width page-content customers">
+  <header class="section-header">
+    <h1 class="section-header__title">{{ 'customer.account.title' | t }}</h1>
+    
+  </header>
+
+  <div class="grid">
+
+    <div class="grid__item large-up--three-twelfths account-sidebar">
+      <h3>{{ 'customer.account.details' | t }}</h3>
+
+      <p class="h5">{{ customer.name }}</p>
+      <p  style="margin:0 0 5px 0;">{{customer.email}}</p>
+      <p style="margin:0 0 5px 0;font-weight: 600;">Password<span> ****** (<a href="/account/login#recover">Reset</a>)</span></p>
+      <p style="margin:0 0 5px 0;font-weight: 600;">Total order: <span class="font-weight-light">{{customer.orders_count}}</span></p>
+      <p style="margin:0 0 5px 0;font-weight: 600;">Total Spent: <span class="font-weight-light">{{customer.total_spent}}</span> </p>
+
+      <!-- {{ customer.default_address | format_address }} --> 
+ 
+     
+
+      <!-- <p><a href="#" onclick="$('body').css('overflow','hidden');$('[data-modal]').show();$('[data-edit-default-address]').removeClass('d-none');" class="text-link">Default Address</a></p> -->
+
+      <!-- <p><a href="#" onclick="$('body').css('overflow','hidden');$('[data-modal]').show();$('[data-edit-billing-address]').show();" class="text-link">Billing Address</a></p> -->
+      
+      <div data-payment-div style="display:none;margin-top: 30px;">
+        <p class="h5">Payment Information</p>
+        <p style="margin:0 0 5px 0;font-weight: 600;text-transform: capitalize;"><span data-card-name></span></p>
+        <p style="margin:0 0 5px 0;font-weight: 600;text-transform: capitalize;"><span data-card-type></span> : **** **** **** <span data-card-number></span></p>
+      </div>
+      <p><a href="#" onclick="getPaymentForm(event);" class="text-link">Change Payment Information</a></p>
+
+      <p>
+        <a href="{{ routes.account_addresses_url }}" class="text-link" style="display:none;">{{ 'customer.account.view_addresses' | t }} ({{ customer.addresses_count }})</a>
+      </p>
+    
+      
+      <a href="/account/logout">Logout</a>
+    </div>
+
+    <div class="grid__item large-up--nine-twelfths">
+
+        <div class="subscription-list">
+          <p style="font-style: italic;"><b>Note:</b> {{ settings.subscription_note }}</p>
+            <div class="subscription-order-table active-subscription">
+                <div class="table-header clearfix">
+                    <div class="order">Active Subscription</div>
+<!--                     <div class="date-time">Shipment Date/Time</div> -->
+                    <div class="shipping">Subscription Renewal Date</div>
+                    <div class="discount">Next Shipment Date/Time</div>
+                  	<div class="discount">Discount</div>
+                    <div class="total text-capitalize">total</div>
+                </div>
+                <div class="order-item-listing" data-subscriptions data-active-subscriptions>
+                    <div style=" text-align: center;margin-top: 15px;">
+                        <img style="margin: 0 auto;" src="{{ 'ajax-loader.gif' | asset_img_url }}"/>
+                    </div>
+                    <p style=" text-align: center;">Please Wait...</p>
+
+                </div>
+            </div>
+
+            <!-- <div class="subscription-order-table addons-subscription" style="margin-top:40px;">
+                <div class="table-header clearfix">
+                    <div class="order">Addons</div>
+                    <div class="shipping">Next Shipment</div>
+                    <div class="date-time">Date/Time</div>
+                    <div class="discount">Discount</div>
+                    <div class="total">total</div>
+                    <div class="action"></div>
+                </div>
+                <div class="order-item-listing" data-subscriptions data-addons-subscriptions>
+                    <div style=" text-align: center;margin-top: 15px;">
+                        <img style="margin: 0 auto;" src="{{ 'ajax-loader.gif' | asset_img_url }}"/>
+                    </div>
+                    <p style=" text-align: center;">Please Wait...</p>
+
+                    
+
+                </div>
+            </div> -->
+
+            <div class="subscription-order-table inactive-subscription" style="margin-top:40px;">
+                <div class="table-header clearfix">
+                    <div class="order">Inactive Subscription</div>
+<!--                     <div class="date-time">Shipment Date/Time</div> -->
+                    <div class="shipping">Subscription Renewal Date</div>
+                    <div class="discount">Next Shipment Date/Time</div>
+                  	<div class="discount">Discount</div>
+                    <div class="total">total</div> 
+                    
+                </div>
+                <div class="order-item-listing" data-subscriptions data-inactive-subscriptions>
+                    <div style=" text-align: center;margin-top: 15px;">
+                        <img style="margin: 0 auto;" src="{{ 'ajax-loader.gif' | asset_img_url }}"/>
+                    </div>
+                    <p style=" text-align: center;">Please Wait...</p>
+
+                    
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="orders-list">
+            <h2 class="h3">{{ 'customer.orders.title' | t }}</h2>
+
+            {% if customer.orders.size != 0 %}
+
+                <table class="full table--responsive">
+                <thead>
+                    <tr>
+                    <th>{{ 'customer.orders.order_number' | t }}</th>
+                    <th>Order Type</th>
+                    <th>{{ 'customer.orders.date' | t }}</th>
+                    <th>{{ 'customer.orders.payment_status' | t }}</th>
+                    <th>{{ 'customer.orders.fulfillment_status' | t }}</th>
+                    <th>{{ 'customer.orders.total' | t }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in customer.orders %}
+                    <tr class="table__section">
+                        
+                        <td data-label="{{ 'customer.orders.order_number' | t }}">{{ order.name | link_to: order.customer_url }}</td>
+                        {%- assign checkSubproductType = false -%}
+
+
+
+                        {%- for line_item in order.line_items -%}                        
+                            {%- for property in line_item.tags -%}
+                                {%- if property.first contains 'subscription_id' -%}
+                                {%- assign checkSubproductType = true -%}
+                                {%- endif -%}
+                            {%- endfor -%}
+                        {%- endfor -%}
+
+
+                        
+                        {% if order.tags contains 'Subscription' %}
+                        {%- assign checkSubproductType = true -%}
+                        {% endif %}
+
+                        <td>{%- if checkSubproductType == true -%}Subscription{% else %}One Time{% endif %}</td>
+                        <td data-label="{{ 'customer.orders.date' | t }}">{{ order.created_at | time_tag: format: 'date' }}</td>
+                        <td data-label="{{ 'customer.orders.payment_status' | t }}">{{ order.financial_status_label }}</td>
+                        <td data-label="{{ 'customer.orders.fulfillment_status' | t }}">{{ order.fulfillment_status_label }}</td>
+                        <td data-label="{{ 'customer.orders.total' | t }}">{{ order.total_price | money }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                </table>
+
+                <hr class="hr--clear">
+
+            {% else %}
+
+                <p>{{ 'customer.orders.none' | t }}</p>
+
+            {% endif %}
+        </div>
+
+    </div>
+
+  </div>
+
+  {% if paginate.pages > 1 %}
+    {% include 'pagination' %}
+  {% endif %}
+</div>
+{% endpaginate %}
+
+<script>
+    if(localStorage.getItem('hulk-redirect')){
+        if(localStorage.getItem('hulk-redirect') == true || localStorage.getItem('hulk-redirect') == "true"){        
+            window.location.href = '/pages/our-meals';
+            localStorage.setItem('hulk-plan-step',3);
+            localStorage.setItem('hulk-redirect',false);
+            $('html').hide();
+        }
+    }
+</script>
+
+{% include 'rechargeDashboard_modals' %}
+
+{% include 'subscription-dashboard-script' %}
+
+{% assign collectionSub = collections['account-page-collection'] %}
+{% unless collectionSub == empty %}
+    {% for product in collectionSub.products %}
+        {% unless product.tags contains 'is_hidden' %}
+            {% unless product.variants[0].metafields.subscription.is_hidden == true  %}
+            <script type="application/json" data-sub-json>
+                {
+                    "product": {{ product | json }},
+                    "variants": [{% for variant in product1.variants%}{% if variant.title == 'subscription' %}
+                    {                      
+                      "variant":{{ variant | json}},
+                      "metafields":{
+                        "subscription_id": {{ product1.metafields.subscriptions.subscription_id }},
+                        "shipping_interval_unit_type": "{{ product1.metafields.subscriptions.shipping_interval_unit_type }}",
+                        "charge_internal_frequency": {{variant.metafields.subscriptions.charge_internal_frequency }},
+                        "shipping_interval_frequency": {{ product1.metafields.subscriptions.shipping_interval_frequency }},
+                        "discount_variant_id": {{ variant.metafields.subscriptions.discount_variant_id }}   
+                      }                         
+                    }
+                    {% else %}
+                    {
+                      "variant":{{ variant | json}}
+                    },
+                      {% endif %}{% endfor %}]
+                  }
+            </script>
+            {% endunless %}
+        {% endunless %}
+    {% endfor %}
+{% endunless %}
+
+{% assign collectionSub = collections['our-meals-addons'] %}
+{% unless collectionSub == empty %}
+    {% for product in collectionSub.products %}
+        {% unless product.tags contains 'is_hidden' %}
+            {% unless product.variants[0].metafields.subscription.is_hidden == true  %}
+            <script type="application/json" data-sub-json>
+                {
+                    "product": {{ product | json }},
+                    "variants": [{% for variant in product1.variants%}{% if variant.title == 'subscription' %}
+                    {                      
+                      "variant":{{ variant | json}},
+                      "metafields":{
+                        "subscription_id": {{ product1.metafields.subscriptions.subscription_id }},
+                        "shipping_interval_unit_type": "{{ product1.metafields.subscriptions.shipping_interval_unit_type }}",
+                        "charge_internal_frequency": {{variant.metafields.subscriptions.charge_internal_frequency }},
+                        "shipping_interval_frequency": {{ product1.metafields.subscriptions.shipping_interval_frequency }},
+                        "discount_variant_id": {{ variant.metafields.subscriptions.discount_variant_id }}   
+                      }                         
+                    }
+                    {% else %}
+                    {
+                      "variant":{{ variant | json}}
+                    },
+                      {% endif %}{% endfor %}]
+                  }
+            </script>
+            {% endunless %}
+        {% endunless %}
+    {% endfor %}
+{% endunless %}
+

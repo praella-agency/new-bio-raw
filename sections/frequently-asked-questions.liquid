@@ -1,0 +1,83 @@
+<style>
+  .faq_item {
+    border: 1px solid #fff;
+    margin-bottom: 20px;
+    padding: 0 15px;
+  }
+  #faq_link {
+    text-align: center;
+    margin: 20px 0;
+    color: #aed125;
+    font-weight: 800;
+    font-size: 1.2em;
+    text-decoration: underline; 
+  }
+</style>
+
+<div class="page-width" style="margin-top: 100px;margin-bottom: 100px;">
+
+  <div class="grid">
+    <div id="faq_list" class="grid__item medium-up--one-half medium-up--push-one-quarter">
+
+      {% if section.settings.heading != blank %}
+      <div class="section-header text-center">
+        <h2>{{ section.settings.heading }}</h2>
+      </div>
+      {% endif %}
+      
+      {% for block in section.blocks %}
+      <div class="faq_item">
+        <button type="button" class="collapsible-trigger collapsible-trigger--inline collapsible--auto-height text-left" aria-controls="FAQ-content-{{ index }}">
+          {% include 'collapsible-icons-alt', no_circle: true %}
+          {{ block.settings.title }}
+        </button>
+        <div id="FAQ-content-{{ index }}" class="collapsible-content collapsible-content--all">
+          <div class="collapsible-content__inner collapsible-content__inner--faq rte">
+            {{ block.settings.text }}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+
+
+      <div class="grid">
+        <a id="faq_link" href="/pages/faq/" style="margin: 0 auto;" class="grid__item one-whole">See all FAQs</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+{% schema %}
+  {
+    "name": "FAQ Section",
+    "settings": [
+      {
+        "type": "text",
+        "id": "heading",
+        "label": "Section heading"
+      }
+    ],
+    "blocks": [
+      {
+        "type": "question",
+        "name": "Question",
+        "settings": [
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Question",
+            "default": "Frequently asked question"
+          },
+          {
+            "type": "richtext",
+            "id": "text",
+            "label": "Text",
+            "default": "<p>Use this text to answer questions in as much detail as possible for your customers.</p>"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

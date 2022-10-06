@@ -1,0 +1,184 @@
+<!doctype html>
+<html class="no-js" lang="{{ request.locale.iso_code }}">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="{{ settings.color_button }}">
+  <link rel="canonical" href="{{ canonical_url }}">
+  <meta name="format-detection" content="telephone=no">
+
+  {%- if settings.favicon -%}
+  
+    <link rel="shortcut icon" href="{{ settings.favicon | img_url: '32x32' }}" type="image/png" />
+  {%- endif -%}
+
+  {% include 'seo-title' %}
+  <title>{{ seo_title }}</title>
+
+  {%- if page_description -%}
+  <meta name="description" content="{{ page_description | escape }}">
+  {%- endif -%}
+
+  {% include 'social-meta-tags' %}
+
+  {% include 'font-face' %}
+  {{ 'theme.scss.css' | asset_url | stylesheet_tag }}
+  
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script>
+    document.documentElement.className = document.documentElement.className.replace('no-js', 'js');
+
+    window.theme = window.theme || {};
+    theme.routes = {
+      cart: "{{ routes.cart_url }}",
+      cartAdd: "{{ routes.cart_add_url }}",
+      cartChange: "{{ routes.cart_change_url }}"
+    };
+    theme.strings = {
+      addToCart: {{ 'products.product.add_to_cart' | t | json }},
+      soldOut: {{ 'products.product.sold_out' | t | json }},
+      unavailable: {{ 'products.product.unavailable' | t | json }},
+      stockLabel: {{ 'products.product.stock_label' | t: count: '[count]' | json }},
+      willNotShipUntil: {{ 'products.product.will_not_ship_until' | t: date: '[date]' | json }},
+      willBeInStockAfter: {{ 'products.product.will_be_in_stock_after' | t: date: '[date]' | json }},
+      waitingForStock: {{ 'products.product.waiting_for_stock' | t | json }},
+      cartSavings: {{ 'cart.general.savings_html' | t: savings: '[savings]' | json }},
+      cartEmpty: {{ 'cart.general.empty' | t | json }},
+      cartTermsConfirmation: {{ 'cart.general.terms_confirm' | t | json }}
+    };
+    theme.settings = {
+      dynamicVariantsEnable: true,
+      dynamicVariantType: {{ settings.variant_type | json }},
+      cartType: {{ settings.cart_type | json }},
+      moneyFormat: {{ shop.money_format | json }},
+      predictiveSearch: {{ settings.predictive_search_enabled }},
+      predictiveSearchType: {{ settings.search_type | json }},
+      inventoryThreshold: {{ settings.inventory_threshold }},
+      quickView: {{ settings.quick_shop_enable }},
+      customerEmail: {% if customer %}'{{ customer.email }}'{% else %}null{% endif %},
+      themeName: 'Motion',
+      themeVersion: "5.0.5"
+    };
+  </script>
+  
+  {{ content_for_header }}
+
+  
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="https://unpkg.com/flickity@2/dist/flickity.min.css">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+
+  {%- if shop.enabled_currencies.size > 1 -%}
+    <link rel="preload" as="style" href="{{ 'currency-flags.css' | asset_url }}" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="{{ 'currency-flags.css' | asset_url }}"></noscript>
+  {%- endif -%}
+
+  <script type="text/javascript">    
+    theme.settings = {};
+    theme.settings.customersID = {{ customer.id | json }};
+    theme.settings.myshopify_domain = {{ shop.permanent_domain | json }};
+    theme.settings.customerEmail = {{ customer.email | json }};
+  </script>
+  <script src="{{ 'vendor-scripts-v9.js' | asset_url | split: '?' | first }}">
+  </script><script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="https://unpkg.com/flickity@2/dist/flickity.pkgd.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+  {{ 'devst-scripts.js' | asset_url | script_tag }}
+  <script src="{{ 'moment.min.js' | asset_url }}"></script>
+  <script src="{{ 'theme-new.js' | asset_url }}" defer="defer"></script>
+  
+  {%- if request.page_type contains 'customers/' -%}
+    <script src="{{ 'shopify_common.js' | shopify_asset_url }}" defer="defer"></script>
+  {%- endif -%}
+<!--Gem_Page_Header_Script-->
+{% include 'gem-app-header-scripts' %}
+<!--End_Gem_Page_Header_Script-->
+</head>
+
+<body class="template-{{ template | replace: '.', ' ' | truncatewords: 1, '' | handle }} {% if template contains 'our-meals' %}template-our-meals{% endif %}" data-transitions="{{ settings.animate_page_transitions }}" data-customer-email="{{customer.email}}">
+  
+  {% if settings.animate_page_transitions %}
+    <script type="text/javascript">window.setTimeout(function() { document.body.className += " loaded"; }, 25);</script>
+  {% endif %}
+
+  <a class="in-page-link visually-hidden skip-link" href="#MainContent">{{ 'general.accessibility.skip_to_content' | t }}</a>
+
+  <div id="PageContainer" class="page-container">
+    <div class="transition-body">
+
+      
+      {% unless template contains 'address' %}
+      	{% section 'header' %}
+      {% endunless %}	
+
+      <main class="main-content" id="MainContent">
+        {{ content_for_layout }}
+      </main>
+
+   	  {% section 'footer' %}
+
+    </div>
+  </div>
+
+  {% section 'newsletter-popup' %}
+
+  {%- if settings.cart_type == 'drawer' -%}
+    {%- include 'ajax-cart-template' -%}
+<!--   <script>
+    $(document).on('click','.redirectURLTitle' ,function(event){
+      event.preventDefault();
+         if ($(event.currentTarget).hasClass('showAddon')){
+           window.location.href = '/pages/our-meals'; 
+              if($('#add-ons').length > 0){
+                console.log('hii');
+                var href = '#add-ons';
+                $('html, body').animate({
+                  scrollTop: $(href).offset().top
+                }, 200);
+                $('#add-ons').addClass('active');
+                var elem = document.querySelector('#add-ons .custom-slider');
+                var flkty = new Flickity( elem, {
+                  cellAlign: "center", 
+                  contain: true, 
+                  groupCells: true, 
+                  pageDots: false, 
+                  prevNextButtons: true, 
+                  arrowShape: "M 0,50 L 60,00 L 50,30 L 80,30 L 80,70 L 50,70 L 60,100 Z"
+                });
+              }
+         } else {
+           window.location.href = '/pages/our-meals'; 
+         }
+    });
+  </script> -->
+  {%- endif -%}
+
+  {%- if settings.predictive_search_enabled -%}
+    {%- include 'predictive-template' -%}
+  {%- endif -%}
+
+  {% comment %}
+    Custom markup for slider arrows using theme icons
+  {% endcomment %}
+  <div class="hide">
+    <button id="prevArrowTemplate" class="slick-prev" aria-label="{{ 'general.pagination.previous' | t }}" type="button">
+      <svg aria-hidden="true" focusable="false" role="presentation" class="icon icon-chevron-left" viewBox="0 0 284.49 498.98"><path d="M249.49 0a35 35 0 0 1 24.75 59.75L84.49 249.49l189.75 189.74a35.002 35.002 0 1 1-49.5 49.5L10.25 274.24a35 35 0 0 1 0-49.5L224.74 10.25A34.89 34.89 0 0 1 249.49 0z"/></svg>
+      <span class="icon__fallback-text">{{ 'general.pagination.previous' | t }}</span>
+    </button>
+    <button id="nextArrowTemplate" class="slick-next" aria-label="{{ 'general.pagination.next' | t }}" type="button">
+      <svg aria-hidden="true" focusable="false" role="presentation" class="icon icon-chevron-right" viewBox="0 0 284.49 498.98"><path d="M35 498.98a35 35 0 0 1-24.75-59.75l189.74-189.74L10.25 59.75a35.002 35.002 0 0 1 49.5-49.5l214.49 214.49a35 35 0 0 1 0 49.5L59.75 488.73A34.89 34.89 0 0 1 35 498.98z"/></svg>
+      <span class="icon__fallback-text">{{ 'general.pagination.next' | t }}</span>
+    </button>
+  </div>
+
+  {% include 'video-modal' %}
+  {% include 'photoswipe-template' %}
+
+<!--Gem_Page_Footer_Script-->
+{% include 'gem-app-footer-scripts' %}
+<!--End_Gem_Page_Footer_Script-->
+</body>
+</html>

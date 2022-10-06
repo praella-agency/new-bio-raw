@@ -1,0 +1,1938 @@
+  
+<!-- <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<link href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"> -->
+<!-- register js/css -->
+
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/timepicker@1.13.16/jquery.timepicker.min.css">
+<script src="https://cdn.jsdelivr.net/npm/timepicker@1.13.16/jquery.timepicker.min.js"></script> -->
+<!------- Main Banner ------->
+{% assign min = 650 %}
+{% assign max = 800 %}
+{% assign diff = max | minus: min %}
+{% assign randomNumber = "now" | date: "%N" | modulo: diff | plus: min %}
+
+<div data-plan-step="1" class="biorow-steps plan-meal-page" data-plan-meal-page data-random-number="{{randomNumber}}">
+  {%- if section.settings.enable -%}
+  <div class="main-banner" style="background: url('{{section.settings.banner_img | img_url:'master'}}');">
+    <div class="page-width">
+      <div class="grid">
+        <div class="grid__item medium-up--eight-twelfths widescreen--one-half">
+          {%- if section.settings.banner_heading != blank -%} <h1>{{section.settings.banner_heading}}</h1> {%- endif -%}
+          {%- if section.settings.banner_subheading != blank -%} <p>{{section.settings.banner_subheading}}</p>
+          {%- endif -%}
+          <div class="zip-form-wrapper">
+            <div class="custom-form-wrapper">
+              {%- comment -%}
+              <form action="https://www.getdrip.com/forms/616605332/submissions" method="post"
+                   data-drip-embedded-form="616605332" data-drip-id="616605332">
+                   <div class="grid">
+                     <div class="grid__item medium-up--one-half">
+                       <label for="drip-email">Email Address</label>
+                       <input type="email" id="drip-email" name="fields[email]" value="" />
+                     </div>
+                     <div class="grid__item medium-up--one-half">
+                       <label for="drip-zip">Delivery Postal Code</label>
+                       <input type="text" id="drip-zip" name="fields[zip]" value="" />
+                     </div>
+                     <div class="grid__item medium-up--one-half" style="display: none;">
+                       <label for="website">Website</label><br />
+                       <input type="text" id="website" name="website" tabindex="-1" autocomplete="false" value="" />
+                     </div>
+                     <div class="grid__item">
+                       <input type="submit" data-drip-attribute="sign-up-button" value="Build your box"
+                         class="zip-btn btn btn--green">
+                     </div>
+                   </div>
+                 </form> 
+              {%- endcomment -%}
+              <div class="custom-success lg--up--grid__item lg--up--one-whole lg--up--mt3 gram-item hide">
+                <div class="success-wrapper"><span class="success-msg">Awesome we can deliver to you! Scroll down for
+                    our available packages.</span></div>
+                <div class="scroll-icon"><a href="#text-with-icons" class="down-icon animated bounce"><i
+                      style="color: #fff; font-size: 32px;" class="fas fa-arrow-down"></i></a></div>
+              </div>
+              <div class="custom-error lg--up--grid__item lg--up--one-whole lg--up--mt3 gram-item hide">
+                <div class="error-wrapper"><span class="success-msg">Coming soon to you! We will notify you when we
+                    deliver in your area.</span></div>
+              </div>
+            </div>
+          </div>
+          {%- if settings.zipcode != blank -%}
+          {% assign zipcode = settings.zipcode | split:',' %}
+          {%- for zip in zipcode -%}
+          <div class="zipcodes hide">{{zip}}</div>
+          {%- endfor -%}
+          {%- endif -%}
+        </div>   
+      </div>
+    </div>
+  </div>
+  {%- endif -%}
+  <div class="page-width">
+    <div class="subscription-sections" data-template-type="meal-subscription" data-template="subscription">
+      <!------- Pick a Plan ------->
+      <div class="meal-section text-center" data-step="1" data-plan-step-edit="1">
+        <div class="section-content">
+          <div class="grid page-title">
+            <div class="grid__item medium-up--ten-twelfths mx-auto widescreen--one-half padding-left-0">
+              {%- if section.settings.plan_heading != blank -%}<h1>{{ section.settings.plan_heading}}</h1> {%- endif -%}
+              {%- if section.settings.plan_subheading != blank -%} <p>{{ section.settings.plan_subheading}}</p>
+              {%- endif -%}
+            </div>
+            <div class="each-bioraw-meal">
+              <div class="each-perfect-meal d-flex align-items-center justify-content-center">
+                <div class="meal--image">
+                  <img src="{{section.settings.pickplan_img | img_url:'140x'}}" />
+                </div>
+                <div class="">
+                  <h3 class="d-flex align-items-center mb-0">= <span
+                      class="number-of-meal">{{section.settings.equals_value}}</span></h3>
+                </div>
+              </div>
+              <p class="mb-0">{{section.settings.pickplan_footer}}</p>
+            </div>
+          </div>
+          <form class="radio-selection">
+            <div class="grid custom-item pick-plan">
+              {%- if section.blocks.size > 0 -%}
+              {%- for block in section.blocks -%}
+              {%- if block.type == 'pick-plan' -%}
+              {%- if block.settings.enable_plan-%}
+              <div class="grid__item medium-up--five-twelfths mx-sm-auto small--seven-tenths widescreen--one-quarter">
+                <div class="item" style="background: url('{{ block.settings.plan_img | img_url:'master' }}')">
+                  <input type="radio" name="plan" value="{{block.settings.plan_type}}"
+                    data-plan_name="{{block.settings.title | capitalize }}" id="plan{{block.settings.plan_type}}"
+                    onchange="selectPlan('{{block.settings.title | downcase}}','{{block.settings.plan_type}}')">
+                  <label for="plan{{block.settings.plan_type}}">
+                    <div class="bg-white">
+                      {%- if block.settings.title != blank -%} <h1>{{ block.settings.title  | capitalize }}</h1> {%- endif -%}
+                      {%- if block.settings.plan_type != blank -%} <h4 class="plan_type"><span
+                          class="h2 d-block">{{block.settings.plan_type}}</span> Meals / Week</h4> {%- endif -%}
+
+                          {%- comment -%}
+                          {% if block.settings.plan_meal_price != blank %}
+                            <div class="meal-price">
+                                <p>{{block.settings.plan_meal_price}}</p>
+                            </div>
+                            {% endif %}
+                          {%- endcomment -%}
+
+                    </div>
+                    {%- if block.settings.per_meal_price != blank -%}
+                    <div class="price">
+                      <div>
+                        <h1>{{block.settings.per_meal_price}}</h1>
+                        <p>per meal</p>
+                      </div>
+                      {%- if block.settings.free_shipping == true -%}
+                      <span>+</span>
+                      <div>
+                        <h1>free</h1>
+                        <p>shipping</p>
+                      </div>
+                      {%- endif -%}
+                    </div>
+                    {%- endif -%}
+                  </label>
+                </div>
+              </div>
+              {%- endif -%}
+              {%- endif -%}
+              {%- endfor -%}
+              {%- endif -%}
+            </div>
+            <a href="#frequency" class="btn btn--green next-btn" data-check_selectedPlan onclick="check_selectedPlan(event)">{{section.settings.next_btn_text}}</a>
+          </form>
+        </div>
+        <span class="bkg-line"></span>
+      </div>
+      <!------- Choose a Frequency ------->
+      <div class="meal-section frequency-section frequencySection text-center full-height " id="frequency">
+        <div class="section-content">
+          <div class="grid page-title">
+            <div class="grid__item medium-up--ten-twelfths mx-auto widescreen--one-half">
+              {% if section.settings.plan_heading != blank%} <h1>{{ section.settings.frequency_heading}}</h1>
+              {% endif %}
+            </div>
+          </div>
+          {%- if section.blocks.size > 0 -%}
+          {%- for block in section.blocks -%}
+          {%- if block.type == 'choose-a-frequency' -%}
+         
+          <form class="radio-selection">
+            {%- assign planPrice = 0  -%}
+            {% assign oneTimePrice = '' %}
+            {% assign subscriptionPrice = '' %}
+            <div class="grid custom-item choose-frequency" data-single-term>
+              {%- if block.settings.enable_optset_1 -%}
+              {%- if block.settings.enable_opt1_1 -%}
+              {%- assign product1 = all_products[block.settings.choose_product1_1] -%}
+              {%- assign frqOpt1 = product1.title | remove:'The Single' | remove: '(' | remove: ')' | append: '(s)' -%}
+              {%- for variant in product1.variants -%}
+              {%- assign planPrice = variant.price -%}
+              <div class="grid__item medium-up--five-twelfths mx-sm-auto small--seven-tenths widescreen--one-quarter">
+                <div class="item {% if variant.inventory_quantity == 0 %}plan_disable{% endif %}">
+                  <input data-plan-input data-plan-price="{{variant.price}}" data-price="{{variant.price | money_without_currency}}" type="radio" data-buy-type name="plan" data-plan-{{variant.id}} value="{{variant.id}}"
+                    id="radio_{{variant.id}}"
+                    {% if variant.title == 'one-time' %}data-one_time onchange=" choose_buy_type(event,'{{variant.id}}','one_time')"
+                    {% else %}data-subscription onchange=" choose_buy_type(event,'{{variant.id}}','subscription')" {% endif %}>
+                  <label class="data-term" for="radio_{{variant.id}}">
+                    <div class="wrapper">
+                      <div class="position-absolute text-center card-top-bar">
+                        <h4 class="mb-0" {{variant.title}}>{% if variant.title == 'one-time' %} 
+                          {{ block.settings.frequency_oneTime_heading | upcase  }}
+                          {% else %}
+                           {{ block.settings.frequency_weekly_heading | upcase  }}
+                          {% endif %}</h4>
+                          
+                      </div>
+
+                          {% if variant.title == 'one-time' %}
+                              {% assign oneTimePrice = variant.price %}
+                          {% endif %}
+                          {% if variant.title == 'subscription' %}
+                                {% assign subscriptionPrice = variant.price %}
+                          {% endif %}
+                          {% assign savePrice = oneTimePrice | minus : subscriptionPrice  | money  %}
+                          {% assign subscribeandSave_msg = block.settings.subscription_title | replace: "$x", savePrice  %}
+                          {% if variant.title == 'one-time' %}{% else %} {{ subscribeandSave_msg }} {% endif %}
+                          {% if variant.title == 'one-time' %} <p>{{block.settings.onetime_title}}</p> {% endif %}
+                      <h1 data-plan-price-{{variant.id}}="{{variant.price}}">{{variant.price | money}}</h1>
+                    </div>
+                  </label>
+                </div>
+              </div>
+              {%- endfor -%}
+              {%- endif -%}
+              {%- endif -%}
+            </div>
+            <div class="grid custom-item" data-weekly-term
+              >
+              {% if block.settings.enable_optset_2 %}
+              {% if block.settings.enable_opt2_1 %}
+              {% assign product2 = all_products[block.settings.choose_product2_1] %}
+              {% for variant in product2.variants %}
+              <div class="grid__item medium-up--five-twelfths mx-sm-auto small--seven-tenths widescreen--one-quarter">
+                <div class="item {% if variant.inventory_quantity == 0 %}plan_disable{% endif %}">
+                  <input data-plan-input data-plan-price="{{variant.price}}" data-price="{{variant.price | money_without_currency}}" type="radio" data-buy-type name="plan" data-plan-{{variant.id}} value="{{variant.id}}"
+                    id="radio_{{variant.id}}"
+                    {% if variant.title == 'one-time' %}data-one_time onchange=" choose_buy_type(event,'{{variant.id}}','one_time')"
+                    {% else %}data-subscription onchange=" choose_buy_type(event,'{{variant.id}}','subscription')" {% endif %}>
+                  <label class="data-term" for="radio_{{variant.id}}">
+                    <div class="wrapper">
+                      <div class="position-absolute text-center card-top-bar">
+                        <h4 class="mb-0" {{variant.title}}>{% if variant.title == 'one-time' %}
+                          {{ block.settings.frequency_oneTime_heading | upcase  }}
+                          {% else %}
+                           {{ block.settings.frequency_weekly_heading | upcase  }}
+                          {% endif %}</h4>
+                           
+                      </div>
+                      {% if variant.title == 'one-time' %}
+                              {% assign oneTimePrice = variant.price %}
+                          {% endif %}
+                          {% if variant.title == 'subscription' %}
+                                {% assign subscriptionPrice = variant.price %}
+                          {% endif %}
+                          {% assign savePrice = oneTimePrice | minus : subscriptionPrice  | money  %}
+                          {% assign subscribeandSave_msg = block.settings.subscription_title | replace: "$x", savePrice  %}
+                          {% if variant.title == 'one-time' %}{% else %} {{ subscribeandSave_msg }} {% endif %}
+                      {% if variant.title == 'one-time' %} <p>{{block.settings.onetime_title}}</p>{% endif %}
+                      <h1 data-plan-price-{{variant.id}}="{{variant.price}}">{{variant.price | money}}</h1>
+                    </div>
+                  </label>
+                </div>
+              </div>
+              {% endfor %}
+              {% endif %}
+              {% endif %}
+            </div>
+            <div class="grid custom-item" data-double-term
+              >
+              {% if block.settings.enable_optset_3 %}
+              {% if block.settings.enable_opt3_1 %}
+              {% assign product3 = all_products[block.settings.choose_product3_1] %}
+              {% assign frqOpt3 = product3.title | remove:'The Double' | remove: '(' | remove: ')' | append: '(s)'%}
+              {% for variant in product3.variants %}
+              <div class="grid__item medium-up--five-twelfths mx-sm-auto small--seven-tenths widescreen--one-quarter">
+                <div class="item {% if variant.inventory_quantity == 0 %}plan_disable{% endif %}">
+                  <input data-plan-input data-plan-price="{{variant.price}}" data-price="{{variant.price | money_without_currency}}" type="radio" data-buy-type name="plan" data-plan-{{variant.id}} value="{{variant.id}}"
+                    id="radio_{{variant.id}}"
+                    {% if variant.title == 'one-time' %}data-one_time onchange=" choose_buy_type(event,'{{variant.id}}','one_time')"
+                    {% else %}data-subscription onchange=" choose_buy_type(event,'{{variant.id}}','subscription')" {% endif %}>
+                  <label class="data-term" for="radio_{{variant.id}}">
+                    <div class="wrapper">
+                      <div class="position-absolute text-center card-top-bar">
+                        <h4 class="mb-0" {{variant.title}}>{% if variant.title == 'one-time' %}
+                          {{ block.settings.frequency_oneTime_heading | upcase  }}
+                          {% else %}
+                           {{ block.settings.frequency_weekly_heading | upcase  }}
+                          {% endif %}</h4>
+                          
+                      </div>
+                      {% if variant.title == 'one-time' %}
+                      {% assign oneTimePrice = variant.price %}
+                  {% endif %}
+                  {% if variant.title == 'subscription' %}
+                        {% assign subscriptionPrice = variant.price %}
+                  {% endif %}
+                  {% assign savePrice = oneTimePrice | minus : subscriptionPrice  | money  %}
+                  {% assign subscribeandSave_msg = block.settings.subscription_title | replace: "$x", savePrice  %}
+                  {% if variant.title == 'one-time' %}{% else %} {{ subscribeandSave_msg }} {% endif %}
+                      {% if variant.title == 'one-time' %} <p>{{block.settings.onetime_title}}</p>  {% endif %}
+                      <h1 data-plan-price-{{variant.id}}="{{variant.price}}">{{variant.price | money}}</h1>
+                    </div>
+                  </label>
+                </div>
+              </div>
+              {% endfor %}
+              {% endif %}
+              {% endif %}
+            </div>
+            <div class="grid custom-item" data-clubPack-term
+              >
+              {% if block.settings.enable_optset_4 %}
+              {% if block.settings.enable_opt4_1 %}
+              {% assign product4 = all_products[block.settings.choose_product4_1] %}
+              {% assign frqOpt4 = product4.title | remove:'The Club Pack' | remove: '(' | remove: ')' | append: '(s)'%}
+              {% for variant in product4.variants %}
+              <div class="grid__item medium-up--five-twelfths mx-sm-auto small--seven-tenths widescreen--one-quarter">
+                <div class="item {% if variant.inventory_quantity == 0 %}plan_disable{% endif %}">
+                  <input data-plan-input data-plan-price="{{variant.price}}" data-price="{{variant.price | money_without_currency}}" type="radio" data-buy-type name="plan" data-plan-{{variant.id}} value="{{variant.id}}"
+                    id="radio_{{variant.id}}"
+                    {% if variant.title == 'one-time' %}data-one_time onchange=" choose_buy_type(event,'{{variant.id}}','one_time')"
+                    {% else %}data-subscription onchange=" choose_buy_type(event,'{{variant.id}}','subscription')" {% endif %}>
+                  <label class="data-term" for="radio_{{variant.id}}">
+                    {% comment %}{% if variant.title == 'one-time' %} <p>{{frqOpt4}}</p> {% else %} <p>Subscribe and
+                      save $10</p> {% endif %}
+                    <h1>{{variant.price | money}}</h1>{% endcomment %}
+                    <div class="wrapper">
+                      <div class="position-absolute text-center card-top-bar">
+                        <h4 class="mb-0" {{variant.title}}>{% if variant.title == 'one-time' %}
+                          {{ block.settings.frequency_oneTime_heading | upcase  }}
+                          {% else %}
+                           {{ block.settings.frequency_weekly_heading | upcase  }}
+                          {% endif %}</h4>
+                      </div>
+                      {% if variant.title == 'one-time' %}
+                              {% assign oneTimePrice = variant.price %}
+                          {% endif %}
+                          {% if variant.title == 'subscription' %}
+                                {% assign subscriptionPrice = variant.price %}
+                          {% endif %}
+                          {% assign savePrice = oneTimePrice | minus : subscriptionPrice  | money  %}
+                          {% assign subscribeandSave_msg = block.settings.subscription_title | replace: "$x", savePrice  %}
+                          {% if variant.title == 'one-time' %}{% else %} {{ subscribeandSave_msg }} {% endif %}
+                      {% if variant.title == 'one-time' %} <p>{{block.settings.onetime_title}}</p>{% endif %}
+                      <h1 data-plan-price-{{variant.id}}="{{variant.price}}">{{variant.price | money}}</h1>
+                    </div>
+                  </label>
+                </div>
+              </div>
+              {% endfor %}
+              {% endif %}
+              {% endif %}
+            </div>
+            <a href="#meals" class="btn btn--green next-btn" data-check_selectedFrq data-plan-price="{{planPrice}}" onclick="check_selectedFrq(event,'selectFrq')" >{{section.settings.next_btn_text}}</a>
+          </form>
+          {% endif %}
+          {% endfor%}
+          {% endif %}
+        </div>
+        <span class="bkg-line"></span>
+      </div>
+      <!------- Choose Meals ------->
+      <div class="meal-section frequency-section text-center full-height choose-meal-frequency" data-plan-step-edit="2" id="meals">
+        <!------- Choose a Meal ------->
+        {% if section.blocks.size > 0 %}
+        {% for block in section.blocks %}
+        {% if block.type == 'choose-a-meal' %}
+        {%- assign collection1 = collections[block.settings.collection1] -%}
+        <div class="section-content">
+          <div class="grid page-title">
+            <div class="grid__item medium-up--ten-twelfths mx-auto widescreen--one-half">
+              {% if section.settings.meal_heading != blank%} <h1 data-meal-heading>{{ section.settings.meal_heading}}</h1> {% endif %}
+            </div>
+          </div>
+          <div class="selected-item selected-items">
+            <!-- <div class="items">
+                        <div>
+                            <span>2</span>
+                        </div>
+                    </div> -->
+          </div>
+          <div class="counter" data-selected-counter></div>
+          <div class="selected-item meal-list">
+            {% unless collection1.empty? %}
+            {% for product in collection1.products %}
+            <div class="items">
+              <a href="#" class="text-center" data-img="{{  product.featured_image |img_url: '300x'}}" data-meal-product-text="{{product.title}}"
+                onclick="selectMealQty(event,'{{product.id}}','{{  product.featured_image |img_url: '300x'}}','{{forloop.index}}')">+</a>
+              <div class="cursor-pointer" onclick="show_description('{{product.id}}')">
+                <img src="{{ product.featured_image  | img_url: 'master'}}">
+                <div class="overlay">
+                  <span>More Info</span>
+                </div>
+              </div>
+              <p>{{product.title}}</p>
+            </div>
+            {% endfor %}
+            {% endunless %}
+          </div>
+          <div class="final-plan">
+            {% if section.settings.final_heading != blank%} <h1>{{ section.settings.final_heading}}</h1> {% endif %}
+            <div class="final-result" data-final-plan>
+              <!-- <p>I would like to get <span>THE DOUBLE</span> meal plan for/<span>every 4 weeks</span> with above selected meal combos.</p>
+                      <a href="#" class="btn btn--green">Add to cart</a> -->
+            </div>
+          </div>
+        </div>
+        <span class="bkg-line"></span>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+      </div>
+      <!-------ADD-ONS ------->
+      {%- if section.settings.enable_addons -%}
+      <div class="meal-section frequency-section text-center full-height" data-plan-step-edit="3" id="add-ons">
+        <!------- ADD-ONS ------->
+        <div class="section-content">
+          <div class="grid">
+            <div class="grid__item medium-up--ten-twelfths mx-auto widescreen--one-half">
+              <h1>{{section.settings.addon-title}}</h1>
+              <p>{{section.settings.addons-subtitle}}</p>
+            </div>
+          </div>
+          <div class="add-ons-slider grid">
+            <div class="grid__item eight-twelfths medium-down--one-whole mx-auto">
+              <form class="radio-selection">
+                <!-- <div class="grid custom-item"
+                  data-flickity='{ 
+                    "cellAlign": "center", 
+                    "contain": true, 
+                    "groupCells": true, 
+                    "pageDots": false, 
+                    "prevNextButtons": true, 
+                    "arrowShape": "M 0,50 L 60,00 L 50,30 L 80,30 L 80,70 L 50,70 L 60,100 Z"
+                  }'> -->
+                  <div class="grid custom-item custom-slider">
+                  {%- if section.settings.addon_collection -%}
+                    {%- for product in collections[section.settings.addon_collection].products -%}
+                    <script type="application/json" data-{{product.id}}-json data-meals-json>
+                      {
+                        "product": {{ product | json }},
+                        "variant": {{ product.variants[0] | json }}
+                      }
+                    </script>
+                    <div data-addons-products data-product-title="{{product.title}}"
+                      data-variant-id="{{product.selected_or_first_available_variant.id}}"
+                      data-shipping_interval_frequency="{{ product.metafields.subscriptions.shipping_interval_frequency }}"
+                      data-shipping_interval_unit_type="{{ product.metafields.subscriptions.shipping_interval_unit_type }}"
+                      data-charge_interval_frequency="{{product.selected_or_first_available_variant.metafields.subscriptions.charge_internal_frequency }}"
+                      data-subscription_id="{{ product.metafields.subscriptions.subscription_id }}" data-price="{{product.price | money_without_currency }}"
+                      class="grid__item medium-up--five-twelfths mx-sm-auto small--seven-tenths widescreen--one-third">
+                      <div class="card">
+                        <div class="card-image">
+                          <div class="img-wrapper cursor-pointer" onclick="show_description('{{product.id}}')">
+                            <img src="{{product.featured_image | img_url:'300x'}}" />
+                            <div class="overlay">
+                              <span>More Info</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="card-body">
+                          <h6 class="text-uppercase text-white">{{product.title}}</h6>
+                          <p >{{product.price | money}}</p>
+                          <div class="product-quantity">
+                            <button class="btn-qty btn-decrease" onclick="updateQty(event)">-</button>
+                            <input class="quantity-number qty-text" type="text" value="0" readonly />
+                            <button class="btn-qty btn-increase" onclick="updateQty(event)">+</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    {%- endfor -%}
+                  {%- endif -%}
+                </div>
+              </form>
+            </div>
+          </div>
+          <div class="d-flex align-item-center justify-content-center">
+            <a href="#" class="btn btn--green next-btn" style="margin-right:10px;" data-addtoCart-Addons
+              onclick="addToCartAddons(event)">{{section.settings.addtocart_btn_text}}</a>
+            <a href="#" onclick="redirectTolink(event,'#bioraw-donation');" class="btn btn-outline">{{ section.settings.thanks_btn_text}}</a>
+          </div>
+        </div>
+        <span class="bkg-line"></span>
+      </div>
+      {%- endif -%}
+      <!------- frontline workers fund ------->
+      {%- if section.settings.enable_makedonation -%}
+      <div class="meal-section bioraw-donation text-center full-height " data-plan-step-edit="4" id="bioraw-donation">
+        <!------- bioraw supports ------->
+        <div class="section-content">
+          {% if section.settings.enable_makedonation %}
+          <div class="grid">
+            <div class="grid__item medium-up--ten-twelfths mx-auto widescreen--one-half">
+              <h1>{{section.settings.makedonation_title}}</h1>
+              <p>{{section.settings.makedonation_subtitle}}</p>
+            </div>
+          </div>
+          <div class="bioraw-donation grid">
+            <div class="grid__item eight-twelfths medium-down--one-whole mx-auto">
+              <!-- <form class="radio-selection donation-text w-100 custom-slider"
+                data-flickity='{ "cellAlign": "center", "contain": true, "groupCells": true, "pageDots": false, "prevNextButtons": true, "arrowShape": "M 0,50 L 60,00 L 50,30 L 80,30 L 80,70 L 50,70 L 60,100 Z" }'> -->
+                <form class="radio-selection donation-text w-100 custom-slider">
+                {%- if section.settings.makedonation_collection -%}
+                {%- for product in collections[section.settings.makedonation_collection].products -%}
+                  <script type="application/json" data-{{product.id}}-json data-meals-json>
+                    {
+                      "product": {{ product | json }},
+                      "variant": {{ product.variants[0] | json }}
+                    }
+                  </script>
+                <div class="grid custom-item w-100 d-md-flex align-items-center justify-content-center" data-donation-products
+                  data-product-title="{{product.title}}"
+                  data-variant-id="{{product.selected_or_first_available_variant.id}}" data-price="{{product.price | money_without_currency }}">
+                  <div class="grid__item seven-twelfths medium-down--one-whole">
+                    <div class="grid">
+                      <div class="grid__item ten-twelfths medium-down--one-whole">
+                          <div class="card">
+                              <div class="card-image">
+                                  <div class="img-wrapper cursor-pointer" onclick="show_description('{{product.id}}')">
+                                    <img src="{{product.featured_image | img_url: '300x'}}" />
+                                    <!-- <img src="{{product.featured_image | img_url:'300x'}}" /> -->
+                                    <div class="overlay">
+                                      <span>More Info</span>
+                                    </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="grid__item five-twelfths text-left medium-down--one-whole">
+                    <div class="donation-text">
+                      <div class="card-body">
+                        <h2 class="text-uppercase text-white">{{product.title}}</h2>
+                        <p class="">{{product.price | money}}</p>
+                        <p>Please choose how many meals you'd like to donate!</p>
+                        <div class="product-quantity">
+                          <button class="btn-qty btn-decrease" onclick="updateQty(event)">-</button>
+                          <input class="quantity-number qty-text" type="text" value="0" readonly />
+                          <button class="btn-qty btn-increase" onclick="updateQty(event)">+</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {%- endfor -%}
+                {%- endif -%}
+
+              </form>
+            </div>
+          </div>
+          <div class="d-flex align-item-center justify-content-center">
+            <a href="#" class="btn btn--green next-btn js-no-transition" style="margin-right:10px;"
+              data-addtoCart-Donations onclick="addToCartDonations(event)">{{section.settings.addtocart_btn_text}}</a>
+            <a href="#" class="btn btn-outline" onclick="nothanksDonation(event)">{{section.settings.thanks_btn_text}}</a>
+          </div>
+          {%- endif -%}
+          
+          <!-- <span class="bkg-line"></span> -->
+        </div>
+      </div>
+      {%- endif -%}
+      {%- if section.settings.enable_freeshipping -%}
+      <div class="selected-item meal-list all-orders pb-0">
+            <div id="6" class="page-width" data-aos="logo__animation">
+              <div>
+                <div class="section-header">
+                  <h4 class="section-header__title text-uppercase font-weigth-500 letter-spacing-normal">
+                    {{section.settings.free_shipping_title}}
+                    </h4>
+                    <!-- {{section.settings.free_shipping_title}} -->
+                </div>
+                <div class="logo-list grid d-flex flex-wrap logo-bar--1591925625885">
+                  {%- for block in section.blocks -%}
+                  {%- if block.type == 'image-text' -%}
+                  <div class="grid__item large-down--four-twelfths medium-down--four-twelfths one-sixth block-margin">
+                    {%- assign img_url = block.settings.image | img_url: '1x1' | replace: '_1x1.', '_{width}x.' -%}
+                    <img class="logo-bar__image lazyload" data-src="{{img_url}}" data-widths="[180, 360, 540, 720]"
+                      data-aspectratio="1.0033333333333334" data-sizes="auto" alt="{{block.settings.title}}">
+                    <p>{{block.settings.title}}</p>
+                  </div>
+                  {%- endif -%}
+                  {%-  endfor -%}
+                </div>
+              </div>
+            </div>
+          </div>
+      {%- endif -%}
+      <!------- bioraw accordion ------->
+    </div>
+  </div>
+</div>
+
+<div data-plan-step="2" class="biorow-steps " data-account-register style="display:none;"> 
+  <header class="address-header">
+    <div class="page-width">
+      <div class="grid">
+        <div class="grid__item medium-up--two-twelfths one-half">
+          <div class="header-logo">
+            <a href="/"><img src="//cdn.shopify.com/s/files/1/1762/2215/files/logo-black.png"></a>
+          </div>
+        </div>
+        <div class="grid__item medium-up--eight-twelfths hide medium-up--show padding-left-0">
+          <div class="progress">
+            <!-- <h6>Menu Header</h6> -->
+            <button class="btn btn--green back_btn js-no-transition" data-back-btn="" style="margin-bottom:35px">BACK</button>
+            <ul>
+              <li class="active">Select Plan</li>
+              <li class="active">Register</li>
+              <li class="">Address</li>
+              <li>Checkout</li>
+            </ul>
+            <!-- <button class="btn btn--green next-btn js-no-transition" data-next-btn="" style="margin-top:15px;">Next</button> -->
+
+          </div>
+        </div>
+        <div class="grid__item medium-up--two-twelfths one-half">
+          <div class="logoutBtn d-none">
+            <a href="/account/logout" class="btn" onclick="logoutFromAccount(event)">Logout</a>
+          </div>
+        </div>
+        <div class="grid__item show medium-up--hide padding-left-0">
+          <div class="progress">
+            <!-- <h6>Menu Header</h6> -->
+            <button class="btn btn--green back_btn js-no-transition" data-back-btn="" style="margin-bottom:35px; margin-left: 15px;">BACK</button>
+            <ul>
+              <li class="active">Select Plan</li>
+              <li class="active">Register</li>
+              <li class="">Address</li>
+              <li>Checkout</li>
+            </ul>
+            <!-- <button class="btn btn--green next-btn js-no-transition" data-next-btn="" style="margin-top:15px;">Next</button> -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="navigation">
+      <a href="#" class="close-nav"><img src="//cdn.shopify.com/s/files/1/1762/2215/files/cross-icon.svg"
+          style="width: 22px;"></a>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/pages/about">About</a></li>
+        <li><a href="/pages/contact">Contact</a></li>
+      </ul>
+    </nav>
+
+  </header>
+  
+  {% if section.settings.show_registerpage %}
+  <section class="register-banner">
+    <div class="text-center">
+      <div class="banner-description">
+        <div class="position-relative">
+          <h5 class="text-uppercase">{{section.settings.Register_title}}</h5>
+          <p><strong> {% if section.settings.Register_banner_line_0 != blank %}{{section.settings.Register_banner_line_0}}{% endif %}</strong></p>   
+          {% if section.settings.Register_banner_line_1 != blank %}<p>{{section.settings.Register_banner_line_1}} {% if section.settings.Register_banner_line_1_enable %}<a href="#" onclick="showPopup(event,'.show-more-details')">Shore more^</a>{% endif %}</p>{% endif %}
+          <!-- {% if section.settings.Register_banner_line_2 != blank %}<p class="text-uppercase">{{section.settings.Register_banner_line_2}}</p>{% endif %}
+          {% if section.settings.Register_banner_line_3 != blank %}<p>{{section.settings.Register_banner_line_3}} {% if section.settings.Register_banner_line_3 != blank %}<a href="#" onclick="showPopup(event,'.discount-boxes')">{{section.settings.Register_banner_line_3_1}}</a>{% endif %}</p>{% endif %} -->
+          <div class="discount-boxes show-more-details">
+            <div class="d-flex align-items-center justify-content-center ">
+                <div class="text-center">
+                  {% if section.settings.show_coupon_image_1 == true %}<img src="{{section.settings.coupon_image_1 | img_url: '100x'}}" />{% endif %}
+                  <!-- <p>{{section.settings.coupon_discount_1}}</p> -->
+                </div>
+                <div class="for-border"></div>
+            </div>
+          </div>
+        </div>
+        <!-- <div class="show-more-details">
+            <h5>Promo code</h5>
+            <div class="text-center">
+                <input type="text" placeholder="3FRWYGAW" />
+                <div class="d-flex align-items-center justify-content-center">
+                  <button onclick="$('.show-more-details').hide();" class="promo-buttons promo-cancel">Cancel</button>
+                  <button onclick="" class="promo-buttons promo-save">Save changes</button>
+                </div>
+            </div>
+        </div> -->
+      </div>
+    </div>
+  </section>
+  {% endif %}
+  <section class="get-started">
+    <div class="page-width">
+      <div class="grid">
+        <div class="grid__items medium-down--one-whole ten-twelfths mx-auto">
+          <div class="banner-form">
+            <div class="text-center">
+              <h4 class="text-uppercase mb-1">{{section.settings.mainbox_title}}</h5>
+                <p>{{section.settings.mainbox_subtitle}}</p>
+            </div>
+          </div>
+          <div class="banner-form delivery-details">
+            <div class="grid d-md-flex"> 
+              <div class="grid__items one-half medium-down--one-whole">
+                <div class="started-image-wrapper {% unless section.settings.register_left_img_mobile %} disable-img {% endunless %}">
+                  <img
+                    src="{{section.settings.register_left_img | img_url:'500x'}}" />
+                </div>
+              </div>
+              <div class="grid__items one-half medium-down--one-whole">
+                <div class="started-image-wrapper mini-form">
+                  <form id="register-form" data-customer-exists="{{customer.has_account}}" autocomplete="off">
+                  <input autocomplete="false" name="hidden" type="text" style="display:none;">
+                  <input data-email type="text" id="email" class="" placeholder="Email" value="{{customer.email}}" autocomplete="off">
+                  <!-- <input data-postal-code type="text" placeholder="Delivery postal code" onkeyup="localStorage.setItem('hulk-postal-code', this.value)"> -->
+                  <input data-postal-code type="text" id="postal_code" onkeyup="this.value = this.value.toUpperCase();" placeholder="Delivery postal code" autocomplete="off">
+                  <input data-password type="password" placeholder="Password" class="d-none"> 
+                  <p class="error-msg text-red"></p>
+                  <a href="#" id="addresspage-lnk" class="text-center site-nav__link continue-btn w-100 d-none" onclick="goToAddressPage(event)">Continue</a>
+                  <button type="button" class="site-nav__link continue-btn w-100" onclick="checkforActiveUser(event)">Continue</button>
+                </form>
+                <div class="zip-form-wrapper">
+                  <div class="custom-form-wrapper">
+                <form action="https://www.getdrip.com/forms/616605332/submissions" onsubmit="return false;"  method="post" data-drip-embedded-form="616605332" data-drip-form style="display:none;">
+                  <h3 data-drip-attribute="headline" class="custom-heading lg--up--grid__item">To get started, find out if we serve your area by entering your email and postal code</h3>
+                  <div data-drip-attribute="description"></div>
+                  <div class="lg--up--grid__item lg--up--one-half lg--up--mt3 gram-item"> 
+                    <label for="drip-email">Email Address</label><br />
+                    <input type="email" id="drip-email" name="fields[email]" value="" class="custom-input" />
+                  </div>
+                  <div class="lg--up--grid__item lg--up--one-half lg--up--mt3 gram-item">
+                    <label for="drip-zip">Delivery Postal Code</label><br />
+                    <input type="text" id="drip-zip" name="fields[zip]" value="" class="custom-input" />
+                  </div>
+                  <div style="display: none;" aria-hidden="true">
+                    <label for="website">Website</label><br />
+                    <input type="text" id="website" name="website" tabindex="-1" autocomplete="false" value="" />
+                  </div>
+                  <div class="lg--up--grid__item lg--up--one-half lg--up--mt3 gram-item">
+                    <input type="submit" value="Build Your Box" data-drip-attribute="sign-up-button" class="zip-btn t--header-navigation header__link {{ header_underline_link }} bg--secondary-background order-nav-link font-size--m bg--transparent inline-block pointer align--middle px1" />
+                  </div>
+                </form>
+                <div class="custom-success lg--up--grid__item lg--up--one-whole lg--up--mt3 gram-item hide">
+                  <div class="success-wrapper"><span class="success-msg">Awesome we can deliver to you! Scroll down for our available packages.</span></div>
+                  <div class="scroll-icon"><a href="#text-with-icons" class="down-icon animated bounce"><i style="color: #fff; font-size: 32px;" class="fas fa-arrow-down"></i></a></div>
+                </div>
+                <div class="custom-error lg--up--grid__item lg--up--one-whole lg--up--mt3 gram-item hide">
+                  <div class="error-wrapper"><span class="success-msg">Coming soon to you! We will notify you when we deliver in your area.</span></div>
+                </div>
+                </div>
+            </div>
+                
+                <!-- <form action="https://www.getdrip.com/forms/616605332/submissions" method="post" data-drip-embedded-form="616605332" data-drip-id="616605332" id="drip-ef-616605332" data-drip-form style="display:none;">
+                    <h3 data-drip-attribute="headline">To get started, find out if we serve your area by entering your email and postal code</h3>
+                  <div data-drip-attribute="description"></div>
+                
+                   
+                  <div>
+                      <label for="drip-email">Email Address</label><br>
+                      <input type="email" id="drip-email" name="fields[email]" value="">
+                  </div>
+                
+                  <div>
+                      <label for="drip-zip">Delivery Postal Code</label><br>
+                      <input type="text" id="drip-zip" name="fields[zip]" value="">
+                  </div>
+                
+                
+                  <div style="display: none;" aria-hidden="true">
+                    <label for="website">Website</label><br>
+                    <input type="text" id="website" name="website" tabindex="-1" autocomplete="false" value="">
+                  </div>
+                  
+                  <div>
+                    <input class="zip-btn btn btn--green" type="submit" value="Build Your Box" data-drip-attribute="sign-up-button">
+                  </div>
+                </form> -->
+                
+
+                  <p>By continuing, you agree to our <a href="/pages/terms-of-service">Terms</a> and <a href="/pages/privacy-policy">Privacy policy.</a></p> 
+                </div>
+              </div>
+            </div>
+            <div class="grid d-md-flex logo-section">
+              {%- for i in (1..3) -%}
+              {% capture register_block_img %}register_block_img{{i}}{% endcapture %}
+              {% capture register_block_text %}register_block_text{{i}}{% endcapture %}
+              <div class="grid__items medium-down--one-whole four-twelfths text-center block-margin">
+                <div class="logo-wrapper">
+                  <img class="w-100 logo-bar__image lazyautosizes lazyloaded"
+                    src="{{section.settings[register_block_img] | img_url:'200x'}}">
+                  <p>{{section.settings[register_block_text]}}</p>
+                </div>
+              </div>
+              {%- endfor -%}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="testimonial-section">
+    <div class="page-width text-center">
+      <div class="grid">
+        <div class="grid__item medium-up--eleven-twelfths mx-auto widescreen--one-half padding-left-0">
+          <h2 class="font-weight-medium letter-spacing-normal ">{{section.settings.testimonials_title}}</h2>
+        </div>
+      </div>
+      <div class="grid__item medium-down--one-whole eight-twelfths mx-auto padding-left-0">
+        <div class="radio-selection testimonials-text ">
+          {% for block in section.blocks %}
+            {% if block.type == 'testimonials' %}
+            <div class="grid custom-item d-md-flex align-items-center justify-content-center w-100">
+              <div class="grid__item three-twelfths medium-down--one-whole  padding-left-0" >
+                <div class="card">
+                  <div class="card-image">
+                    <div class="img-wrapper">
+                      <img
+                        src="{{block.settings.image | img_url:'200x'}}">
+                    </div>
+                    <p>{{block.settings.authorname}}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="grid__item nine-twelfths text-left medium-down--one-whole text-md-center  padding-left-0">
+                <div class="donation-text">
+                  <div class="card-body">
+                    <h3 class="font-weight-medium letter-spacing-normal">{{block.settings.title}}</h3>
+                    <p class="">{{block.settings.testimonials}}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div data-plan-step="3" class="biorow-steps  " data-adress style="display:none;">
+  <header class="address-header">
+    <div class="page-width">
+      <div class="grid">
+        <div class="grid__item medium-up--two-twelfths one-half">
+          <div class="header-logo">
+            <a href="/"><img src="//cdn.shopify.com/s/files/1/1762/2215/files/logo-black.png"></a>
+          </div>
+        </div>
+        <div class="grid__item medium-up--eight-twelfths hide medium-up--show padding-left-0">
+          <div class="progress">
+            <!-- <h6>Menu Header</h6> -->
+            <button class="btn btn--green back_btn js-no-transition" data-back-btn="" style="margin-bottom:35px">BACK</button>
+            <ul>
+              <li class="active">Select Plan</li>
+              <li class="active">Register</li>
+              <li class="active">Address</li>
+              <li>Checkout</li>
+            </ul>
+            <!-- <button class="btn btn--green next-btn js-no-transition" data-next-btn="" style="margin-top:15px;">Next</button> -->
+          </div>
+        </div>
+        <div class="grid__item medium-up--two-twelfths one-half">
+          <!-- <div class="menu-trigger">
+            <a href="#"><img src="//cdn.shopify.com/s/files/1/1762/2215/files/menu.svg"></a> 
+          </div> -->
+        </div>
+        <div class="grid__item show medium-up--hide">
+          <div class="progress">
+            <!-- <h6>Menu Header</h6> -->
+            <button class="btn btn--green back_btn js-no-transition" data-back-btn="" style="margin-bottom:35px; margin-left: 15px;">BACK</button> 
+            <ul>
+              <li class="active">Select Plan</li>
+              <li class="active">Register</li>
+              <li class="active">Address</li>
+              <li>Checkout</li>
+            </ul>
+            <!-- <button class="btn btn--green next-btn js-no-transition" data-next-btn="" style="margin-top:15px;">Next</button> -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="navigation">
+      <a href="#" class="close-nav"><img src="//cdn.shopify.com/s/files/1/1762/2215/files/cross-icon.svg"
+          style="width: 22px;"></a>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/pages/about">About</a></li>
+        <li><a href="/pages/contact">Contact</a></li>
+      </ul>
+    </nav>
+
+  </header>
+  {% if section.settings.show_registerpage %}
+  <section class="register-banner">
+    <div class="text-center">
+      <div class="banner-description">
+        <div class="position-relative">
+          <h5 class="text-uppercase">{{section.settings.Register_title}}</h5>
+          <p><strong> {% if section.settings.Register_banner_line_0 != blank %}{{section.settings.Register_banner_line_0}}{% endif %}</strong></p> 
+          {% if section.settings.Register_banner_line_1 != blank %}<p>{{section.settings.Register_banner_line_1}} {% if section.settings.Register_banner_line_1_enable %}<a href="#" onclick="showPopup(event,'.show-more-details')">Shore more^</a>{% endif %}</p>{% endif %}
+          <!-- {% if section.settings.Register_banner_line_2 != blank %}<p class="text-uppercase">{{section.settings.Register_banner_line_2}}</p>{% endif %}
+          {% if section.settings.Register_banner_line_3 != blank %}<p>{{section.settings.Register_banner_line_3}} {% if section.settings.Register_banner_line_3 != blank %}<a href="#" onclick="showPopup(event,'.discount-boxes')">{{section.settings.Register_banner_line_3_1}}</a>{% endif %}</p>{% endif %} -->
+          <div class="discount-boxes show-more-details">
+            <div class="d-flex align-items-center justify-content-center ">
+                <div class="text-center">
+                  {% if section.settings.show_coupon_image_1 == true %}<img src="{{section.settings.coupon_image_1 | img_url: '100x'}}" />{% endif %}
+                  <!-- <p>{{section.settings.coupon_discount_1}}</p> -->
+                </div>
+            </div>
+          </div>
+        </div>
+        <!-- <div class="show-more-details">
+            <h5>Promo code</h5>
+            <div class="text-center">
+                <input type="text" placeholder="3FRWYGAW" />
+                <div class="d-flex align-items-center justify-content-center">
+                  <button onclick="$('.show-more-details').hide();" class="promo-buttons promo-cancel">Cancel</button>
+                  <button onclick="saveDiscount(event);" class="promo-buttons promo-save">Save changes</button>
+                </div>
+            </div>
+        </div> -->
+      </div>
+    </div>
+  </section>
+  {% endif %}
+<div class="page-width">
+    <div class="grid delivery-section">
+        <div class="grid__item large-up--seven-twelfths">
+            <div class="delivery-details">
+                <h4 class="font-weight-600">{{section.settings.delivery_title}}</h4>
+                <div class="text-center delivery-note">
+                    <img src="{{section.settings.delivery_icon}}" class="mx-auto" style="max-width: 55px;">
+                    <p>{{section.settings.local_delivery_text}}</p>
+                </div>
+                <p>{{section.settings.local_delivery_texts}}</p>
+                <!-- OWITHOU CLICKING SEARCH ICON-->
+                <div class="verify-postal-wrap">
+                  <input type="text" data-address-postal-code autocomplete="off"  onkeyup="this.value = this.value.toUpperCase();" onchange="searchthoughPostal(event)">
+                  <button data-address-search onclick="searchthoughPostal(event)"><img src="//cdn.shopify.com/s/files/1/1762/2215/files/search-icon.svg" style="width: 22px;"></button>
+                </div>
+                <!-- <form class="search-form" data-search-postal-code>
+                    <input type="text" data-address-postal-code autocomplete="off" onkeyup="this.value = this.value.toUpperCase();">
+                    <button data-address-search onclick="searchthoughPostal(event)"><img src="//cdn.shopify.com/s/files/1/1762/2215/files/search-icon.svg" style="width: 22px;"></button>
+                </form> -->
+                <p data-delivery-msg class="text-success"></p>
+                <div class="datepicker">
+                    <label>Delivery Date *</label>
+                    <input data-address-delivery-date type="text" id="datepicker_new" autocomplete="off">
+                </div>
+                <div class="datepicker">
+                    <label>Delivery Time *</label>
+                    <select data-address-delivery-time></select>
+                  
+                </div>
+                <div class="datepicker">
+                  <label>Unit#/Apt# *</label>
+                    <input data-unit-number type="text" id="unitNumber" autocomplete="off">
+                </div>
+                <div class="datepicker">
+                  <label>Buzzer code *</label>
+                  <input data-buzzer-code type="text" id="buzzerCode" autocomplete="off">
+              </div>
+                <div class="datepicker">
+                    <label>Delivery Instructions *</label>
+                    <select data-address-delivery-instructions>
+                        
+                    </select>
+                    <textarea data-address-delivery-instructions-other style="display:none;" id="other-instruction" autocomplete="off"></textarea>
+                </div>
+
+                <div class="grid">
+                {% for i in (1..2) %}
+                {% capture delivery_img %}delivery_img_{{i}}{% endcapture %}
+                {% capture delivery_title %}delivery_title_{{i}}{% endcapture %}
+                {% capture delivery_subtitle %}delivery_subtitle_{{i}}{% endcapture %}
+                    <div class="grid__item medium-up--one-half">
+                        <div class="delivery-info d-flex align-items-center">
+                            <span>
+                                <img src="{{section.settings[delivery_img] | img_url:'100x'}}" >
+                            </span>
+                            <div>
+                                <h6>{{section.settings[delivery_title]}}</h6>
+                                <p>{{section.settings[delivery_subtitle]}}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="grid__item large-up--five-twelfths">
+            <div class="delivery-sidebar">
+                <h4 class="font-weight-600">Order Summary</h4>
+                <div class="coupon d-none">
+                    <p>Got a discount code?</p>
+                    <form class="discount-form d-flex">
+                        <input type="text">
+                        <button><img src="//cdn.shopify.com/s/files/1/1762/2215/files/check.svg" style="width: 22px;"></button>
+                    </form>
+                    <span>Your discount has been applied!</span>
+                </div>
+
+                <div class="plan-section">
+                    <div class="plan-item" data-summary-plan>
+                        
+                    </div>
+
+                    <div class="plan-item" data-summary-plan-meal>
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h5>Meals selected: <a onclick="editPlan(event,'level-2')" href="#">Edit</a></h5>
+                                <ul>
+                                    
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    {%- if section.settings.enable_addons -%}
+                    
+                    <div class="plan-item" data-summary-plan-addons>
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h5>Add-Ons: <a href="#" onclick="editPlan(event,'level-3')">Edit</a></h5>
+                                <ul>
+                                    
+                                </ul>
+                            </div>
+                            <p class="font-weight-500"></p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {%- if section.settings.enable_makedonation -%}
+                    <div class="plan-item" data-summary-plan-donations>
+                      <div class="d-flex align-items-center">
+                          <div>
+                              <h5>Donations: <a href="#" onclick="editPlan(event,'level-4')">Edit</a></h5>
+                              <ul>
+                                  
+                              </ul>
+                          </div>
+                          <p class="font-weight-500"></p>
+                      </div>
+                  </div>
+                  {% endif %}
+                    <div class="plan-item">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h5>Shipping</h5>
+                            </div>
+                            <p class="mb-0 font-weight-500">FREE</p>
+                        </div>
+                    </div>
+
+                    <div class="plan-item d-none">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h5>First Delivery Discount</h5>
+                            </div>
+                            <p class="mb-0 text-success font-weight-500">-$30.00</p>
+                        </div>
+                    </div>
+
+                    <div class="plan-item total-section">
+                        <div class="d-flex align-items-center">
+                            <div>
+                                <h5>Total</h5>
+                            </div>
+                            <p class="mb-0 font-weight-500">
+                              <!-- <del>$144.00</del>  -->
+                              <span class="text-success" data-total-price>$114.00</span></p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="form-action text-center">
+                <button class="btn--large btn" id="btn-checkout" onclick="searchthoughPostal(event);addAllProducts(event)" data-checkout-final>Checkout</button>
+                <p class="mb-0">{{section.settings.right_checkout_text}}</p>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+<div class="page-width plan-meal-page"><div class="elfsight-sapp-7f8822b0-ea39-11e9-a0a8-b98ee8a37f9d"></div></div> 
+</div>
+
+<div class="page-width" data-common-questions>
+  {%- if section.settings.enable_common_questions -%}
+  <div class="bioraw-accordion active" id="bioraw-accordion">
+    <div class="section-content">
+      <div class="grid">
+        <div class="grid__item medium-up--ten-twelfths text-center mx-auto widescreen--one-half">
+          <h4>{{section.settings.common_questions_title}}</h4>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="grid__item eight-twelfths medium-down--one-whole mx-auto">
+          <div id="accordion">
+            {%- for block in section.blocks -%}
+            {%- if block.type == 'faq' -%}
+            {%- if block.settings.title != blank -%}
+            <h5 class="d-flex align-items-center">{{block.settings.title}}</h5>
+            <div>
+              <p>{{block.settings.answer}}</p>
+            </div>
+            {%- endif -%}
+            {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {%- endif -%}
+</div>
+<div class="popup-wrapper d-none" data-modal data-meal-description>
+  <div class="modal-popup meal_description_1">
+    <div class="modal-header" style="padding:0">
+      <a href="#" onclick="close_modal(event,'meal_description')">
+        <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+          x="0px" y="0px" viewBox="0 0 512.001 512.001" style="enable-background:new 0 0 512.001 512.001;"
+          xml:space="preserve">
+          <g>
+            <g>
+              <path d="M284.286,256.002L506.143,34.144c7.811-7.811,7.811-20.475,0-28.285c-7.811-7.81-20.475-7.811-28.285,0L256,227.717
+                            L34.143,5.859c-7.811-7.811-20.475-7.811-28.285,0c-7.81,7.811-7.811,20.475,0,28.285l221.857,221.857L5.858,477.859
+                            c-7.811,7.811-7.811,20.475,0,28.285c3.905,3.905,9.024,5.857,14.143,5.857c5.119,0,10.237-1.952,14.143-5.857L256,284.287
+                            l221.857,221.857c3.905,3.905,9.024,5.857,14.143,5.857s10.237-1.952,14.143-5.857c7.811-7.811,7.811-20.475,0-28.285
+                            L284.286,256.002z" />
+            </g>
+          </g>
+        </svg>
+      </a>
+    </div>
+    <div class="modal-body">
+      <div class="meal_image medium-up--one-half" style="text-align: center;">
+        <img src="" alt="meal_image">
+      </div>
+      <div class="meal_description medium-up--one-half">
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+{% if section.blocks.size > 0 %}
+{% for block in section.blocks %}    
+  {% if block.type == 'choose-a-frequency' %}
+  {% assign product1 = all_products[block.settings.choose_product1_1] %}
+  {% assign product2 = all_products[block.settings.choose_product2_1] %}
+  {% assign product3 = all_products[block.settings.choose_product3_1] %}
+  {% assign product4 = all_products[block.settings.choose_product4_1] %}
+    {% if product1.title != blank %}
+    <script type="application/json" data-{{product1.id}}-json data-dhruv data-sub-json>
+      {
+        "product": {{ product1 | json }},
+        "variants": [{% for variant in product1.variants%}{% if variant.title == 'subscription' %}
+        {                      
+          "variant":{{ variant | json}},
+          "metafields":{
+            "subscription_id": {{ product1.metafields.subscriptions.subscription_id }},
+            "shipping_interval_unit_type": "{{ product1.metafields.subscriptions.shipping_interval_unit_type }}",
+            "charge_internal_frequency": {{variant.metafields.subscriptions.charge_internal_frequency }},
+            "shipping_interval_frequency": {{ product1.metafields.subscriptions.shipping_interval_frequency }},
+            "discount_variant_id": {{ variant.metafields.subscriptions.discount_variant_id }}   
+          }                         
+        }{% unless forloop.last %},{% endunless %}
+        {% else %}
+        {
+          "variant":{{ variant | json}}
+        }{% unless forloop.last %},{% endunless %}
+          {% endif %}{% endfor %}]
+      }
+    </script>
+    {% endif %}
+    {% if product2.title != blank %}
+    <script type="application/json" data-{{product2.id}}-json data-sub-json>
+      {
+        "product": {{ product2 | json }},
+        "variants": [{% for variant in product2.variants%}{% if variant.title == 'subscription' %}
+        {                      
+          "variant":{{ variant | json}},
+          "metafields":{
+            "subscription_id": {{ product2.metafields.subscriptions.subscription_id }},
+            "shipping_interval_unit_type": "{{ product2.metafields.subscriptions.shipping_interval_unit_type }}",
+            "charge_internal_frequency": {{variant.metafields.subscriptions.charge_internal_frequency }},
+            "shipping_interval_frequency": {{ product2.metafields.subscriptions.shipping_interval_frequency }},
+            "discount_variant_id": {{ variant.metafields.subscriptions.discount_variant_id }}   
+          }                         
+        }{% unless forloop.last %},{% endunless %}
+        {% else %}
+        {
+          "variant":{{variant | json}}
+        }{% unless forloop.last %},{% endunless %}
+          {% endif %}{% endfor %}]
+      }
+    </script>
+    {% endif %}    
+    
+   
+    {% if product3.title != blank %}
+    <script type="application/json" data-{{product3.id}}-json data-sub-json>
+      {
+        "product": {{ product3 | json }},
+        "variants": [{% for variant in product3.variants%}{% if variant.title == 'subscription' %}
+        {                      
+          "variant":{{ variant | json}},
+          "metafields":{
+            "subscription_id": {{ product3.metafields.subscriptions.subscription_id }},
+            "shipping_interval_unit_type": "{{ product3.metafields.subscriptions.shipping_interval_unit_type }}",
+            "charge_internal_frequency": {{variant.metafields.subscriptions.charge_internal_frequency }},
+            "shipping_interval_frequency": {{ product3.metafields.subscriptions.shipping_interval_frequency }},
+            "discount_variant_id": {{ variant.metafields.subscriptions.discount_variant_id }}   
+          }                         
+        }{% unless forloop.last %},{% endunless %}
+        {% else %}
+        {
+          "variant":{{ variant | json}}
+        }{% unless forloop.last %},{% endunless %}
+          {% endif %}{% endfor %}]
+      }
+    </script>
+    {% endif %}
+    {% if product4.title != blank %}
+    <script type="application/json" data-{{product4.id}}-json data-sub-json>
+      {
+        "product": {{ product4 | json }},
+        "variants": [{% for variant in product4.variants%}{% if variant.title == 'subscription' %}
+        {                      
+          "variant":{{ variant | json}},
+          "metafields":{
+            "subscription_id": {{ product4.metafields.subscriptions.subscription_id }},
+            "shipping_interval_unit_type": "{{ product4.metafields.subscriptions.shipping_interval_unit_type }}",
+            "charge_internal_frequency": {{variant.metafields.subscriptions.charge_internal_frequency }},
+            "shipping_interval_frequency": {{ product4.metafields.subscriptions.shipping_interval_frequency }},
+            "discount_variant_id": {{ variant.metafields.subscriptions.discount_variant_id }}   
+          }                         
+        }{% unless forloop.last %},{% endunless %}
+        {% else %}
+        {
+          "variant":{{ variant | json}}
+        }{% unless forloop.last %},{% endunless %}
+          {% endif %}{% endfor %}]
+      }
+    </script>
+    {% endif %}
+  {% endif %}
+  {% if block.type == 'choose-a-meal' %}
+  {% assign collection = collections[block.settings.collection1] %}
+  {% if collection.title != blank %}
+    {% for product in collection.products %}
+      {% if product.title != blank %}          
+      <script type="application/json" data-{{product.id}}-json data-meals-json>
+        {
+          "product": {{ product | json }},
+          "variant": {{ product.variants[0] | json }}
+        }
+      </script>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endif %}
+{% endfor %}  
+{% endif %}
+
+<!-- <div id="error-popup"><p></p></div> -->
+
+{% schema %}
+  {
+    "name": "Our Meal Template",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Banner"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable",
+        "label": "Enable",
+        "default": false
+      },
+      {
+        "type": "image_picker",
+        "id": "banner_img",
+        "label": "Banner Image"
+      },
+      {
+        "type": "text",
+        "id": "banner_heading",
+        "label": "Heading"
+      },
+      {
+        "type": "text",
+        "id": "banner_subheading",
+        "label": "Subheading"
+      },
+      {
+        "type": "header",
+        "content": "Pick a plan"
+      },
+      {
+        "type": "text",
+        "id": "plan_heading",
+        "label": "Heading"
+      },
+      {
+        "type": "text",
+        "id": "plan_subheading",
+        "label": "Subheading"
+      },
+      {
+        "type": "image_picker",
+        "id": "pickplan_img",
+        "label": "Pickplan Image"
+      },
+      {
+        "type": "text",
+        "id": "equals_value",
+        "default": "1 Meal",
+        "label": "Meal Value"
+      },
+      {
+        "type": "textarea",
+        "id": "pickplan_footer",
+        "label": "Pick plan bottom text",
+        "default": "Each BIO RAW meal is one serving, for one person."
+      },
+      {
+        "type": "text",
+        "id": "next_btn_text",
+        "label": "Next button",
+        "default": "Next"
+      },
+      {
+        "type": "text",
+        "id": "addtocart_btn_text",
+        "label": "Add to cart button",
+        "default": "Add To Cart"
+      },
+      {
+        "type": "text",
+        "id": "thanks_btn_text",
+        "label": "Thanks button",
+        "default": "No Thanks"
+      },
+      {
+        "type": "header",
+        "content": "Choose a frequency"
+      },
+      {
+        "type": "text",
+        "id": "frequency_heading",
+        "label": "Heading"      
+      },
+      
+      {
+        "type": "header",
+        "content": "Choose a meal"
+      },
+      {
+        "type": "text",
+        "id": "meal_heading",
+        "label": "Heading"
+      },
+      {
+        "type": "header",
+        "content": "Final Plan"
+      },
+      {
+        "type": "text",
+        "id": "final_heading",
+        "label": "Heading"
+      },
+      {
+        "type": "header",
+        "content": "Add-ons"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_addons",
+        "label": "Enable",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "addon-title",
+        "label": "Title",
+        "default": "ADD-ONs"
+      },
+      {
+        "type": "textarea",
+        "id": "addons-subtitle",
+        "label": "ADD-ONS Subtitle",
+        "default": "Add Organic, vegan, nut-free drinks & snacks to your order"
+      },
+      {
+        "type": "collection",
+        "id": "addon_collection",
+        "label": "Select collection for Addons"
+      },
+      {
+        "type": "header",
+        "content": "Make a Donation"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_makedonation",
+        "label": "Enable",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "makedonation_title",
+        "label": "Title",
+        "default": "Make a Donation?"
+      },
+      {
+        "type": "textarea",
+        "id": "makedonation_subtitle",
+        "label": "Subtitle",
+        "default": "Frontline workers are risking their lives to keep our friends and loved ones healthy. We're delivering nourishing meals to local hospitals, clinics and other community service organizations."
+      },
+      {
+        "type": "collection",
+        "id": "makedonation_collection",
+        "label": "Select collection for Make donation"
+      },
+      {
+        "type": "header",
+        "content": "Free Shipping"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_freeshipping",
+        "label": "Enable",
+        "default": true
+      },
+      {
+        "type": "textarea",
+        "id": "free_shipping_title",
+        "label": "Title",
+        "default": "Free Shipping on All Orders!"
+      },
+      {
+        "type": "header",
+        "content": "Common Questions"
+      },
+      {
+        "type": "checkbox",
+        "id": "enable_common_questions",
+        "label": "Enable",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "common_questions_title",
+        "label": "Title",
+        "default": "Common Questions"
+      },
+      {
+        "type": "header",
+        "content": "Register Page"
+      },
+      {
+        "type": "header",
+        "content": "Banner"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_registerpage",
+        "label": "Enable",
+        "default": true
+      },
+      {
+        "type": "textarea",
+        "id": "Register_title",
+        "label": "Register Page Title",
+        "default": "BANNER"
+      },
+      {
+        "type": "textarea",
+        "id": "Register_banner_line_0",
+        "label": "Register banner line 0",
+        "default": "demo"
+      },
+      {
+        "type": "textarea",
+        "id": "Register_banner_line_1",
+        "label": "Register banner line 1",
+        "default": "Enjoy 50% OFF throughout your first 2 meal deliveries!"
+      },
+      {
+        "type": "checkbox",
+        "id": "Register_banner_line_1_enable",
+        "label": "Show More",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_coupon_image_1",
+        "label": "Show Cupon Image",
+        "default": true
+      },
+      {
+        "type": "image_picker",
+        "id": "coupon_image_1",
+        "label": "Coupon Image "
+      },
+      {
+        "type": "header",
+        "content": "Main Area"
+      },
+      {
+        "type": "text",
+        "id": "mainbox_title",
+        "label": "Main register area title",
+        "default": "GET STARTED"
+      },
+      {
+        "type": "textarea",
+        "id": "mainbox_subtitle",
+        "label": "Register main subtitle",
+        "default": "To get started, find out if we serve your area by entering your email and portal code."
+      },
+      {
+        "type": "image_picker",
+        "id": "register_left_img",
+        "label": "Register page left Image"
+      },
+      {
+        "type": "checkbox",
+        "id": "register_left_img_mobile",
+        "label": "Want Register page left Image in mobile ?",
+        "default":false
+      },
+      {
+        "type": "header",
+        "content": "Three Blocks with Image"
+      },
+      {
+        "type": "image_picker",
+        "id": "register_block_img1",
+        "label": "Register Block Image"
+      },
+      {
+        "type": "textarea",
+        "id": "register_block_text1",
+        "label": "Register Block Title",
+        "default": "No Commitment. Skip or cancel anytime."
+      },
+      {
+        "type": "image_picker",
+        "id": "register_block_img2",
+        "label": "Register Block Image"
+      },
+      {
+        "type": "textarea",
+        "id": "register_block_text2",
+        "label": "Register Block Title",
+        "default": "Canada's #1 organic meal delivery service."
+      },
+      {
+        "type": "image_picker",
+        "id": "register_block_img3",
+        "label": "Register Block Image"
+      },
+      {
+        "type": "textarea",
+        "id": "register_block_text3",
+        "label": "Register Block Title",
+        "default": "Trusted by thousands of couples & families"
+      },
+      {
+        "type": "header",
+        "content": "Testimonials"
+      },
+      {
+        "type": "text",
+        "id": "testimonials_title",
+        "label": "Testimonials Title",
+        "default": "What our customers are saying"
+      },
+      {
+        "type": "header",
+        "content": "Address Page"
+      },
+      {
+        "type": "text",
+        "id": "delivery_title",
+        "label": "Delivery Title",
+        "default": "DElivery Details" 
+      },
+      {
+        "type": "text",
+        "id": "delivery_icon",
+        "label": "Delivery Icon"
+      },
+      {
+        "type": "text",
+        "id": "local_delivery_text",
+        "label": "Local Delivery Text",
+        "default": "Local Delivery"
+      },
+      {
+        "type": "textarea",
+        "id": "local_delivery_texts",
+        "label": "Local Delivery Texts",
+        "default": "Enter your postal code into the field below to check if you are eligible for local delivery:"
+      },
+      {
+        "type": "header",
+        "content": "Address Page - Left side blocks"
+      },
+      {
+        "type": "image_picker",
+        "id": "delivery_img_1",
+        "label": "Image 1"
+      },
+      {
+        "type": "text",
+        "id": "delivery_title_1",
+        "label": "Delivery Title 1",
+        "default": "Contactless Delivery"
+      },
+      {
+        "type": "textarea",
+        "id": "delivery_subtitle_1",
+        "label": "Delivery Subtitle 1",
+        "default": "Boxes are delivered fast and safe"
+      },
+      {
+        "type": "image_picker",
+        "id": "delivery_img_2",
+        "label": "Image 2"
+      },
+      {
+        "type": "text",
+        "id": "delivery_title_2",
+        "label": "Delivery Title 2",
+        "default": "Reducing Food Waste"
+      },
+      {
+        "type": "textarea",
+        "id": "delivery_subtitle_2",
+        "label": "Delivery Subtitle 2",
+        "default": "We source only the right amount of ingrediants"
+      },
+      {
+        "type": "textarea",
+        "id": "right_checkout_text",
+        "label": "Right Checkout Text",
+        "default": "We prepare, chill, and pack right before each day's shipment to ensure you get the freshest meals possible."
+      },
+      {
+        "type": "header",
+        "content": "Address Page - Reviews Section"
+      },
+      {
+        "type": "text",
+        "id": "customers_review_title",
+        "label": "Customers Review Title",
+        "default": "See what our customers have to say!"
+      },
+      {
+        "type": "image_picker",
+        "id": "rating_star_img",
+        "label": "Rating Star Image"
+      },
+      {
+        "type": "text",
+        "id": "rating_value",
+        "label": "Rating Value",
+        "default": "Rating: 5/5"
+      }
+    ],
+    "blocks": [
+     {
+        "type": "pick-plan",
+        "name": "Pick a Plan",
+        "limit": 4,
+        "settings": [  
+          {
+            "type": "checkbox",
+            "id": "enable_plan",
+            "label": "Enable Plan"
+          }, 
+          {
+            "type": "image_picker",
+            "id": "plan_img",
+            "label": "Plan Image"
+          },
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Plan Name"
+          },
+          {
+            "type": "text",
+            "id": "plan_type",
+            "label": "Total meals/week"
+          },
+          {
+            "type": "text",
+            "id": "plan_meal_price",
+            "label": "Plan Price"
+          },
+          {
+            "type": "text",
+            "id": "per_meal_price",
+            "label": "Price per meal"
+          },
+          {
+            "type": "checkbox",
+            "id": "free_shipping",
+            "label": "Apply free shipping.",
+            "default": false
+          }
+        ]
+     },
+     {
+      "type": "choose-a-frequency",
+      "name": "Choose a Frequency",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "header",
+          "content": "Frequency OptionSet content"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading"
+        },
+        {
+          "type": "text",
+          "id": "frequency_oneTime_heading",
+          "label": "One-time Heading"
+        },
+        {
+          "type": "text",
+          "id": "frequency_weekly_heading",
+          "label": "Subscription Heading"
+        },
+        {
+          "type": "textarea",
+          "id": "subscription_title",
+          "label": "Title",
+          "default": "subscribe",
+          "info":"Add susbcription text here , add $x for discount value"
+        },
+        {
+          "type": "text",
+          "id": "onetime_title",
+          "label": "Title",
+          "default": "one time",
+          "info":"Add text for one time order"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_optset_1",
+          "label": "Enable Frequency optionSet 1"
+        }, 
+        {
+          "type": "checkbox",
+          "id": "enable_opt1_1",
+          "label": "Enable Option 1"
+        }, 
+        {
+          "type": "product",
+          "id": "choose_product1_1",
+          "label": "Choose Product"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_optset_2",
+          "label": "Enable Frequency OptionSet 2"
+        }, 
+        {
+          "type": "checkbox",
+          "id": "enable_opt2_1",
+          "label": "Enable Option 1"
+        }, 
+        {
+          "type": "product",
+          "id": "choose_product2_1",
+          "label": "Choose Product"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_optset_3",
+          "label": "Enable Frequency OptionSet 3"
+        }, 
+        {
+          "type": "checkbox",
+          "id": "enable_opt3_1",
+          "label": "Enable Option 1"
+        }, 
+        {
+          "type": "product",
+          "id": "choose_product3_1",
+          "label": "Choose Product"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_optset_4",
+          "label": "Enable Frequency OptionSet 4 "
+        }, 
+        {
+          "type": "checkbox",
+          "id": "enable_opt4_1",
+          "label": "Enable Option 1"
+        }, 
+        {
+          "type": "product",
+          "id": "choose_product4_1",
+          "label": "Choose Product"
+        }
+      ]
+     },
+     {
+      "type": "choose-a-meal",
+      "name": "Choose a Meal",
+      "limit": 1,
+      "settings": [   
+        {
+          "type": "collection",
+          "id": "collection1",
+          "label": "Select Collection"
+        }
+      ]
+      },
+      {
+        "type": "image-text",
+        "name": "Free Shipping Content",
+        "limit": 6,
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Image"
+          },
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Title"
+          }
+        ]
+      },
+      {
+        "type": "faq",
+        "name": "FAQ",
+        "settings": [          
+          {
+            "type": "textarea",
+            "id": "title",
+            "label": "Question"
+          },
+          {
+            "type": "textarea",
+            "id": "answer",
+            "label": "Answer"
+          }
+        ]
+      },
+      {
+        "type": "testimonials",
+        "name": "Testimonials",
+        "settings": [          
+          {
+            "type": "textarea",
+            "id": "title",
+            "label": "Title"
+          },
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Author Image"
+          },
+          {
+            "type": "text",
+            "id": "authorname",
+            "label": "Author Name"
+          },
+          {
+            "type": "textarea",
+            "id": "testimonials",
+            "label": "Testimonial"
+          }
+        ]
+      },
+      {
+        "type": "review",
+        "name": "Review",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Rating Image"
+          },
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Review Title"
+          },
+          {
+            "type": "textarea",
+            "id": "review",
+            "label": "Review"
+          },
+          {
+            "type": "text",
+            "id": "author",
+            "label": "Author"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}
+
+
+<script>
+  
+  $('.menu-trigger a').click(function(e){
+      e.preventDefault();
+      $('.navigation').addClass('active');
+      ('body').css('overflow-y', 'hidden');
+  });
+
+  $('.navigation .close-nav').click(function(e){
+      e.preventDefault();
+      $('.navigation').removeClass('active');
+      ('body').css('overflow-y', 'auto');
+  });
+
+  setTimeout(function(){
+    if($('.testimonials-text').height() > 0 && $('.testimonials-text .flickity-viewport').length < 1){
+      $('.testimonials-text').flickity({
+        adaptiveHeight: true,
+        contain: false,
+        wrapAround: true,
+        accessibility: true,
+        dragThreshold: '20',
+        prevNextButtons: true,
+        pageDots: true,
+        arrowShape: "M 0,50 L 60,00 L 50,30 L 80,30 L 80,70 L 50,70 L 60,100 Z"
+      });
+    }
+  },2000);
+
+</script>
+<script>
+  $("#accordion").accordion();
+</script>
+{% include 'subscription-funnel-script' %}
