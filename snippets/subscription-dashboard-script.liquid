@@ -321,12 +321,14 @@
                     }
 
                     //discount code expiration code
-                    discount_expiration_date = discount.ends_at;
-                    if( discount_expiration_date != null ){
-                        discount_expiration_date = moment(discount_expiration_date)
-                        current_date = moment();
-                         dateDifferance =  discount_expiration_date.diff(current_date, 'weeks');
-                         dateDifferanceText = `Expires in ${dateDifferance} ${ dateDifferance == 1 ? 'week' : 'weeks '}`
+                    if( discount.duration != 'forever'){
+                      if((discount.duration == 'usage_limit' && discount.duration_usage_limit == discount.times_used) || (discount.duration == 'single_use' && discount.times_used == 1)){
+                        dateDifferanceText = `Expired`
+                      }
+                      if(discount.duration == 'usage_limit' && discount.duration_usage_limit != discount.times_used){
+                        dateDifferance =  discount.duration_usage_limit - discount.times_used ;
+                        dateDifferanceText = `Expires in ${dateDifferance} ${ dateDifferance == 1 ? 'week' : 'weeks '}`
+                      }
                     }
                   }
                 }
