@@ -122,7 +122,6 @@
       getCurrentSubAddress(currentSubscription.address_id);
     }
     if (eventType == 'changeDeliveryDate') {
-       console.log("changeDeliveryDate called")
       getCurrentDeliveryDetails(currentSubscription, currentSubscription.address_id);
     }
 
@@ -580,7 +579,7 @@ getDiscounts = () => {
   // update deliverydate and time
   function updateDeliveryDateandTime() {
     $('.update_address').addClass('btn--loading');
-    var delivery_date, discount_code, delivery_time, display_delivery_date, display_delivery_time, unit_number, buzzer_code, delivery_instruction, delivery_option;
+    var delivery_date, discount_code, delivery_time, display_delivery_date, display_delivery_time, unit_number, buzzer_code, delivery_instruction, delivery_option,display_first_delivery_date;
     var config = {};
     var update_delivery_date = $('[data-delivery-address-box] [data-address-delivery-date]').val();
     var update_delivery_time = $('[data-delivery-address-box] [data-address-delivery-time]').val();
@@ -598,6 +597,7 @@ getDiscounts = () => {
       if (e_note.name == "delivery_instruction") { delivery_instruction = e_note.value }
       if (e_note.name == "delivery_option") { delivery_option = e_note.value }
       if (e_note.name == "discount_code") { discount_code = e_note.value }
+      if (e_note.name == "first_delivery_date") { display_first_delivery_date = e_note.value }
     });
     if (checkIfOrderIsPlaced(display_delivery_date, display_delivery_time)) {
       config = {
@@ -613,7 +613,9 @@ getDiscounts = () => {
             { name: "unit_number", value: unit_number },
             { name: "buzzer_code", value: buzzer_code },
             { name: "delivery_instruction", value: delivery_instruction },
-            { name: "discount_code", value: discount_code }
+            { name: "discount_code", value: discount_code },
+            { name: "first_delivery_date", value: display_first_delivery_date }
+
           ],
         },
       };
@@ -631,7 +633,8 @@ getDiscounts = () => {
             { name: "unit_number", value: unit_number },
             { name: "buzzer_code", value: buzzer_code },
             { name: "delivery_instruction", value: delivery_instruction },
-            { name: "discount_code", value: discount_code }
+            { name: "discount_code", value: discount_code },
+            { name: "first_delivery_date", value: display_first_delivery_date }
           ],
         }
       };
@@ -1322,7 +1325,6 @@ getDiscounts = () => {
               if (e_note.name == "display_delivery_time") { display_delivery_time = e_note.value }
               if (e_note.name == "first_delivery_date" ){ display_first_delivery_date = moment(moment(e_note.value, 'DD-MM-YYYY')).format('MM-DD-YYYY') }
             });
-
             var dateToday = new Date(new Date().toLocaleString("en-US",{timeZone:'America/Toronto'}));
             var minDate;
             if (checkIfOrderIsPlaced(display_delivery_date, display_delivery_time)) {
@@ -1341,10 +1343,11 @@ getDiscounts = () => {
               minDate: newMinDate,
               beforeShowDay: function (date) {
                 var string = $.datepicker.formatDate('yy-mm-dd', date);
-                if(blockWeek.indexOf(string) != -1){
+                
+                dmy = date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
+                if(!moment(display_first_delivery_date).isBefore(date) && blockWeek.indexOf(string) != -1){
                   return false;
                 }
-                dmy = date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
                 if (moment(display_first_delivery_date).isBefore(date) && $.inArray(dmy, blackOutDays) == -1) {
                   var day = date.getDay();
                   return [($.inArray(day, listDays) != -1)];
@@ -1482,7 +1485,7 @@ getDiscounts = () => {
         }
       });
 
-      var delivery_date, delivery_time, display_delivery_date, display_delivery_time, delivery_instruction, delivery_option, discount_code;
+      var delivery_date, delivery_time, display_delivery_date, display_delivery_time, delivery_instruction, delivery_option, discount_code,display_first_delivery_date;
       $.each(currentSubscriptionAddress.note_attributes, function (i, e_note) {
         if (e_note.name == "delivery_date") { delivery_date = e_note.value }
         if (e_note.name == "delivery_time") { delivery_time = e_note.value }
@@ -1491,6 +1494,7 @@ getDiscounts = () => {
         if (e_note.name == "delivery_instruction") { delivery_instruction = e_note.value }
         if (e_note.name == "delivery_option") { delivery_option = e_note.value }
         if (e_note.name == "discount_code") { discount_code = e_note.value }
+        if (e_note.name == "first_delivery_date") { display_first_delivery_date = e_note.value }
       });
       let config;
       if (province == null) {
@@ -1515,7 +1519,8 @@ getDiscounts = () => {
               { name: "unit_number", value: unit_number },
               { name: "buzzer_code", value: buzzer_code },
               { name: "delivery_instruction", value: delivery_instruction },
-              { name: "discount_code", value: discount_code }
+              { name: "discount_code", value: discount_code },
+              { name: "first_delivery_date", value: display_first_delivery_date }
             ],
           },
 
@@ -1542,7 +1547,8 @@ getDiscounts = () => {
               { name: "unit_number", value: unit_number },
               { name: "buzzer_code", value: buzzer_code },
               { name: "delivery_instruction", value: delivery_instruction },
-              { name: "discount_code", value: discount_code }
+              { name: "discount_code", value: discount_code },
+              { name: "first_delivery_date", value: display_first_delivery_date }
             ],
           },
 
@@ -1754,10 +1760,9 @@ getDiscounts = () => {
       dateNEW.setDate(dateNEW.getDate() - 2);
       nextChargeDate = moment(dateNEW).format('Y-MM-DD');
 
-      var delivery_date, discount_code, delivery_time, display_delivery_date, display_delivery_time, unit_number, buzzer_code, delivery_instruction, delivery_option;
+      var delivery_date, discount_code, delivery_time, display_delivery_date, display_delivery_time, unit_number, buzzer_code, delivery_instruction, delivery_option,display_first_delivery_date;
 
       $.each(currentSubscriptionAddress.note_attributes, function (i, e_note) {
-        console.log("e_note",e_note)
         if (e_note.name == "delivery_date") { delivery_date = e_note.value }
         if (e_note.name == "delivery_time") { delivery_time = e_note.value }
         if (e_note.name == "display_delivery_date") { display_delivery_date = e_note.value }
@@ -1768,6 +1773,8 @@ getDiscounts = () => {
         if (e_note.name == "delivery_instruction") { delivery_instruction = e_note.value }
         if (e_note.name == "delivery_option") { delivery_option = e_note.value }
         if (e_note.name == "discount_code") { discount_code = e_note.value }
+        if (e_note.name == "first_delivery_date") { display_first_delivery_date = e_note.value }
+
       });
 
       var a = new Date(delivery_date);
@@ -1789,7 +1796,8 @@ getDiscounts = () => {
               { name: "unit_number", value: unit_number },
               { name: "buzzer_code", value: buzzer_code },
               { name: "delivery_instruction", value: delivery_instruction },
-              { name: "discount_code", value: discount_code }
+              { name: "discount_code", value: discount_code },
+              { name: "first_delivery_date", value: display_first_delivery_date }
             ],
           },
         };
@@ -1807,7 +1815,8 @@ getDiscounts = () => {
               { name: "unit_number", value: unit_number },
               { name: "buzzer_code", value: buzzer_code },
               { name: "delivery_instruction", value: delivery_instruction },
-              { name: "discount_code", value: discount_code }
+              { name: "discount_code", value: discount_code },
+              { name: "first_delivery_date", value: display_first_delivery_date }
             ],
           }
         };
