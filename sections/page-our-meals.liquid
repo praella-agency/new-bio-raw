@@ -11,6 +11,19 @@
 {% assign diff = max | minus: min %}
 {% assign randomNumber = "now" | date: "%N" | modulo: diff | plus: min %}
 
+<style>
+  [data-addtocart-addons]{
+    background-color: {{ section.settings.updatecart_btn_bg_color }} !important;
+    color: {{ section.settings.updatecart_btn_text_color }} !important
+  }
+  [data-back-btn]{
+    background-color: {{ section.settings.back_btn_bg_color }} !important;
+    color: {{ section.settings.back_btn_text_color }} !important
+  }
+</style>
+
+
+
 <div data-plan-step="1" class="biorow-steps plan-meal-page" data-plan-meal-page data-random-number="{{randomNumber}}">
   {%- if section.settings.enable -%}
   <div class="main-banner" style="background: url('{{section.settings.banner_img | img_url:'master'}}');">
@@ -180,18 +193,14 @@
                     <div class="wrapper">
                       <div class="position-absolute text-center card-top-bar">
                         <h4 class="mb-0" {{variant.title}}>{% if variant.title == 'one-time' %} 
-                          {{ block.settings.frequency_oneTime_heading | upcase  }}
+                          {{ block.settings.frequency_oneTime_heading   }}
                           {% else %}
-                           {{ block.settings.frequency_weekly_heading | upcase  }}
+                           {{ block.settings.frequency_weekly_heading  }}
                           {% endif %}</h4>
                           
                       </div>
 
                           {% if variant.title == 'one-time' %}
-                              {% assign oneTimePrice = variant.price %}
-                          {% endif %}
-                          {% if variant.title == 'subscription' %}
-                                {% assign subscriptionPrice = variant.price %}
                           {% endif %}
                           {% assign savePrice = oneTimePrice | minus : subscriptionPrice  | money  %}
                           {% assign subscribeandSave_msg = block.settings.subscription_title | replace: "$x", savePrice  %}
@@ -428,7 +437,7 @@
                       data-variant-id="{{product.selected_or_first_available_variant.id}}"
                       data-shipping_interval_frequency="{{ product.metafields.subscriptions.shipping_interval_frequency }}"
                       data-shipping_interval_unit_type="{{ product.metafields.subscriptions.shipping_interval_unit_type }}"
-                      data-charge_interval_frequency="{{product.selected_or_first_available_variant.metafields.subscriptions.charge_internal_frequency }}"
+                      data-charge_interval_frequency="{{product.metafields.subscriptions.charge_internal_frequency }}"
                       data-subscription_id="{{ product.metafields.subscriptions.subscription_id }}" data-price="{{product.price | money_without_currency }}"
                       class="grid__item medium-up--five-twelfths mx-sm-auto small--seven-tenths widescreen--one-third">
                       <div class="card">
@@ -1246,6 +1255,14 @@
 {% endfor %}  
 {% endif %}
 
+<script  type="text/javascript">
+  window.sectionSettingsText = {
+    updateCartText : '{{ section.settings.updatecart_btn_text }}',
+    backBtnText : '{{ section.settings.back_btn_text }}'
+  }
+</script>
+
+
 <!-- <div id="error-popup"><p></p></div> -->
 
 {% schema %}
@@ -1319,6 +1336,42 @@
         "id": "addtocart_btn_text",
         "label": "Add to cart button",
         "default": "Add To Cart"
+      },
+      {
+        "type": "text",
+        "id": "updatecart_btn_text",
+        "label": "Update cart button text",
+        "default": "Update Cart"
+      },
+      {
+        "type": "text",
+        "id": "back_btn_text",
+        "label": "Back button text",
+        "default": "Back"
+      },
+      {
+        "type": "color",
+        "id": "updatecart_btn_text_color",
+        "label": "Update cart button text Color",
+        "default": "#000"
+      },
+      {
+        "type": "color",
+        "id": "updatecart_btn_bg_color",
+        "label": "Update cart button Background Color",
+        "default":"#aed125"
+      },
+      {
+        "type": "color",
+        "id": "back_btn_text_color",
+        "label": "Back button Background Color",
+        "default": "#000"
+      },
+      {
+        "type": "color",
+        "id": "back_btn_bg_color",
+        "label": "Back button text Color",
+        "default":"#aed125"
       },
       {
         "type": "text",

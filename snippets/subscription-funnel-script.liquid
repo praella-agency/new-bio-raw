@@ -3,12 +3,10 @@
 <script>
 var discount = document.URL;
 var url = discount.split('?')[0];
-// console.log(document.URL);
 
 if(discount.indexOf('discount') > -1){  
   const urlParams = new URLSearchParams(window.location.search);
   const myParam = urlParams.get('discount');
-  // console.log(myParam);
   localStorage.setItem('hulk-discount-add',myParam);   
   window.history.pushState({}, document.title, url);
 }
@@ -321,7 +319,6 @@ $('[data-next-btn]').click(function(){
   };
   
   function check_selectedFrq(event,event_type){
-    console.dir("check_selectedFrq");
     console.dir(subscription.selectedPrdVariant,"subscription.selectedPrdVariant");
     let variantID = subscription.selectedPrdVariant.variant.id;
     let planInput = document.querySelectorAll("[data-plan-input]");
@@ -604,7 +601,7 @@ $('[data-next-btn]').click(function(){
           properties.product_type="Sub Product";
           properties['Purchase Type'] = "One Time";
           properties.changed=false;
-          if(purchase_type != 'one_time'){
+          if(purchase_type == 'Main Product'){
             properties.shipping_interval_frequency = $this.attr('data-shipping_interval_frequency');
             properties.shipping_interval_unit_type = $this.attr('data-shipping_interval_unit_type');
             properties.charge_interval_frequency = $this.attr('data-charge_interval_frequency');
@@ -1121,6 +1118,7 @@ $('[data-next-btn]').click(function(){
         
       }, 200);
     } else {
+      console.dir($('[data-plan-step-edit="'+$level+'"]'),'cascas')
       $('html, body').animate({
         scrollTop: $('[data-plan-step-edit="'+$level+'"]').offset().top
       }, 200);
