@@ -156,7 +156,7 @@
       method: 'GET',
       data: {
         shopify_customer_id: theme.settings.customersID,
-        //         shopify_customer_id: 1103681093677,
+        // shopify_customer_id: 1103681093677,
         limit: 250,
       },
     };
@@ -1318,6 +1318,7 @@ getDiscounts = () => {
               }
             });
             var blackOutDays = [];
+            console.log(response,'responseresponse')
             $.each(response.black_out_dates, function (i, e) {
               var a = convertDate(e);
               blackOutDays.push(a);
@@ -1334,28 +1335,37 @@ getDiscounts = () => {
               var dateNEW = new Date(display_delivery_date);
               dateNEW.setDate(dateNEW.getDate() + 1);
               minDate = dateNEW;
-              //               $('.warning-alert').removeClass('d-none');
             } else {
               minDate = new Date(dateToday.getFullYear(), dateToday.getMonth(), dateToday.getDate() + 2);
             }
+            
             let newMinDate = new Date(new Date(nextShppingDate).toLocaleString("en-US",{timeZone:'America/Toronto'}));
             let newDateMin = new Date(newMinDate.getFullYear(), newMinDate.getMonth(), newMinDate.getDate() + 2);
             var maxDate = new Date(dateToday.getFullYear(), dateToday.getMonth(), dateToday.getDate() + 60);
-            
+
+            if(!moment(display_first_delivery_date).isBefore(new Date()) && moment(display_first_delivery_date).isBefore(newMinDate)){
+              newMinDate=new Date(display_first_delivery_date);
+            } 
+            $("#datepicker" ).datepicker( "destroy" )
             $("#datepicker").datepicker({
-              minDate: newMinDate,
+              minDate: new Date(moment(newMinDate).format('YYYY-MM-DD')),
               beforeShowDay: function (date) {
                 var string = $.datepicker.formatDate('yy-mm-dd', date);
                 
                 dmy = date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear();
+
                 if(!moment(display_first_delivery_date).isBefore(date) && blockWeek.indexOf(string) != -1){
                   return false;
                 }
-                if (moment(display_first_delivery_date).isBefore(date) && $.inArray(dmy, blackOutDays) == -1) {
+                if(moment(date).isBefore(new Date())){
+                  return false;
+                }
+
+                if ( moment(display_first_delivery_date).isBefore(date) && $.inArray(dmy, blackOutDays) == -1) {
                   var day = date.getDay();
                   return [($.inArray(day, listDays) != -1)];
                 } else {
-                  return [false, "", "Unavailable"];
+                  return [false, "", "Unavailable"]; 
                 }
               },
               onSelect: function (dateText) { 
