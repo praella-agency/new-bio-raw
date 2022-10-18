@@ -156,7 +156,7 @@
       method: 'GET',
       data: {
         shopify_customer_id: theme.settings.customersID,
-        // shopify_customer_id: 1103681093677,
+        {% comment %} shopify_customer_id: 1103681093677, {% endcomment %}
         limit: 250,
       },
     };
@@ -200,7 +200,7 @@
               var checkForDate = false;
               var mainsubId;
               var subSubscriptionId = [];
-
+              
               $.each(subscription.properties, function (index, prop) {
                 if (prop.value == "Main Product") {
                   checkMainProduct = true;
@@ -210,7 +210,11 @@
                   checkForDate = true;
                 }
               });
-
+              $.each(subscription.properties, function (index, prop) {
+                if (prop.name == "_product_type" && prop.value == "Sub Product") {
+                  checkMainProduct=false;
+                }
+              });
               var img = '';
               $.each(subscriptionsProd, function (i, e) {
                 var newSubImage = subscription.product_title.split('(')[0];
@@ -312,20 +316,22 @@
                   if( discount.code == discount_code ){
                     discount_value = discount.value;
                     discount_type = discount.discount_type;
+                    console.dir(discount,'discount')
                     if(discount_type == 'percentage'){
                       discount_type = discount_type.replace('percentage','%');
                       discount_text = `${discount_value}${discount_type}`
                     }
                     if(discount_type == 'fixed_amount' ){
+                      
                       discount_type = discount_type.replace('fixed_amount','$');
                       discount_text = `${discount_type}${discount_value}`
                     }
 
                     //discount code expiration code
                     if( discount.duration != 'forever'){
-                      if((discount.duration == 'usage_limit' && discount.duration_usage_limit == discount.times_used) || (discount.duration == 'single_use' && discount.times_used == 1)){
+                      {% comment %} if((discount.duration == 'usage_limit' && discount.duration_usage_limit == discount.times_used) || (discount.duration == 'single_use' && discount.times_used == 1)){
                         dateDifferanceText = `Expired`
-                      }
+                      } {% endcomment %}
                       if(discount.duration == 'usage_limit' && discount.duration_usage_limit != discount.times_used){
                         dateDifferance =  discount.duration_usage_limit - discount.times_used ;
                         dateDifferanceText = `Expires in ${dateDifferance} ${ dateDifferance == 1 ? 'week' : 'weeks '}`
@@ -358,13 +364,13 @@
                     //                     activeHTML += '<div class="date-time"><p class="for-responsive">Shipment Date/Time:</p><p>'+delivery_date+'<br>'+delivery_time+'</p></div>';
                     activeHTML += '<div class="shipping"><p class="for-responsive">Subscription Renewal Date:</p><p>' + skipNextChargeDate + '</p></div>';
                     activeHTML += '<div class="discount"><p class="for-responsive">Next Shipment Date/Time:</p><p>' + shipNextChargeDate + '<br>' + delivery_time + '</p></div>';
-                    activeHTML += `<div class="discount"><p class="for-responsive">Discount:</p><p>  ${discount_id}  </p> <p> ${ (discount_value != null  && discount_type != null ) ? ` ${discount_text} off` : '' }  </p> <p>${dateDifferanceText != null ? dateDifferanceText :  '' }</p> </div>`;
+                    activeHTML += `<div class="discount"><p class="for-responsive">Discount:</p><p>  ${discount_id}  </p> <p> ${ (discount_value != null  && discount_type != null ) ? ` ${discount_text} off` : '' }  </p> <p class="d-none">${dateDifferanceText != null ? dateDifferanceText :  '' }</p> </div>`;
                   }
-                  activeHTML += `<div class="total"><h5>total</h5><p class="for-responsive">total:</p><p class="${subscriptionPrice.replace('$','') == mainTotal ? '' :  'text-success' }">$${mainTotal}  </p><del>  ${subscriptionPrice.replace('$','') == mainTotal ? '' :  subscriptionPrice } </del></div>`
+                  activeHTML += `<div class="total"><h5>total</h5><p class="for-responsive">total:</p><p class="text-success">$${mainTotal}  </p><del>  ${subscriptionPrice.replace('$','') == mainTotal ? '' :  subscriptionPrice } </del></div>`
                   activeHTML += '</div>';
                   $.each(subscriptions, function (j, addonSub) {
                     if (addonSub.address_id == subscription.address_id) {
-                      if (addonSub.id != subscription.id) {
+                      if (addonSub.id != subscription.id && addonSub.status.toLowerCase() == 'active') {
                         var a = (addonSub.price * addonSub.quantity) + '00';
                         var addPrice = theme.Currency.formatMoney(a);
                         var subimg = '';
@@ -428,23 +434,23 @@
 //get subscription Discounts
 getDiscounts = () => {
   const config = {
-              url: '/discounts?limit=250',
-              method: 'GET'
-            };
-            $.ajax({
-              url: 'https://api-manager.hulkcode.com/api/recharge/common',
-              type: 'POST',
-              data: JSON.stringify(config),
-              headers: apiHeader,
-              processData: false,
-              dataType: 'json',
-              async: false,
-              success: function (data) {
-                for( const discount of data.discounts ){
-                    discountJson.push(discount);
-                }
-              }
-            });
+    url: '/discounts?limit=250',
+    method: 'GET'
+  };
+  $.ajax({
+    url: 'https://api-manager.hulkcode.com/api/recharge/common',
+    type: 'POST',
+    data: JSON.stringify(config),
+    headers: apiHeader,
+    processData: false,
+    dataType: 'json',
+    async: false,
+    success: function (data) {
+      for( const discount of data.discounts ){
+          discountJson.push(discount);
+      }
+    }
+  });
 }
 
 
@@ -1338,17 +1344,18 @@ getDiscounts = () => {
             } else {
               minDate = new Date(dateToday.getFullYear(), dateToday.getMonth(), dateToday.getDate() + 2);
             }
-            
+
             let newMinDate = new Date(new Date(nextShppingDate).toLocaleString("en-US",{timeZone:'America/Toronto'}));
             let newDateMin = new Date(newMinDate.getFullYear(), newMinDate.getMonth(), newMinDate.getDate() + 2);
             var maxDate = new Date(dateToday.getFullYear(), dateToday.getMonth(), dateToday.getDate() + 60);
 
+            let minimumSelectionDate = moment(new Date(), "YYYY-MM-DD").add(2, 'days');
             if(!moment(display_first_delivery_date).isBefore(new Date()) && moment(display_first_delivery_date).isBefore(newMinDate)){
-              newMinDate=new Date(display_first_delivery_date);
+              minimumSelectionDate=new Date(display_first_delivery_date);
             } 
             $("#datepicker" ).datepicker( "destroy" )
             $("#datepicker").datepicker({
-              minDate: new Date(moment(newMinDate).format('YYYY-MM-DD')),
+              minDate: new Date(moment(minimumSelectionDate).format('YYYY-MM-DD')),
               beforeShowDay: function (date) {
                 var string = $.datepicker.formatDate('yy-mm-dd', date);
                 

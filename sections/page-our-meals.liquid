@@ -118,7 +118,7 @@
                     onchange="selectPlan('{{block.settings.title | downcase}}','{{block.settings.plan_type}}')">
                   <label for="plan{{block.settings.plan_type}}">
                     <div class="bg-white">
-                      {%- if block.settings.title != blank -%} <h1>{{ block.settings.title  | capitalize }}</h1> {%- endif -%}
+                      {%- if block.settings.title != blank -%} <h1>{{ block.settings.title }}</h1> {%- endif -%}
                       {%- if block.settings.plan_type != blank -%} <h4 class="plan_type"><span
                           class="h2 d-block">{{block.settings.plan_type}}</span> Meals / Week</h4> {%- endif -%}
 
@@ -200,9 +200,13 @@
                           
                       </div> 
 
-                          {% if variant.title == 'one-time' %}
-                          {% endif %}
-                          {% assign savePrice = oneTimePrice | minus : subscriptionPrice  | money  %}
+                          
+                          {%- for variant in product1.variants -%}
+                            {% if variant.title == 'one-time' %}
+                              {% assign oneTimePrice = variant.price  %}
+                            {% endif %}
+                          {% endfor %}
+                          {% assign savePrice = oneTimePrice | minus : variant.price  | money  %}
                           {% assign subscribeandSave_msg = block.settings.subscription_title | replace: "$x", savePrice  %}
                           {% if variant.title == 'one-time' %}{% else %} {{ subscribeandSave_msg }} {% endif %}
                           {% if variant.title == 'one-time' %} <p>{{block.settings.onetime_title}}</p> {% endif %}
@@ -237,15 +241,14 @@
                           {% endif %}</h4>
                            
                       </div>
-                      {% if variant.title == 'one-time' %}
-                              {% assign oneTimePrice = variant.price %}
-                          {% endif %}
-                          {% if variant.title == 'subscription' %}
-                                {% assign subscriptionPrice = variant.price %}
-                          {% endif %}
-                          {% assign savePrice = oneTimePrice | minus : subscriptionPrice  | money  %}
-                          {% assign subscribeandSave_msg = block.settings.subscription_title | replace: "$x", savePrice  %}
-                          {% if variant.title == 'one-time' %}{% else %} {{ subscribeandSave_msg }} {% endif %}
+                      {%- for variant in product2.variants -%}
+                        {% if variant.title == 'one-time' %}
+                          {% assign oneTimePrice = variant.price  %}
+                        {% endif %}
+                      {% endfor %}
+                      {% assign savePrice = oneTimePrice | minus : variant.price  | money  %}
+                      {% assign subscribeandSave_msg = block.settings.subscription_title | replace: "$x", savePrice  %}
+                      {% if variant.title == 'one-time' %}{% else %} {{ subscribeandSave_msg }} {% endif %}
                       {% if variant.title == 'one-time' %} <p>{{block.settings.onetime_title}}</p>{% endif %}
                       <h1 data-plan-price-{{variant.id}}="{{variant.price}}">{{variant.price | money}}</h1>
                     </div>
@@ -279,13 +282,12 @@
                           {% endif %}</h4>
                           
                       </div>
-                      {% if variant.title == 'one-time' %}
-                      {% assign oneTimePrice = variant.price %}
-                  {% endif %}
-                  {% if variant.title == 'subscription' %}
-                        {% assign subscriptionPrice = variant.price %}
-                  {% endif %}
-                  {% assign savePrice = oneTimePrice | minus : subscriptionPrice  | money  %}
+                      {%- for variant in product3.variants -%}
+                        {% if variant.title == 'one-time' %}
+                          {% assign oneTimePrice = variant.price  %}
+                        {% endif %}
+                      {% endfor %}
+                      {% assign savePrice = oneTimePrice | minus : variant.price  | money  %}
                   {% assign subscribeandSave_msg = block.settings.subscription_title | replace: "$x", savePrice  %}
                   {% if variant.title == 'one-time' %}{% else %} {{ subscribeandSave_msg }} {% endif %}
                       {% if variant.title == 'one-time' %} <p>{{block.settings.onetime_title}}</p>  {% endif %}
@@ -323,13 +325,12 @@
                            {{ block.settings.frequency_weekly_heading | upcase  }}
                           {% endif %}</h4>
                       </div>
-                      {% if variant.title == 'one-time' %}
-                              {% assign oneTimePrice = variant.price %}
-                          {% endif %}
-                          {% if variant.title == 'subscription' %}
-                                {% assign subscriptionPrice = variant.price %}
-                          {% endif %}
-                          {% assign savePrice = oneTimePrice | minus : subscriptionPrice  | money  %}
+                      {%- for variant in product4.variants -%}
+                        {% if variant.title == 'one-time' %}
+                          {% assign oneTimePrice = variant.price  %}
+                        {% endif %}
+                      {% endfor %}
+                      {% assign savePrice = oneTimePrice | minus : variant.price  | money  %}
                           {% assign subscribeandSave_msg = block.settings.subscription_title | replace: "$x", savePrice  %}
                           {% if variant.title == 'one-time' %}{% else %} {{ subscribeandSave_msg }} {% endif %}
                       {% if variant.title == 'one-time' %} <p>{{block.settings.onetime_title}}</p>{% endif %}
