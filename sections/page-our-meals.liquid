@@ -434,33 +434,35 @@
                         "variant": {{ product.variants[0] | json }}
                       }
                     </script>
-                    <div data-addons-products data-product-title="{{product.title}}"
-                      data-variant-id="{{product.selected_or_first_available_variant.id}}"
-                      data-shipping_interval_frequency="{{ product.metafields.subscriptions.shipping_interval_frequency }}"
-                      data-shipping_interval_unit_type="{{ product.metafields.subscriptions.shipping_interval_unit_type }}"
-                      data-charge_interval_frequency="{{product.metafields.subscriptions.charge_internal_frequency }}"
-                      data-subscription_id="{{ product.metafields.subscriptions.subscription_id }}" data-price="{{product.price | money_without_currency }}"
-                      class="grid__item medium-up--five-twelfths mx-sm-auto small--seven-tenths widescreen--one-third">
-                      <div class="card">
-                        <div class="card-image">
-                          <div class="img-wrapper cursor-pointer" onclick="show_description('{{product.id}}')">
-                            <img src="{{product.featured_image | img_url:'300x'}}" />
-                            <div class="overlay">
-                              <span>More Info</span>
+                    {% if product.metafields.subscriptions.shipping_interval_frequency != blank %}
+                      <div data-addons-products data-product-title="{{product.title}}"
+                        data-variant-id="{{product.selected_or_first_available_variant.id}}"
+                        data-shipping_interval_frequency="{{ product.metafields.subscriptions.shipping_interval_frequency }}"
+                        data-shipping_interval_unit_type="{{ product.metafields.subscriptions.shipping_interval_unit_type }}"
+                        data-charge_interval_frequency="{{product.metafields.subscriptions.shipping_interval_frequency }}"
+                        data-subscription_id="{{ product.metafields.subscriptions.subscription_id }}" data-price="{{product.price | money_without_currency }}"
+                        class="grid__item medium-up--five-twelfths mx-sm-auto small--seven-tenths widescreen--one-third">
+                        <div class="card">
+                          <div class="card-image">
+                            <div class="img-wrapper cursor-pointer" onclick="show_description('{{product.id}}')">
+                              <img src="{{product.featured_image | img_url:'300x'}}" />
+                              <div class="overlay">
+                                <span>More Info</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="card-body">
+                            <h6 class="text-uppercase text-white">{{product.title}}</h6>
+                            <p >{{product.price | money}}</p>
+                            <div class="product-quantity">
+                              <button class="btn-qty btn-decrease" onclick="updateQty(event)">-</button>
+                              <input class="quantity-number qty-text" type="text" value="0" readonly />
+                              <button class="btn-qty btn-increase" onclick="updateQty(event)">+</button>
                             </div>
                           </div>
                         </div>
-                        <div class="card-body">
-                          <h6 class="text-uppercase text-white">{{product.title}}</h6>
-                          <p >{{product.price | money}}</p>
-                          <div class="product-quantity">
-                            <button class="btn-qty btn-decrease" onclick="updateQty(event)">-</button>
-                            <input class="quantity-number qty-text" type="text" value="0" readonly />
-                            <button class="btn-qty btn-increase" onclick="updateQty(event)">+</button>
-                          </div>
-                        </div>
                       </div>
-                    </div>
+                    {% endif %}
                     {%- endfor -%}
                   {%- endif -%}
                 </div>

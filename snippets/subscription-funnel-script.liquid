@@ -601,7 +601,10 @@ $('[data-next-btn]').click(function(){
           properties.product_type="Sub Product";
           properties['Purchase Type'] = "One Time";
           properties.changed=false;
-          if(purchase_type == 'Main Product'){
+          if(purchase_type != 'one_time'){
+            console.dir(purchase_type,'purchase_type')
+            console.dir($this.attr('data-shipping_interval_frequency'),'purchase_type')
+
             properties.shipping_interval_frequency = $this.attr('data-shipping_interval_frequency');
             properties.shipping_interval_unit_type = $this.attr('data-shipping_interval_unit_type');
             properties.charge_interval_frequency = $this.attr('data-charge_interval_frequency');
