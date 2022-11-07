@@ -350,7 +350,12 @@
                   }
                   activeHTML = '';
                   var a = subscription.price + '00';
-                  subscriptionPrice = subscription.price + '00'
+                  $.each(subscriptions, function (i, e) {
+                    if (e.address_id == subsAddId) {
+                      subscriptionPrice+=(e.price*e.quantity)
+                    }
+                  });
+                  subscriptionPrice=subscriptionPrice+'00';
                   subscriptionPrice = theme.Currency.formatMoney(subscriptionPrice)
                   var price = theme.Currency.formatMoney(a);
                   activeHTML += '<div class="order-item clearfix" data-main-sub-id="' + mainsubId + '" data-order-match="' + subsAddId + '">';
