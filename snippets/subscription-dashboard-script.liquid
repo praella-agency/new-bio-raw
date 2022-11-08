@@ -388,7 +388,7 @@
                         });
                         activeHTMLAddons = '';
                         activeHTMLAddons += '<div class="order-item clearfix" data-main-sub-id="' + mainsubId + '"  style="display:none;" data-addon-product data-order-match="' + subsAddId + '">';
-                        activeHTMLAddons += '<div class="order" style="width: 100%;"><img src="' + subimg + '"/> <div class="order-image-info"><p class="order-id">' + addonSub.id + '</p> <h5>' + addonSub.product_title + '</h5>' + `<p>${addonSub.quantity}</p><p>` + addPrice + '/' + addonSub.order_interval_unit + '</p><p><a href="javascript:void(0);" class="addon-product" data-product-id="' + addonSub.shopify_product_id + '" onclick="getCurrentsubscription(event,' + addonSub.id + ',' + subsAddId + ')">EDIT</a></p></div> </div></div>';
+                        activeHTMLAddons += '<div class="order" style="width: 100%;"><img src="' + subimg + '"/> <div class="order-image-info"><p class="order-id">' + addonSub.id + '</p> <h5>' + addonSub.product_title + '</h5>' + `<p>Qty: ${addonSub.quantity}</p><p>` + addPrice + '/' + addonSub.order_interval_unit + '</p><p><a href="javascript:void(0);" class="addon-product" data-product-id="' + addonSub.shopify_product_id + '" onclick="getCurrentsubscription(event,' + addonSub.id + ',' + subsAddId + ')">EDIT</a></p></div> </div></div>';
                         activeHTML += activeHTMLAddons;
                       }
                     }
