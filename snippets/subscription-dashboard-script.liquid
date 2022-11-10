@@ -242,6 +242,7 @@
                         discount_code = e.discount_codes[0].code;
                       }
                     }
+                    console.dir(e.id,'eee')
                     mainTotal = parseFloat(e.total_price) + parseFloat(mainTotal);
                   }
                
@@ -316,7 +317,6 @@
                   if( discount.code == discount_code ){
                     discount_value = discount.value;
                     discount_type = discount.discount_type;
-                    console.dir(discount,'discount')
                     if(discount_type == 'percentage'){
                       discount_type = discount_type.replace('percentage','%');
                       discount_text = `${discount_value}${discount_type}`
@@ -464,9 +464,6 @@ getDiscounts = () => {
 
   // get current subscription details
   function getCurrentsubscription(event, subcriptionId, addressId) {
-    // console.log("subcriptionId",subcriptionId)
-    // console.log("addressId",addressId)
-    // console.log("getCurrentsubscription() called")
     event.preventDefault();
     getCurrrntID = addressId;
     currentAddonsIds = [];
@@ -587,7 +584,6 @@ getDiscounts = () => {
         }
       }
     });
-    //console.log('currentAddons',currentAddons);
   };
 
   // update deliverydate and time
@@ -600,7 +596,6 @@ getDiscounts = () => {
     var update_delivery_option = 'all';
 
     $.each(currentSubscriptionAddress.note_attributes, function (i, e_note) {
-      //console.log("e_note",e_note)
       if (e_note.name == "delivery_date") { delivery_date = e_note.value }
       if (e_note.name == "delivery_time") { delivery_time = e_note.value }
       if (e_note.name == "display_delivery_date") { display_delivery_date = e_note.value }
@@ -717,7 +712,6 @@ getDiscounts = () => {
             async: false,
             processData: false,
             success: function (getdata) {
-              // console.log(getdata, 'getdata');
             },
           });
         });
@@ -738,7 +732,6 @@ getDiscounts = () => {
       headers: apiHeader,
       dataType: 'json',
       success: function (getdata) {
-        //console.log("getdata",getdata)
         addresses = getdata.addresses;
         return getdata;
       },
@@ -903,7 +896,6 @@ getDiscounts = () => {
   };
 
   function updateQty(event, eventType) {
-    //console.log("updateQty",event,eventType);
     event.preventDefault();
     var $button = $(event.currentTarget);
     var oldValue = $button.parent().find("input").val();
@@ -941,11 +933,9 @@ getDiscounts = () => {
     $('.individual-option').removeClass('active');
     const productObj = $('[data-' + productID + '-json]').html();
     const productData = JSON.parse(productObj);
-    //console.log(productData, 'productData');
     currentProduct = productData.product;
     currentVariant = productData.variant;
     $.each(currentProduct.tags, function (index, tag) {
-     //console.log(tag, 'tag');
       if (tag.startsWith('type-')) {
         currentProductTag = tag;
       }
@@ -989,7 +979,6 @@ getDiscounts = () => {
 
   // get current meals products
   function getCurrentMeals() {
-    //console.log("getCurrentMeals()  called")
     $('.js-qty__wrapper input').val(0);
     const selected_meals = [];
     const currentMeals = [];
@@ -998,7 +987,6 @@ getDiscounts = () => {
     if (totalMeals.length > 0) {
       let valReapet = '';
       $.each(currentSubscription.properties, function (index, property) {
-        //console.log("property",property)
         if (property.name.startsWith('_manage')) {
           if (valReapet == '' || (valReapet.indexOf(property.name) == -1 && valReapet != '')) {
             valReapet = valReapet + ',' + property.name;
@@ -1022,8 +1010,6 @@ getDiscounts = () => {
   };
 
   function updatedMealsQty(event, variantId) {
-    //console.log("qty update calles");
-    //console.log("event,variantId",event,variantId);
     $('[data-updateMealBtn]').show();
     var qtyValue = $('.js-qty__wrapper .cart__product-qty_' + variantId).val();
     $('.js-qty__wrapper .cart__product-qty_' + variantId).attr('max', selectMealQty.total);
@@ -1061,7 +1047,6 @@ getDiscounts = () => {
   };
 
   function getSelectMealsArr(qtyValue, variantId) {
-    //console.log("getSelectMealsArr() called")
     totalMeals.forEach(function (item) {
       var obj = item;
       var addMeal = false;
@@ -1070,7 +1055,6 @@ getDiscounts = () => {
           const newArr = $.grep(updatedMeal, function (n, i) {
             return n.variant_ids != variantId;
           });
-          //console.log("newArr",newArr)
           updatedMeal = newArr;
           
         } else {
@@ -1093,12 +1077,9 @@ getDiscounts = () => {
   };
 
   function getSelectedMeals() {
-    //console.log("getSelectedMeals() called")
-   // console.log("currentSubscription.properties", currentSubscription.properties)
     $('[data-updateSub]').addClass('btn--loading');
     const c = [];
     properties = [];
-    //console.log("currentSubscription",currentSubscription)
     $.each(currentSubscription.properties, function (i, property) {
       if (property.name == "changed") { properties.push({ name: 'changed', value: property.value, }); }
       if (property.name == "delivery_date") { properties.push({ name: 'delivery_date', value: property.value, }); }
@@ -1117,7 +1098,6 @@ getDiscounts = () => {
       if (property.name == "shipping_interval_unit_type") { properties.push({ name: 'shipping_interval_unit_type', value: property.value, }); }
     });
     let totalMeals = 0;
-    //console.log('updatedMeal', updatedMeal);
     if (updatedMeal.length > 0) {
       updatedMeal.forEach(function (x) { totalMeals += parseInt(x.qty); });
     }
@@ -1133,7 +1113,6 @@ getDiscounts = () => {
       $('[data-updateSub]').removeClass('btn--loading');
       return false; 
     }
-   // console.log('updatedMeal1:', updatedMeal)
     $.each(updatedMeal, function (index, item) {
       for (let i = 1; i <= item.qty; i++) { c.push(item.product.title); }
       const obj1 = {
@@ -1142,7 +1121,6 @@ getDiscounts = () => {
       };
       properties.push(obj1);
     });
-    console.log('updatedMeal2:', updatedMeal) 
     // $.each(updatedMeal, function(index, item){
     //   for (let i = 1; i <= item.qty; i++) { c.push(item.product.title); }
     //   const obj1 = {
@@ -1157,10 +1135,8 @@ getDiscounts = () => {
         name: 'Meal ' + i,
         value: x,
       }
-     // console.log("obj2", obj2)
       properties.push(obj2);
     });
-    //console.log("c",c)
     updateSubscriptionAPI(currentSubscription.next_charge_scheduled_at);
   };
 
@@ -1329,7 +1305,6 @@ getDiscounts = () => {
               }
             });
             var blackOutDays = [];
-            console.log(response,'responseresponse')
             $.each(response.black_out_dates, function (i, e) {
               var a = convertDate(e);
               blackOutDays.push(a);
@@ -1670,12 +1645,6 @@ getDiscounts = () => {
       toastr.error('Please select Cancellation reason.', 'Error');
       return false;
     }
-    //     if (cancelComment == '') {
-    //       isLoading = false;
-    //       $('.cancel_subs').removeClass('btn--loading');
-    //       toastr.error('Please select Cancellation Comment.','Error' );
-    //       return false;
-    //     }
     const config = {
       url: '/subscriptions/' + currentSubscription.id + '/cancel',
       method: 'POST',
@@ -1695,6 +1664,51 @@ getDiscounts = () => {
         isSubscriptionsCanceled = true;
         toastr.success('Your subscription has been canceled Successfully.', 'success');
         setTimeout(function () {
+         
+          //           getSubscriptionOrder();
+          let finalItems=[];
+          $.each(subscriptions,(i,item)=>{
+            if(item.address_id == currentSubscription.address_id && item.id != currentSubscription.id){
+              let obj={
+                "id": item.id
+              };
+              finalItems.push(obj)
+            }
+          })
+          if(finalItems.length > 0){
+            deleteAddons(finalItems)
+          }else{
+            location.reload();
+            $('.cancel_subs').removeClass('btn--loading');
+            moveInPopup(event, null, 2, 1);
+            closeModal();
+          }
+        }, 1500);
+
+      }
+    });
+  };
+
+  function deleteAddons(finalItems){
+    
+    const config = {
+      url: '/addresses/' + currentSubscription.address_id + '/subscriptions-bulk',
+      method: 'DELETE',
+      data: {
+        "subscriptions": finalItems
+      },
+    };
+    $.ajax({
+      url: 'https://api-manager.hulkcode.com/api/recharge/common',
+      type: 'POST',
+      data: JSON.stringify(config),
+      headers: apiHeader,
+      dataType: 'json',
+      processData: false,
+      success: function (getdata) {
+        isSubscriptionsCanceled = true;
+        toastr.success('Your Addons have been canceled Successfully.', 'success');
+        setTimeout(function () {
           $('.cancel_subs').removeClass('btn--loading');
           moveInPopup(event, null, 2, 1);
           closeModal();
@@ -1704,8 +1718,7 @@ getDiscounts = () => {
 
       }
     });
-  };
-
+  }
   // reactivate subscription
   function reactiveSubscription(event, subscriptionId) {
     $(event.currentTarget).closest('.action1').html('<img src="//cdn.shopify.com/s/files/1/1762/2215/t/75/assets/ajax-loader_small.gif?v=4135686330247201572"/>');
@@ -1775,7 +1788,6 @@ getDiscounts = () => {
   };
 
   function updateNextChargeDate(event) {
-    console.log("update next charge date called");
     $('.update_chrageDate').addClass('btn--loading');
 
     setTimeout(function () {
@@ -1908,7 +1920,6 @@ getDiscounts = () => {
           async: false,
           processData: false,
           success: function (getdata) {
-            // console.log(getdata);
           },
         });
       });
