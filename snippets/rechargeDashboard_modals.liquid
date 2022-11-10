@@ -273,6 +273,7 @@
         <div class="modal-body" style="height: 400px;overflow: auto;">
             <div class="subscription-listing subscription-addons-listing-forAdd grid" style="height: 100%;" data-collection-count="{{ collections['our-meals-addons'].products_count | plus:1 }}">
                 {% for product in collections['our-meals-addons'].products %}
+                    {% if product.metafields.subscriptions.shipping_interval_frequency != blank %}
                     <div class="item grid__item medium-up--one-third padding-left-0" 
                     data-product-title="{{product.title}}"
                     data-variant-id="{{product.selected_or_first_available_variant.id}}"
@@ -294,6 +295,7 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>
