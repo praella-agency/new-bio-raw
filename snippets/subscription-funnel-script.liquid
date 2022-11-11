@@ -598,7 +598,7 @@ $('[data-next-btn]').click(function(){
           totalPriceAddons += price * parseInt(qtyVal);
           const properties = {};
           properties.random_number = $('[data-random-number]').attr('data-random-number');
-          properties.product_type="Sub Product";
+          properties._product_type="Sub Product";
           properties['Purchase Type'] = "One Time";
           properties.changed=false;
           if(purchase_type != 'one_time'){
@@ -672,7 +672,7 @@ $('[data-next-btn]').click(function(){
           const properties = {};
 
           properties.random_number = $('[data-random-number]').attr('data-random-number');
-          properties.product_type="Sub Product";
+          properties._product_type="Sub Product";
           properties.changed=false;
           donationsProds.push({
             quantity: qtyVal,
@@ -1768,7 +1768,7 @@ $('[data-next-btn]').click(function(){
       });
     
       properties.random_number = $('[data-random-number]').attr('data-random-number');
-      properties.product_type="Main Product";
+      properties._product_type="Main Product";
       properties.changed=false;
       ShopifyQueue.push({
         quantity: qtyval,

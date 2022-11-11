@@ -25,6 +25,7 @@
   var allCharges = {};
   var subscriptionsProd = [];
   var currentSubscription = {};
+  var isMainProduct=false;
   var currentAddons = [];
   var currentSubscriptionAddress = {};
   var getCurrrntID = null;
@@ -92,6 +93,12 @@
     } else {
       $('[data-cancel-change]').text('cancel my Subscription');
     }
+    isMainProduct=true;
+    $.each(currentSubscription.properties,(i,prop)=>{
+      if(prop.name == '_product_type' && prop.value == 'Sub Product'){
+        isMainProduct=false;
+      }
+    })
     if (eventType == 'cancel') {
       var cancelReason = $('[data-cancellationValue]').val();
       var cancelComment = $('[data-cancellationComment]').val();
@@ -341,7 +348,7 @@
                 }
 
                 if (checkMainProduct == true) {
-                  if (subsLength > 1 && subsLength < parseInt($('[data-collection-count]').attr('data-collection-count'))) {
+                  if (subsLength > 1) {
                     addOnHTML = '<p style="display:flex" ><a href="javascript:void(0);" data-subId="' + subscription.id + '" data-addId="' + subsAddId + '" class="view-addons" onclick="viewAddons(' + subsAddId + ')">View Addons</a> <img class="add-addons add-newAddons" data-addon-btn style="height:24px;margin-left:6px; cursor: pointer;" src="https://cdn.shopify.com/s/files/1/1762/2215/files/add_1.png?v=1617616413" onclick="getCurrentsubscription(event,' + subscription.id + ',' + subsAddId + ')"> </p>'
                   } else if (subsLength == parseInt($('[data-collection-count]').attr('data-collection-count'))) {
                     addOnHTML = '<p style="display:flex" ><a href="javascript:void(0);" data-subId="' + subscription.id + '" data-addId="' + subsAddId + '" class="view-addons" onclick="viewAddons(' + subsAddId + ')">View Addons</a></p>'
@@ -401,7 +408,7 @@
               } else if (subscription.status == 'CANCELLED') {
                 inactiveHTML += checkMainProduct == true
                   ? '<div class="order-item clearfix" data-order-match="' + subsAddId + '">'
-                  : '<div class="order-item clearfix" style="display:none;" data-addon-product data-order-match="' + subsAddId + '">';
+                  : '<div class="order-item clearfix" style="display:none;" data-order-match="' + subsAddId + '">';
 
                 inactiveHTML += checkMainProduct == true
                   ? '<div class="order"><img src="' + img + '"/> <div class="order-image-info"><p class="order-id">' + subscription.id + '</p> <h5>' + prodTitleMain + '</h5> <p>' + price + '/' + subscription.order_interval_unit + '</p><p class="action1"><a href="javascript:void(0);" onclick="reactiveSubscription(event,' + subscription.id + ')">Reactive</a></p></div> </div>'
@@ -533,20 +540,23 @@ getDiscounts = () => {
         if (subscription.address_id == getCurrrntID) {
           $.each(subscription.properties, function (j, prop) {
             if (prop.name === '_product_type' && prop.value === 'Sub Product') {
-              currentAddonsIds.push(subscription.shopify_variant_id);
+              currentAddonsIds.push(subscription);
             }
           });
         }
       });
-
+      $('.subscription-addons-listing-forAdd .item').attr('data-alreadyAddons',"false")
       $('.subscription-addons-listing-forAdd .item').each(function (i, e) {
         var $this = $(this);
         var $thisId = $(this).attr('data-variant-id');
-        $.each(currentAddonsIds, function (i, id) {
-          if (id == $thisId) {
-            $this.find('.product-quantity').css('visibility', 'hidden');
-            $this.find('.individual-option').addClass('active').hide();
-            $this.hide();
+        $.each(currentAddonsIds, function (i, addon) {
+          if (addon.shopify_variant_id == $thisId && addon.status == 'ACTIVE') {
+            $this.attr('data-alreadyAddons',addon.id)
+            $this.attr('data-alreadyAddons-qty',addon.quantity)
+            $this.find('.quantity-number').val(addon.quantity)
+            {% comment %} $this.find('.product-quantity').css('visibility', 'hidden'); {% endcomment %}
+            {% comment %} $this.find('.individual-option').addClass('active').hide(); {% endcomment %}
+            {% comment %} $this.hide(); {% endcomment %}
           } else {
             $this.find('.individual-option').closest('.item');
           }
@@ -832,17 +842,26 @@ getDiscounts = () => {
   function createBulkAddons(event) {
     event.preventDefault();
     var newAddonsIds = [];
+    var updateAddons = [];
     $('[data-Add_Addons]').addClass('btn--loading');
     // var dataAddress = $('[data-Add_Addons]').attr('data-address');   
     $('.subscription-addons-listing-forAdd .item').each(function (i, e) {
       var $this = $(this);
       var varId = $(this).attr('data-variant-id');
       var quantity = $this.find('.quantity-number').val();
-      if (quantity > 0) {
-        var sub = {};
-        sub['id'] = varId;
-        sub['quantity'] = quantity;
-        newAddonsIds.push(sub);
+      if (quantity > 0 ) {
+        if($this.data('alreadyaddons') == 'false' || $this.data('alreadyaddons') == false ){
+          console.dir($this.data('alreadyaddons'),'$this.data')
+          var sub = {};
+          sub['id'] = varId;
+          sub['quantity'] = quantity;
+          newAddonsIds.push(sub);
+        }else{
+          var sub = {};
+          sub['id'] = $this.data('alreadyaddons');
+          sub['quantity'] = quantity;
+          updateAddons.push(sub);
+        }
       };
     });
 
@@ -882,18 +901,54 @@ getDiscounts = () => {
       dataType: 'json',
       processData: false,
       success: function (getdata) {
-        toastr.success('Your Addon Subscription has been created Successfully.', 'Success');
-        setTimeout(function () {
-          $('[data-Add_Addons]').removeClass('btn--loading');
-          closeModal();
-        }, 2000);
-        getSubscriptionOrder();
-        window.location.reload();
+        
+        if(updateAddons.length > 0){
+          updateQtyAddons(updateAddons)
+        }else{
+          toastr.success('Your Addon Subscription has been created Successfully.', 'Success');
+          setTimeout(function () {
+            $('[data-Add_Addons]').removeClass('btn--loading');
+            closeModal();
+          }, 2000);
+          getSubscriptionOrder();
+          window.location.reload();
+        }
         return getdata;
       }
     });
 
   };
+
+  function updateQtyAddons(finalItems){
+    
+    const config = {
+      url: '/addresses/' + currentSubscription.address_id + '/subscriptions-bulk',
+      method: 'put',
+      data: {
+        "subscriptions": finalItems
+      },
+    };
+    $.ajax({
+      url: 'https://api-manager.hulkcode.com/api/recharge/common',
+      type: 'POST',
+      data: JSON.stringify(config),
+      headers: apiHeader,
+      dataType: 'json',
+      processData: false,
+      success: function (getdata) {
+        isSubscriptionsCanceled = true;
+        toastr.success('Your Addons are updated Successfully.', 'success');
+        setTimeout(function () {
+          $('.cancel_subs').removeClass('btn--loading');
+          moveInPopup(event, null, 2, 1);
+          closeModal();
+          //           getSubscriptionOrder();
+          location.reload();
+        }, 1500);
+
+      }
+    });
+  }
 
   function updateQty(event, eventType) {
     event.preventDefault();
@@ -1675,7 +1730,7 @@ getDiscounts = () => {
               finalItems.push(obj)
             }
           })
-          if(finalItems.length > 0){
+          if(finalItems.length > 0 && isMainProduct){
             deleteAddons(finalItems)
           }else{
             location.reload();
@@ -1719,6 +1774,7 @@ getDiscounts = () => {
       }
     });
   }
+  
   // reactivate subscription
   function reactiveSubscription(event, subscriptionId) {
     $(event.currentTarget).closest('.action1').html('<img src="//cdn.shopify.com/s/files/1/1762/2215/t/75/assets/ajax-loader_small.gif?v=4135686330247201572"/>');
