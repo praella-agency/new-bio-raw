@@ -260,7 +260,7 @@
                 }
 
                 $.each(subscriptions, function (i, e) {
-                  if (e.address_id == subsAddId) {
+                  if (e.address_id == subsAddId && e.status == 'ACTIVE') {
                     subsLength = subsLength + 1;
                   }
                 });
@@ -358,7 +358,7 @@
                   activeHTML = '';
                   var a = subscription.price + '00';
                   $.each(subscriptions, function (i, e) {
-                    if (e.address_id == subsAddId) {
+                    if (e.address_id == subsAddId && e.status == 'ACTIVE') {
                       subscriptionPrice+=(e.price*e.quantity)
                     }
                   });
