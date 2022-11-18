@@ -249,8 +249,9 @@
                         discount_code = e.discount_codes[0].code;
                       }
                     }
-                    console.dir(e.id,'eee')
+                    console.dir(e,'e')
                     mainTotal = parseFloat(e.total_price) + parseFloat(mainTotal);
+                    console.dir(mainTotal,'mainTotal')
                   }
                
                 });
@@ -360,6 +361,7 @@
                   $.each(subscriptions, function (i, e) {
                     if (e.address_id == subsAddId && e.status == 'ACTIVE') {
                       subscriptionPrice+=(e.price*e.quantity)
+                      console.dir(subscriptionPrice,'subscriptionPrice')
                     }
                   });
                   subscriptionPrice=subscriptionPrice+'00';
@@ -851,7 +853,6 @@ getDiscounts = () => {
       var quantity = $this.find('.quantity-number').val();
       if (quantity > 0 ) {
         if($this.data('alreadyaddons') == 'false' || $this.data('alreadyaddons') == false ){
-          console.dir($this.data('alreadyaddons'),'$this.data')
           var sub = {};
           sub['id'] = varId;
           sub['quantity'] = quantity;
@@ -877,7 +878,7 @@ getDiscounts = () => {
     $.each(newAddonsIds, function (i, sub) {
       const createSub = {};
       createSub['charge_interval_frequency'] = currentSubscription.charge_interval_frequency;
-      createSub['next_charge_scheduled_at'] = currentSubscription.next_charge_scheduled_at;
+      createSub['next_charge_scheduled_at'] = moment(currentSubscription.next_charge_scheduled_at).format('YYYY-MM-DD');
       createSub['order_interval_frequency'] = currentSubscription.order_interval_frequency;
       createSub['order_interval_unit'] = currentSubscription.order_interval_unit;
       createSub['quantity'] = sub.quantity;
@@ -909,9 +910,8 @@ getDiscounts = () => {
           setTimeout(function () {
             $('[data-Add_Addons]').removeClass('btn--loading');
             closeModal();
-          }, 2000);
-          getSubscriptionOrder();
-          window.location.reload();
+            window.location.reload();
+          }, 3000);
         }
         return getdata;
       }
@@ -944,7 +944,7 @@ getDiscounts = () => {
           closeModal();
           //           getSubscriptionOrder();
           location.reload();
-        }, 1500);
+        }, 3000);
 
       }
     });
